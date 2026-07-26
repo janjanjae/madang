@@ -1,0 +1,12 @@
+{
+  "name": "pokemon-agent-team",
+  "owner": { "name": "janjanjae" },
+  "plugins": [
+    {
+      "name": "pokemon-team",
+      "source": "./claude",
+      "description": "팀장 1 + 포켓몬 팀원 N 멀티 세션 개발 팀 — 페르소나 에이전트(파이리·메타몽·꼬부기·로토무도감), 팀장 커맨드(kickoff, save-progress, jira-*, skill-audit), 세션 시작 스킬",
+      "version": "1.0.0"
+    }
+  ]
+}

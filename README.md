@@ -22,10 +22,21 @@ Claude Code(+ GitHub Copilot CLI)로 **"팀장 1 + 구현 팀원 N"** 멀티 세
 
 ## 설치
 
+**방법 1 — 심링크 (주 사용 기기, 수정하며 쓸 때)**
+
 ```bash
 git clone <this-repo> && cd pokemon-agent-team
 ./install.sh   # ~/.claude, ~/.copilot 에 심링크 생성 (기존 파일은 .bak 백업)
 ```
+
+**방법 2 — 플러그인 (다른 기기·클라우드 세션, 읽기 전용 사용)**
+
+```
+/plugin marketplace add janjanjae/pokemon-agent-team
+/plugin install pokemon-team
+```
+
+플러그인 설치 시 커맨드는 `/pokemon-team:kickoff`처럼 네임스페이스가 붙는다. 두 방법 병행 가능 — 같은 기기에선 심링크(로컬 파일)가 우선한다.
 
 이후 `~/.claude/...`를 편집하면 그대로 이 레포의 워킹트리 변경이 된다 — 커밋만 하면 팀 시스템이 버전 관리된다.
 
