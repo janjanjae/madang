@@ -65,4 +65,4 @@ disable-model-invocation: true
 
 ## 팀원 참조
 
-팀원 정의: `~/.claude/agents/{pairi,metamong}.md` (subagent/teammate 공용). 명부와 전문 분야는 `roster.md` 참조.
+팀원 정의: `~/.claude/agents/{pairi,metamong,kkobugi,rotomdex}.md` (subagent/teammate 공용). 명부와 전문 분야는 `roster.md` 참조.

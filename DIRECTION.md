@@ -1,0 +1,38 @@
+# 방향성 (DIRECTION) — 포켓몬 에이전트 팀 시스템
+
+> **이 레포(팀 시스템)의** 방향만 담는다. 사용자 개인 AI 환경 전체의 지도·인벤토리는 `~/.claude/DIRECTION.md`·`~/.claude/REGISTRY.md`가 관장 (2026-07-26 스코프 분리 — 이 레포는 "서비스 기획·설계·개발용 에이전트 팀 시스템"이라는 제품이다).
+> 갱신 주체: 팀장 성찰 루틴 (+ 큰 방향 변경은 사용자와 합의 후).
+
+## 한 줄 비전
+
+**어떤 프로젝트·어떤 프로바이더에서든 그대로 동작하는 이식 가능한 에이전트 팀** — 페르소나·규칙·상태가 전부 파일 기반이라, 프로젝트를 갈아타면 그 프로젝트의 특화 스킬만 오버레이로 얹으면 된다.
+
+## 설계 원칙 (이 시스템이 지키는 것)
+
+1. **세션은 소모품, 상태는 파일** — 정체성(agents)·이력(reports)·상태(TASKS/PROGRESS)·코드(git) 4계층. 어떤 세션이 죽어도 파일로 복원.
+2. **프로젝트 불가지(agnostic)** — 베이스 문서에 특정 회사/프로젝트 컨텍스트를 넣지 않는다 (현재 jira-refine/capture Config 블록이 위반 상태 — 로드맵 E-6). 프로젝트 특화는 오버레이의 **애든덤**(`{프로젝트}/.claude/team/agents/{이름}.md`, 기력회복 시 겹쳐 적용·델타만)으로 — 통째 오버라이드 금지 (2026-07-26 채택).
+3. **훅이 강제하고, 스킬이 안내한다** — "반드시" 규칙은 산문에서 훅으로 옮겨간다 (로드맵 E-4).
+4. **명시 호출 우선** — 페르소나·허브 문서 커맨드는 `/이름` + `disable-model-invocation`.
+5. **변경에는 이력** — 날짜+변경+사유 (ways-of-working 표준). 패치 노트 3개 누적 = 리라이트 신호.
+6. **상류 추종** — 활발한 상류(superpowers 등)가 있는 스킬은 포크 동결하지 않는다. 고유 자산만 직접 유지.
+
+## 로드맵 (2026-07-26 사용자 승인 — 레포 소관분)
+
+> 상세 근거: `plans/skill-system-audit-2026-07-25.md` E절. 완료 시 체크 + 커밋 SHA 기록.
+
+- [ ] **1차** E-2 플러그인 마켓플레이스화 — `.claude-plugin/marketplace.json`, 심링크와 병행. (클라우드 세션 호환 E-9는 `/schedule` 실사용 시작 시에만 유효한 부수 효과 — 현재 미사용)
+- [ ] **2차** E-3 superpowers 도입 검토 — debugging/planning/incremental 상류 diff 후 대체 판단, doubt/source 유지, verification-before-completion 갭 도입
+- [ ] **3차** E-4 훅 3건 — 커밋 게이트(PreToolUse), 팀원 허브 문서 수정 차단, 로토무도감 FileChanged 감시
+- [ ] **4차** E-1 커맨드→스킬 디렉토리 마이그레이션 · E-5 에이전트 frontmatter 구조화(`skills`·`memory`) + 꼬부기 주특기 섹션 · E-6 jira 커맨드 Config 외부화(공개 sanitize 겸) · E-7 save-progress 문구 현행화
+
+## 문서 지도 (레포 내부)
+
+| 문서 | 관장 |
+|---|---|
+| **DIRECTION.md** (이 문서) | 팀 시스템 비전·설계 원칙·로드맵 |
+| README.md | 소개 + 설치 (신규 진입점) |
+| claude/skills/teamleader/ways-of-working.md | 팀 운영 규칙 + 변경 이력 |
+| claude/skills/teamleader/roster.md · model-guide.md · skill-guide.md | 팀원 명부 · 모델 배분 · 스킬 매핑 |
+| plans/ | 감사 리포트·제안서 (시점 스냅샷 — 결론은 이 문서로 승격) |
+
+인벤토리 원장(REGISTRY)은 사용자 개인 환경 소관이라 이 레포에 없다 — `~/.claude/REGISTRY.md` 참조 (`/skill-audit`이 갱신).

@@ -1,3 +1,7 @@
+---
+description: 스토리 description 구체화 + 크기 판단·분할 (착수 전) / 구현 내용 기록 + 상태 전환 (완료 후, PR 머지 트리거). Jira 쓰기 전담. 팀장 전용.
+argument-hint: "[done] PROJ-{n}"
+---
 # jira-refine
 
 담당 스토리의 description 구체화(배경·구현 범위·수락 조건) + **크기 판단 및 스토리 분할**.

@@ -1,3 +1,6 @@
+---
+description: PROGRESS.md와 TASKS.md 기반 프로젝트 전체 상태 브리핑 (읽기 전용). 사용자가 진행 상황·상태를 물을 때 사용.
+---
 .claude/PROGRESS.md와 .claude/TASKS.md (있으면)를 읽고 현재 프로젝트 전체 상태를 보여줘라.
 
 출력 형식:

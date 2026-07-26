@@ -26,7 +26,7 @@ for d in teamleader pairi metamong kkobugi rotomdex; do
 done
 
 # 개인 커맨드
-for f in kickoff progress-check jira-capture jira-refine jira-story-cache; do
+for f in kickoff save-progress progress-check jira-capture jira-refine jira-story-cache skill-audit; do
   link "$REPO/claude/commands/$f.md" "$HOME/.claude/commands/$f.md"
 done
 

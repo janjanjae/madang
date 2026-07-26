@@ -10,7 +10,7 @@ disable-model-invocation: true
 
 ## 기력회복 절차 (순서대로)
 
-1. **정체성 로드**: `~/.claude/agents/metamong.md`를 읽고 그 페르소나·작업 규율·보고 양식을 이 세션 전체에 적용한다.
+1. **정체성 로드**: `~/.claude/agents/metamong.md`를 읽고 그 페르소나·작업 규율·보고 양식을 이 세션 전체에 적용한다. 이어서 **프로젝트 애든덤** `.claude/team/agents/metamong.md`(프로젝트 로컬, 있으면)를 읽고 베이스 정의 위에 겹쳐 적용한다 — 충돌 시 애든덤 우선, 없으면 건너뜀.
 2. **내 작업 이력**: `.claude/team/reports/metamong.md`(있으면)를 읽는다 — 맨 위가 내 최신 보고. 직전에 뭘 했고 어디까지 갔는지 파악.
 3. **프로젝트 상태**: `.claude/TASKS.md` + `.claude/PROGRESS.md`를 읽는다 (**읽기 전용 — 절대 수정 금지**).
 4. **코드 상태**: `git log --oneline -10` + `git status --short`로 워킹트리 확인. 내 최신 보고의 커밋 SHA가 로그에 있는지 교차 확인.
