@@ -1,6 +1,6 @@
 ---
 description: 스토리 description 구체화 + 크기 판단·분할 (착수 전) / 구현 내용 기록 + 상태 전환 (완료 후, PR 머지 트리거). Jira 쓰기 전담. 팀장 전용.
-argument-hint: "[done] PROJ-{n}"
+argument-hint: "[done] {KEY}-{n}"
 ---
 # jira-refine
 
@@ -22,25 +22,10 @@ argument-hint: "[done] PROJ-{n}"
 
 ---
 
-## 프로젝트 Config (현재: {app-repo} / BMAD)
+## 프로젝트 Config
 
-- **Atlassian 도메인**: `{yoursite}.atlassian.net`
-- **Cloud ID**: `55b8d0de-f240-414a-8068-a38baa038d70`
-- **프로젝트 Key**: `BMAD`
-
-### 제품 개요
-
-BMAD 웹 포털은 비개발자(기획자·PM·아키텍트)가 IDE 없이 웹에서 즉시 사용할 수 있는 AI 기반 아키텍처 설계 도구.  
-프로젝트 초기(분석·설계) 단계의 AI 도입 진입 장벽을 해소하는 Self-Service 플랫폼.
-
-**핵심 기능:**
-- **핵심 기능 1 – 분석·설계 AI 지원**: Mind Mapping·아이디어 구체화·요구사항 문서화(Confluence 자동 생성), 기존 시스템 분석 및 ARB 체크리스트 기반 아키텍처 초안 설계
-- **핵심 기능 2 – ARB 지원**: 전사 아키텍처 표준에 따른 Self-Service 심의 자료 생성, ARB 담당자 자동 알림(Jira 등록 + Slack)
-
-**주요 통합**: EntraID 인증, MCP Hub(Jira·Confluence·GitHub·M365 Agent 연계), Container 기반 개인 격리 환경, Bridge Agent 패턴
-
-> ⚠️ **MCP 연결 전제조건**: `{yoursite}.atlassian.net` 접근 권한 필요.  
-> 연결 안 된 경우: Claude Code에서 Atlassian MCP 재인증 → {atlassian-mcp} 선택.
+**실행 첫 단계: 현재 프로젝트의 `.claude/team/jira-config.md`를 읽는다** — 도메인·Cloud ID·프로젝트 Key·보드 ID·제품 개요·MCP/acli 전제가 거기 있다.
+파일이 없으면 진행을 멈추고 사용자에게 안내한다: "이 프로젝트에는 jira-config.md가 없습니다 — `.claude/team/jira-config.md`를 만들어야 Jira 커맨드를 쓸 수 있어요" (템플릿: 다른 프로젝트 것 참조).
 
 ---
 
@@ -269,4 +254,4 @@ ADF 구조 예시:
 
 ## 다른 프로젝트로 전환 시
 
-상단 **프로젝트 Config** 블록의 도메인·Cloud ID·프로젝트 Key·제품 개요만 수정하면 재사용 가능.
+그 프로젝트에 `.claude/team/jira-config.md`만 새로 작성하면 재사용 가능 (커맨드 수정 불필요).

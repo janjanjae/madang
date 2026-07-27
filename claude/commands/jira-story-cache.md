@@ -1,6 +1,6 @@
 ---
 description: 착수할 스토리를 Jira에서 acli로 1회 조회해 .claude/stories/ 로컬 캐시 생성 (읽기 전담, Jira 쓰기 금지). 팀장 전용.
-argument-hint: "PROJ-{n}[, PROJ-{m}...] | 스프린트"
+argument-hint: "{KEY}-{n}[, ...] | 스프린트"
 ---
 # jira-story-cache
 
@@ -15,17 +15,12 @@ argument-hint: "PROJ-{n}[, PROJ-{m}...] | 스프린트"
 
 ---
 
-## 프로젝트 Config (현재: {app-repo} / BMAD)
+## 프로젝트 Config
 
-- **Atlassian 도메인**: `{yoursite}.atlassian.net`
-- **프로젝트 Key**: `BMAD`
-- **보드 ID**: `4120`
-- **CLI**: `acli` (`/opt/homebrew/bin/acli`) — MCP 대신 CLI 사용 (토큰 절약)
-- **캐시 경로**: `{프로젝트 루트}/.claude/stories/`
+**실행 첫 단계: 현재 프로젝트의 `.claude/team/jira-config.md`를 읽는다** — 도메인·Cloud ID·프로젝트 Key·보드 ID·제품 개요·MCP/acli 전제가 거기 있다.
+파일이 없으면 진행을 멈추고 사용자에게 안내한다: "이 프로젝트에는 jira-config.md가 없습니다 — `.claude/team/jira-config.md`를 만들어야 Jira 커맨드를 쓸 수 있어요" (템플릿: 다른 프로젝트 것 참조).
 
-> 레포 공유 스킬 `jira-story-fetch`({app-repo}/.claude/skills)와 별개의 개인 커맨드.
-> 그쪽은 팀 동료용(`{app-dir}/docs/stories/`에 생성 + 검토 질문 포함)이고,
-> 이 커맨드는 조회→캐시만 한다. 검토·구체화는 `/jira-refine`에서.
+- **캐시 경로 규칙(프로젝트 불문)**: `{프로젝트 루트}/.claude/stories/`
 
 ---
 
@@ -41,14 +36,14 @@ argument-hint: "PROJ-{n}[, PROJ-{m}...] | 스프린트"
 특정 이슈:
 
 ```bash
-acli jira workitem view PROJ-{n} --json --fields 'key,summary,status,priority,description,parent,issuelinks,sprint,assignee'
+acli jira workitem view {Key}-{n} --json --fields 'key,summary,status,priority,description,parent,issuelinks,sprint,assignee'
 ```
 
 스프린트 전체:
 
 ```bash
 acli jira workitem search \
-  --jql 'project = BMAD AND sprint in openSprints() AND assignee = currentUser() AND status in ("To Do", "In Progress") ORDER BY priority DESC' \
+  --jql 'project = {Key} AND sprint in openSprints() AND assignee = currentUser() AND status in ("To Do", "In Progress") ORDER BY priority DESC' \
   --json --fields 'key,summary,status,priority,description,parent,sprint'
 ```
 
@@ -58,15 +53,15 @@ acli jira workitem search \
 mkdir -p .claude/stories/
 ```
 
-파일명: `PROJ-{n}.md` — **재조회 시 같은 파일을 덮어쓴다** (캐시이므로 파일명에 슬러그·스프린트 등 가변 요소를 넣지 않는다).
+파일명: `{Key}-{n}.md` — **재조회 시 같은 파일을 덮어쓴다** (캐시이므로 파일명에 슬러그·스프린트 등 가변 요소를 넣지 않는다).
 
 템플릿:
 
 ```markdown
-# PROJ-{n}: {summary}
+# {Key}-{n}: {summary}
 
-> Jira 캐시 — 직접 수정 금지, 갱신은 `/jira-story-cache PROJ-{n}` 재실행
-> 캐시 생성: {YYYY-MM-DD} · 원본: https://{yoursite}.atlassian.net/browse/PROJ-{n}
+> Jira 캐시 — 직접 수정 금지, 갱신은 `/jira-story-cache {Key}-{n}` 재실행
+> 캐시 생성: {YYYY-MM-DD} · 원본: https://{config의 도메인}/browse/{프로젝트 Key}-{n}
 
 **Status**: {status} · **Priority**: {priority} · **Sprint**: {sprint}
 **Epic/상위**: {parent 키+제목, 없으면 "-"} · **링크**: {issuelinks 요약, 없으면 "-"}
@@ -100,4 +95,4 @@ mkdir -p .claude/stories/
 
 ## 다른 프로젝트로 전환 시
 
-상단 **프로젝트 Config** 블록(도메인·프로젝트 Key·보드 ID·캐시 경로)만 수정하면 재사용 가능.
+그 프로젝트에 `.claude/team/jira-config.md`만 새로 작성하면 재사용 가능 (커맨드 수정 불필요).

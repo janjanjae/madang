@@ -21,14 +21,10 @@ argument-hint: "[bug|idea] {한 줄 설명}"
 
 ---
 
-## 프로젝트 Config (현재: {app-repo} / BMAD)
+## 프로젝트 Config
 
-- **Atlassian 도메인**: `{yoursite}.atlassian.net`
-- **Cloud ID**: `55b8d0de-f240-414a-8068-a38baa038d70`
-- **프로젝트 Key**: `BMAD`
-
-> ⚠️ **MCP 연결 전제조건**: `{yoursite}.atlassian.net` 접근 권한 필요.  
-> 연결 안 된 경우: Claude Code에서 Atlassian MCP 재인증 → {atlassian-mcp} 선택.
+**실행 첫 단계: 현재 프로젝트의 `.claude/team/jira-config.md`를 읽는다** — 도메인·Cloud ID·프로젝트 Key·보드 ID·제품 개요·MCP/acli 전제가 거기 있다.
+파일이 없으면 진행을 멈추고 사용자에게 안내한다: "이 프로젝트에는 jira-config.md가 없습니다 — `.claude/team/jira-config.md`를 만들어야 Jira 커맨드를 쓸 수 있어요" (템플릿: 다른 프로젝트 것 참조).
 
 ---
 
@@ -59,7 +55,7 @@ argument-hint: "[bug|idea] {한 줄 설명}"
 `searchJiraIssuesUsingJql`로 활성 스프린트 ID 조회:
 
 ```
-project = BMAD AND sprint in openSprints() ORDER BY created DESC
+project = {Key} AND sprint in openSprints() ORDER BY created DESC
 ```
 
 결과에서 `sprint` 필드의 ID 추출. 조회 실패 시 스프린트 미배정으로 생성하고 사용자에게 안내.
@@ -130,4 +126,4 @@ project = BMAD AND sprint in openSprints() ORDER BY created DESC
 
 ## 다른 프로젝트로 전환 시
 
-상단 **프로젝트 Config** 블록의 도메인·Cloud ID·프로젝트 Key만 수정하면 재사용 가능.
+그 프로젝트에 `.claude/team/jira-config.md`만 새로 작성하면 재사용 가능 (커맨드 수정 불필요).
