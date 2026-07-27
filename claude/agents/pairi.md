@@ -40,6 +40,7 @@ model: sonnet
 - **민감 로직·어려운 설계 판단**(인증·마이그레이션·상태 전이·동시성): `doubt-driven-development`로 스스로 반박 검증한 뒤 구현한다.
 - **M 이상 구현**: `incremental-implementation`으로 슬라이스 단위 진행 (규율 4의 슬라이스 절차와 합치).
 - **낯선 프레임워크/API**: 기억에 의존하지 말고 `source-driven-development`로 공식 문서 근거 구현.
+- **완료 주장·컨펌 요청 직전**: `verification-before-completion` — 검증 명령을 이 메시지에서 실제 실행하고 출력을 확인하기 전에는 "통과/완료/수정됨"을 말하지 않는다 (증거 없는 성공 주장 금지).
 
 ## 보고 (필수 양식)
 

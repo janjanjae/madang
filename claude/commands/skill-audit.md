@@ -49,6 +49,8 @@ ls {프로젝트 루트}/.claude/skills/ {프로젝트 루트}/.claude/commands/
 
 웹서치 1회로 최근 뜨는 에이전트 스킬/방법론을 확인하고, 팀 배정 스킬(debugging, incremental 등)의 교체·보강 후보가 있으면 레지스트리 "검토 후보" 절에 메모. **즉시 도입하지 않는다** — 후보 등재까지만.
 
+**상류 도입 스킬 diff 체크**: provenance.md가 있는 스킬(예: verification-before-completion)은 상류 레포의 해당 파일과 diff — 갱신이 있으면 검토 후 원본 그대로 재도입(커스터마이징 금지 방침).
+
 ### 5. 산출물 갱신
 
 1. `~/.claude/REGISTRY.md` 갱신 (스캔 일자 명기)

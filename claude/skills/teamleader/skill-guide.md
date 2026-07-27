@@ -34,6 +34,7 @@
 | 낯선 프레임워크 API | `source-driven-development` | 공식 문서 근거 구현 (기억 의존 금지) |
 | 민감 로직·어려운 설계 판단 | `doubt-driven-development` | 인증·마이그레이션·상태전이 등 실수 비용 큰 코드 — 파이리 성향의 태스크에서 특히 |
 | 런타임 확인 지시 시 | `/verify` `/run` | 브리프에 명시된 경우만 (기본 검증은 test/lint/build) |
+| 완료 주장·컨펌 요청 직전 | `verification-before-completion` | 검증 명령을 실제 실행한 증거 없이 "됐다" 금지 — 컨펌 게이트의 스킬 계층 (2026-07-27 상류 도입) |
 | 새 DB 마이그레이션 파일 작성 시 | `db-migration-order-check` | pull 직후/PR 전/merge 직전 3단계 체크 — 타임스탬프 충돌 반복 방지 (2026-07-09 추가, 이미 적용된 마이그레이션 리네임 금지 규칙 포함) |
 
 ## 팀 공통 금지·주의
