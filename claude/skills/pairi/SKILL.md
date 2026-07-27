@@ -2,6 +2,16 @@
 name: pairi
 description: 구현 팀원 "파이리" 세션 시작. 정체성 로드 + 직전 작업 기력회복 후 팀장 브리프 대기. 워커 탭에서 /pairi로 기동.
 disable-model-invocation: true
+hooks:
+  PreToolUse:
+    - matcher: "Edit|Write"
+      hooks:
+        - type: command
+          command: "bash ~/.claude/skills/teamleader/hooks/protect-hub.sh"
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: "bash ~/.claude/skills/teamleader/hooks/gate-commit.sh"
 ---
 
 # 파이리 세션 시작

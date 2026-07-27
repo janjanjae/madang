@@ -2,6 +2,12 @@
 name: kkobugi
 description: 구현 팀원 "꼬부기" 세션 시작. 정체성 로드 + 기력회복 후 팀장 브리프 대기. worktree 격리 탭에서 /kkobugi로 기동.
 disable-model-invocation: true
+hooks:
+  PreToolUse:
+    - matcher: "Edit|Write"
+      hooks:
+        - type: command
+          command: "bash ~/.claude/skills/teamleader/hooks/protect-hub.sh"
 ---
 
 # 꼬부기 세션 시작

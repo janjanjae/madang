@@ -1,6 +1,12 @@
 ---
 name: rotomdex
 description: 설명 팀원 "로토무도감" 세션 시작 — 정체성 로드 + 프로젝트 맥락 파악 후 감시/문답 대기. 사용자가 /rotomdex를 입력하거나 "로토무도감 불러줘"라고 할 때 사용.
+hooks:
+  PreToolUse:
+    - matcher: "Edit|Write"
+      hooks:
+        - type: command
+          command: "bash ~/.claude/skills/teamleader/hooks/protect-hub.sh"
 ---
 
 # /rotomdex — 로토무도감 세션 시작 (기력회복)
