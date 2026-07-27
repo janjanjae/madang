@@ -1,4 +1,5 @@
 ---
+name: skill-audit
 description: 스킬·커맨드·에이전트 인벤토리 전수 스캔 → REGISTRY.md 대조·현행화 → 유지/폐기 판정. 월 1회 또는 스프린트 종료 성찰 루틴에서 실행. 팀장 전용.
 ---
 # skill-audit

@@ -1,4 +1,5 @@
 ---
+name: jira-refine
 description: 스토리 description 구체화 + 크기 판단·분할 (착수 전) / 구현 내용 기록 + 상태 전환 (완료 후, PR 머지 트리거). Jira 쓰기 전담. 팀장 전용.
 argument-hint: "[done] {KEY}-{n}"
 ---
@@ -77,32 +78,7 @@ argument-hint: "[done] {KEY}-{n}"
 
 > ⚠️ `contentFormat: "markdown"` + `- [ ]` 는 Jira에서 체크박스로 렌더링되지 않음. ADF만 가능.
 
-ADF 구조 예시:
-
-```json
-{
-  "version": 1,
-  "type": "doc",
-  "content": [
-    {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "배경"}]},
-    {"type": "paragraph", "content": [{"type": "text", "text": "{배경 내용}"}]},
-    {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "구현 범위"}]},
-    {"type": "bulletList", "content": [
-      {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "포함: {내용}"}]}]},
-      {"type": "listItem", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "제외: {내용}"}]}]}
-    ]},
-    {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "수락 조건"}]},
-    {"type": "taskList", "attrs": {"localId": "{issueKey}-tasklist"},
-      "content": [
-        {"type": "taskItem", "attrs": {"localId": "{issueKey}-task-1", "state": "TODO"},
-          "content": [{"type": "text", "text": "{조건 1}"}]},
-        {"type": "taskItem", "attrs": {"localId": "{issueKey}-task-2", "state": "TODO"},
-          "content": [{"type": "text", "text": "{조건 2}"}]}
-      ]
-    }
-  ]
-}
-```
+ADF 구조 예시는 이 스킬 폴더의 `adf-example.md` 참조 (heading·bulletList·taskList 전체 구조).
 
 ### 4. 크기 판단 → 스토리 분할
 

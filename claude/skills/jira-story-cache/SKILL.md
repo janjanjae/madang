@@ -1,4 +1,5 @@
 ---
+name: jira-story-cache
 description: 착수할 스토리를 Jira에서 acli로 1회 조회해 .claude/stories/ 로컬 캐시 생성 (읽기 전담, Jira 쓰기 금지). 팀장 전용.
 argument-hint: "{KEY}-{n}[, ...] | 스프린트"
 ---

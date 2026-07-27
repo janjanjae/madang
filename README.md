@@ -46,8 +46,7 @@ git clone <this-repo> && cd pokemon-agent-team
 DIRECTION.md   # 팀 시스템의 방향 (비전·설계 원칙·로드맵) — 여기부터 읽기
 claude/
   agents/      # 팀원 페르소나 (pairi, metamong, kkobugi, rotomdex)
-  skills/      # 세션 시작 스킬 + teamleader (roster/ways-of-working/model-guide/skill-guide)
-  commands/    # 팀장 개인 커맨드 (kickoff, save-progress, progress-check, jira-*, skill-audit)
+  skills/      # 페르소나 세션 스킬 + teamleader + 팀장 커맨드 스킬 (kickoff, save-progress, progress-check, jira-*, skill-audit)
 copilot/
   skills/sync_claude_team/   # Claude → Copilot 단방향 설정 동기화 스킬
 install.sh

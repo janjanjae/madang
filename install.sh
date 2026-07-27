@@ -20,14 +20,9 @@ for f in pairi metamong kkobugi rotomdex; do
   link "$REPO/claude/agents/$f.md" "$HOME/.claude/agents/$f.md"
 done
 
-# 스킬 (디렉토리 단위 링크)
-for d in teamleader pairi metamong kkobugi rotomdex; do
+# 스킬 (디렉토리 단위 링크) — 페르소나 + 팀장 커맨드(2026-07-27 E-1: commands/*.md → skills/*/SKILL.md 통합)
+for d in teamleader pairi metamong kkobugi rotomdex kickoff save-progress progress-check jira-capture jira-refine jira-story-cache skill-audit; do
   link "$REPO/claude/skills/$d" "$HOME/.claude/skills/$d"
-done
-
-# 개인 커맨드
-for f in kickoff save-progress progress-check jira-capture jira-refine jira-story-cache skill-audit; do
-  link "$REPO/claude/commands/$f.md" "$HOME/.claude/commands/$f.md"
 done
 
 # Copilot 동기화 스킬 (파일 단위 — .snapshots/ 는 로컬 상태라 레포에 포함하지 않음)

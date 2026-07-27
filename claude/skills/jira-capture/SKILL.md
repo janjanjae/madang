@@ -1,4 +1,5 @@
 ---
+name: jira-capture
 description: 개발 중 발견한 버그(스프린트)나 개선 아이디어(백로그)를 Jira에 빠르게 등록. 팀장 전용.
 argument-hint: "[bug|idea] {한 줄 설명}"
 ---

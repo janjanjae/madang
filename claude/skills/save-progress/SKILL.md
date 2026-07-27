@@ -1,4 +1,5 @@
 ---
+name: save-progress
 description: 현재 세션 작업 내용으로 .claude/PROGRESS.md 현행화 (+ TASKS.md 체크박스). 팀장 전용 (허브 문서 작성).
 disable-model-invocation: true
 ---

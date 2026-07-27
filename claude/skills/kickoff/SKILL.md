@@ -1,4 +1,5 @@
 ---
+name: kickoff
 description: 새 스토리/에픽 착수 오케스트레이션 — Phase 설계 + 팀원 브리프 초안 + PROGRESS.md 초기화. 팀장 전용 (허브 문서 작성).
 argument-hint: "[PROJ-이슈번호 | 작업 설명]"
 disable-model-invocation: true
