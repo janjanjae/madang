@@ -50,9 +50,21 @@ disable-model-invocation: true
 
 > 팀 워크플로우 없이 혼자 진행하는 예외 세션에서는 브리프 초안을 그 세션의 작업 계획으로 그대로 쓰면 된다.
 
-## Step 6: PROGRESS.md 초기화
+## Step 6: 프로젝트 구조 스캐폴딩 + PROGRESS.md 초기화
 
-`.claude/PROGRESS.md`를 이 작업 기준으로 초기화하라. TASKS.md 태스크 목록도 함께 설계(`planning-and-task-breakdown`).
+**팀 구조가 없는 프로젝트라면 먼저 폴더를 세운다** (이미 있으면 무해하게 통과):
+
+```bash
+mkdir -p .claude/team/briefs .claude/team/confirm .claude/team/reports
+```
+
+- `briefs/` — 팀장이 워커에게 배분하는 브리프 파일
+- `confirm/` — 컨펌 신호(request/reply) 교환
+- `reports/` — 팀원별 보고 파일 (팀원 세션이 기력회복 시 읽는 자리)
+
+> 애든덤(`.claude/team/agents/`)·프로젝트 Jira 설정(`.claude/team/jira-config.md`)은 필요 시점에 생성 — 부트스트랩 단계에서 강제하지 않는다.
+
+그다음 `.claude/PROGRESS.md`를 이 작업 기준으로 초기화하라. TASKS.md 태스크 목록도 함께 설계(`planning-and-task-breakdown`).
 
 ## 출력 형식
 

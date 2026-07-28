@@ -24,7 +24,8 @@ OpenCode에는 `use-glm`/`use-claude` 같은 셸 함수 전환 개념이 없다.
 | 모델 | ID | 컨텍스트 | 상대비용(API가 기준, in/out $/1M) | 특성 |
 |---|---|---|---|---|
 | Fable 5 | `claude-fable-5` | 1M | $10/$50 | 최상위. 최장기 자율 에이전틱·최고난도 추론. 턴이 길어짐(수 분) |
-| Opus 4.8 | `claude-opus-4-8` | 1M | $5/$25 | Opus 티어 최고. 장기 에이전틱·지식노동·코드리뷰/디버깅 강함 |
+| **Opus 5** | `claude-opus-5` | 1M | $5/$25 | **2026-07-24 출시, Opus 4.8 대체.** Claude Max 신규 기본 모델. frontier급 에이전틱 코딩·컴퓨터유즈. **가격 동결(4.8과 동가)이라 무거운 백엔드/설계 워커는 4.8 대신 이걸로 격상**(같은 값에 상위 성능 = 순이득) |
+| Opus 4.8 | `claude-opus-4-8` | 1M | $5/$25 | 이전 세대 Opus. Opus 5로 마이그레이션 권장 |
 | **Sonnet 5** | `claude-sonnet-5` | 1M | $3/$15 (2026-08-31까지 인트로가 $2/$10) | **2026-07 출시, Sonnet 4.6 대체.** 코딩·에이전틱에서 "near-Opus quality" — Sonnet 티어 최초로 `xhigh` effort 지원(Opus 4.7/4.8과 동급 effort 레인지: low/medium/high/xhigh/max). 어댑티브 thinking 기본 on. 새 토크나이저로 동일 텍스트 기준 토큰 수 Sonnet 4.6 대비 ~30% 증가(가격은 인하) — 컨텍스트/`max_tokens` 여유 재확인 권장 |
 | Sonnet 4.6 | `claude-sonnet-4-6` | 1M | $3/$15 | 이전 세대. Sonnet 5로 마이그레이션 권장 |
 | Haiku 4.5 | `claude-haiku-4-5` | 200K | $1/$5 | 최속·최저가. 단순·반복 작업 |
