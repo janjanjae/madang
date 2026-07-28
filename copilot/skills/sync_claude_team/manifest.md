@@ -18,12 +18,14 @@
 | 9 | `~/.claude/skills/pairi/SKILL.md` | `~/.copilot/skills/pairi/SKILL.md` | `.snapshots/skills/pairi/SKILL.md` | 재수화 절차(정체성 로드→보고이력→프로젝트상태→코드상태) 순서·내용이 바뀌면 그대로 반영. 파일 경로 표기만 Copilot 경로(`~/.copilot/agents/pairi.agent.md`)로 유지. |
 | 10 | `~/.claude/skills/metamong/SKILL.md` | `~/.copilot/skills/metamong/SKILL.md` | `.snapshots/skills/metamong/SKILL.md` | 상동 |
 | 11 | `~/.claude/skills/kkobugi/SKILL.md` | `~/.copilot/skills/kkobugi/SKILL.md` | `.snapshots/skills/kkobugi/SKILL.md` | 상동. worktree 안내의 특정 프로젝트명은 일반화 유지. |
-| 12 | `~/.claude/commands/jira-capture.md` | `~/.copilot/skills/jira-capture/SKILL.md` | `.snapshots/commands/jira-capture.md` | 커맨드→스킬 형식 변환(frontmatter name/description 추가). acli/MCP 호출부는 Copilot에서 쓸 수 있는 것만(Atlassian MCP 사이트 분리 미작동 이슈는 copilot-instructions.md 참고 — {atlassian-mcp} 단일 인증 전제로 반영). |
-| 13 | `~/.claude/commands/jira-refine.md` | `~/.copilot/skills/jira-refine/SKILL.md` | `.snapshots/commands/jira-refine.md` | 상동. 스토리 분할 판단 기준(400줄/2일/BE·FE)은 정책이므로 그대로 반영. |
-| 14 | `~/.claude/commands/jira-story-cache.md` | `~/.copilot/skills/jira-story-cache/SKILL.md` | `.snapshots/commands/jira-story-cache.md` | **2026-07-13 신설 쌍** — Copilot 대상 파일 최초 생성 필요. 캐시 경로(`.claude/stories/`)는 도구 무관 공용이므로 그대로 유지(클로드·코파일럿 팀장이 같은 캐시를 읽는다). |
-| 15 | `~/.claude/commands/kickoff.md` | `~/.copilot/skills/kickoff/SKILL.md` | `.snapshots/commands/kickoff.md` | 커맨드→스킬 형식 변환. model-guide 참조는 Copilot 쪽 model-guide로. |
-| 16 | `~/.claude/commands/progress-check.md` | `~/.copilot/skills/progress-check/SKILL.md` | `.snapshots/commands/progress-check.md` | 단순 변환 (내용 거의 동일). |
-| 17 | `~/.claude/commands/image.md` | `~/.copilot/skills/image/SKILL.md` | `.snapshots/commands/image.md` | 단순 변환. |
+| 12 | `~/.claude/skills/jira-capture/SKILL.md` | `~/.copilot/skills/jira-capture/SKILL.md` | `.snapshots/skills/jira-capture/SKILL.md` | **2026-07-27 경로 이동**(E-1: commands→skills 디렉토리). 원본에 frontmatter 이미 있음(중복 추가 말 것). **E-6: 회사 Config가 프로젝트 `.claude/team/jira-config.md`로 외부화됨** — Copilot 대상도 "config 파일 먼저 읽기" 방식으로 반영, {atlassian-mcp} 하드코딩 넣지 말 것. |
+| 13 | `~/.claude/skills/jira-refine/SKILL.md` | `~/.copilot/skills/jira-refine/SKILL.md` | `.snapshots/skills/jira-refine/SKILL.md` | 상동(경로 이동+config 외부화). 스토리 분할 판단 기준(400줄/2일/BE·FE)은 정책이므로 그대로 반영. ADF 예시는 보조 파일 `adf-example.md`로 분리됨 — Copilot 쪽도 분리 유지 권장. |
+| 14 | `~/.claude/skills/jira-story-cache/SKILL.md` | `~/.copilot/skills/jira-story-cache/SKILL.md` | `.snapshots/skills/jira-story-cache/SKILL.md` | 상동(경로 이동+config 외부화). Copilot 대상 파일 미생성 — 최초 생성 필요. 캐시 경로(`.claude/stories/`)는 도구 무관 공용이므로 그대로. |
+| 15 | `~/.claude/skills/kickoff/SKILL.md` | `~/.copilot/skills/kickoff/SKILL.md` | `.snapshots/skills/kickoff/SKILL.md` | **2026-07-27 경로 이동 + 리라이트**(구 모델표·`/jira-story-fetch`·붙여넣기 프롬프트 제거). model-guide 참조는 Copilot 쪽 model-guide로. |
+| 16 | `~/.claude/skills/progress-check/SKILL.md` | `~/.copilot/skills/progress-check/SKILL.md` | `.snapshots/skills/progress-check/SKILL.md` | 경로 이동. 단순 변환 (내용 거의 동일). |
+| 17 | `~/.claude/commands/image.md` | `~/.copilot/skills/image/SKILL.md` | `.snapshots/commands/image.md` | 단순 변환. (image는 E-1 이동 대상 아님 — 커맨드 유지) |
+| 20 | `~/.claude/skills/save-progress/SKILL.md` | (보류 — Copilot 팀장 미사용) | — | **2026-07-25 신설({app-repo}에서 이관) + 2026-07-27 경로 이동**. 팀장 전용 허브 문서 커맨드라 쌍 15·16과 함께 동기화 보류. |
+| 21 | `~/.claude/skills/skill-audit/SKILL.md` | (보류 — Copilot 팀장 미사용) | — | **2026-07-25 신설**. 인벤토리 점검 = 팀장 전용, `~/.claude/REGISTRY.md` 개인 원장 대상 → Copilot 미동기화. |
 | 18 | `~/.claude/agents/rotomdex.md` | `~/.copilot/agents/rotomdex.agent.md` | `.snapshots/agents/rotomdex.md` | **2026-07-22 신설 쌍** — Copilot 대상 파일 최초 생성 필요. 팀원 정의(쌍 1~3)와 동일 변환. 읽기 전용·`edu/` 출력 원칙은 도구 무관이라 그대로. 감시 루프의 `run_in_background` 언급은 Copilot async bash 개념으로 각색 + **폴링 윈도우 25분 제한 특칙**(아래 각색 규칙) 적용. |
 | 19 | `~/.claude/skills/rotomdex/SKILL.md` | `~/.copilot/skills/rotomdex/SKILL.md` | `.snapshots/skills/rotomdex/SKILL.md` | **2026-07-22 신설 쌍** — 세션 스킬(쌍 9~11)과 동일 변환. |
 
@@ -31,10 +33,11 @@
 
 - **쌍 6 (ways-of-working)은 보류 해제 — 동기화 필수 승격 (2026-07-22).** 이 문서에 팀장 전용이 아닌 **워커 행동 규칙**(기술 주체성·DISCUSS request 유형, 코파일럿 폴링 특칙, 팀 파일 수명 정책)이 추가됐고, 팀원 정의(쌍 1~3)가 이 문서를 참조한다. 동기화 시 워커 관련 절(팀원 작업 규율·워커 기술 주체성·컨펌 신호 프로토콜·팀 파일 수명 정책·세션 수명주기)을 우선 반영하고, 팀장 전용 절(운영 루프·성찰·사용량 게이트)은 참고 수준으로.
 - **쌍 4·5·7·8 (teamleader SKILL/roster/model-guide/skill-guide) + 12~16 (jira 3종·kickoff·progress-check): 동기화 보류 유지.** 운영 모드 확정(팀장=클로드 전용, 팀원만 코파일럿 혼용)으로 Copilot 팀장 미사용. 단 **roster(쌍 5)의 포켓몬 인사말·로토무도감 행은 팀원 정의(쌍 1~3, 18)에 이미 반영되므로 별도 동기화 불필요**.
-- 쌍 1~3 (팀원 정의) + 9~11 (세션 스킬): 2026-07-13 동기화 완료. **2026-07-22 Claude 원본 변경(포켓몬 인사말·기술 주체성·꼬부기 예외 정리·꼬부기 "확정안 메인 반영" 절차) → 재동기화 필요.**
+- 쌍 1~3 (팀원 정의) + 9~11 (세션 스킬): 2026-07-13 동기화 완료. **2026-07-22 변경(포켓몬 인사말·기술 주체성·꼬부기 절차) + 2026-07-27 대규모 변경 → 재동기화 필요.** 2026-07-27 변경분: ①frontmatter 훅 추가(→ 제외 규칙 적용) ②에이전트 `skills:`·`memory:` frontmatter 추가(→ 제외, 본문 반영) ③파이리·메타몽 주특기에 `verification-before-completion` 추가 ④**꼬부기 "주특기 & 스킬 사용" 절 신설**(공식문서 선검증·디자인 반박검증·셀프체크 증거) → 본문 반영 필수.
 - 쌍 18~19 (rotomdex): Copilot 대상 파일 미생성 — 다음 동기화 때 신규 생성.
 - 쌍 17 (image): 개인 유틸, 변경 시에만.
-- **⚠️ 스냅샷 무결성**: `.snapshots/commands/` 디렉토리가 실제로 존재하지 않음(쌍 12~17 스냅샷 전무) — 커맨드 쌍은 diff 기준점이 없어 변경 감지가 불가능한 상태다. 보류 해제 시 반드시 "현재 Claude 원본 전체 검토 후 스냅샷 최초 생성"부터 할 것. 활성 쌍(1~3, 6, 9~11, 18~19)은 동기화 완료 시마다 스냅샷을 빠짐없이 갱신.
+- **프로세스 스킬은 동기화 대상 아님(경계 확인)**: `verification-before-completion`(2026-07-27 신설)·debugging-and-error-recovery·incremental-implementation 등 개인 계층(claude-home) 프로세스 스킬은 이 manifest 쌍에 없다 — Copilot 워커가 이 스킬들을 이름으로 참조하지만 스킬 파일 자체는 Copilot 쪽에 별도 설치돼 있어야 한다(전역 동기화 범위 밖). 페르소나 본문의 "○○ 스킬 호출" 문구는 그대로 옮기되, 스킬 실체 배포는 별건.
+- **⚠️ 스냅샷 무결성**: `.snapshots/` 에 커맨드/스킬 쌍(12~17, 20~21) 스냅샷 없음 + 경로가 commands→skills로 이동함 → diff 기준점 전무. 보류 해제 시 반드시 "현재 Claude 원본 전체 검토 후 스냅샷 최초 생성(새 skills/ 경로로)"부터. 활성 쌍(1~3, 6, 9~11, 18~19)은 동기화 완료 시마다 스냅샷을 빠짐없이 갱신.
 
 ## 도구 차이 각색 규칙 (2026-07-13 추가, 2026-07-22 개정 — 파일 쌍 공통 적용)
 
@@ -46,6 +49,8 @@
 - **Artifact 도구 없음**: 꼬부기 L1 일회용 목업은 Artifact 대신 **임시 폴더에 HTML 파일 생성 + `open {파일}`로 브라우저 확인** 방식으로 각색. "여러 안 한 페이지 비교" 원칙은 유지.
 - **Playwright MCP**: Copilot 쪽에 미설정. 꼬부기 셀프체크 규칙은 "Playwright MCP가 설정돼 있으면 사용, 없으면 dev 서버 스크린샷을 직접 캡처하거나 확인 요청에 수동 확인 항목으로 명시"로 완화 반영.
 - **운영 모드 표**(ways-of-working): Copilot 버전에는 "코파일럿 팀원은 모드 1에서만 등장"이라는 관점으로 반영 — 모드 2·3(풀 클로드)은 참고 정보로만.
+- **⚠️ frontmatter 훅 제외 (2026-07-27 신설, 쌍 1~3·18 적용)**: 페르소나 정의(agents/*.md)와 세션 스킬에 붙은 `hooks:` frontmatter(커밋 게이트·허브 문서 보호)는 **Claude Code 전용 기능** — Copilot 대상 파일에 절대 옮기지 않는다(각색 대상 아님, 통째 제외). 대신 그 훅이 강제하던 규칙(허브 문서 팀원 수정 금지, 커밋 전 컨펌)은 이미 본문 산문에도 있으므로 본문만 반영하면 행동은 유지된다. 훅의 부재 = Copilot 워커는 산문 규칙에 의존(강제 계층 없음)이라는 점만 인지.
+- **⚠️ 에이전트 frontmatter `skills:`·`memory:` (2026-07-27 신설, 쌍 1~3): E-5로 추가된 `skills:`(스킬 프리로드)·`memory: project` 필드는 Claude Code 서브에이전트 전용 스키마 — Copilot frontmatter로 직역 금지. Copilot 대상엔 생략하고, 해당 스킬 사용 규칙은 본문 "주특기 & 스킬 사용" 절로 반영(그쪽은 도구 무관 정책).
 
 ## 동기화 대상이 아닌 것 (의도적 제외)
 
