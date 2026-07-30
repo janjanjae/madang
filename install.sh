@@ -21,7 +21,7 @@ for f in pairi metamong kkobugi rotomdex; do
 done
 
 # 스킬 (디렉토리 단위 링크) — 페르소나 + 팀장 커맨드(2026-07-27 E-1: commands/*.md → skills/*/SKILL.md 통합)
-for d in teamleader pairi metamong kkobugi rotomdex kickoff save-progress progress-check jira-capture jira-refine jira-story-cache skill-audit; do
+for d in teamleader pairi metamong kkobugi rotomdex kickoff save-progress progress-check issue-capture issue-refine issue-cache skill-audit; do
   link "$REPO/claude/skills/$d" "$HOME/.claude/skills/$d"
 done
 

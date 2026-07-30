@@ -9,13 +9,17 @@ disable-model-invocation: true
 새 스토리/에픽 착수 오케스트레이션 — Phase 설계 + PROGRESS.md 초기화.
 **팀장 전용** (PROGRESS.md 초기화 = 허브 문서 작성. 팀원 사용 금지 — skill-guide 참조).
 
-> 2026-07-26 리라이트: 구 모델표(glm-5.2·Pro 플랜 전제)·`/jira-story-fetch` 참조·"새 세션 붙여넣기 프롬프트" 패턴 제거 — 각각 model-guide.md, `/jira-story-cache`, 파일 기반 브리프(2026-07-14 전환)로 대체.
+> 2026-07-26 리라이트: 구 모델표(glm-5.2·Pro 플랜 전제)·`/jira-story-fetch` 참조·"새 세션 붙여넣기 프롬프트" 패턴 제거 — 각각 model-guide.md, `/issue-cache`, 파일 기반 브리프(2026-07-14 전환)로 대체.
 
-## Step 1: 상황 파악
+## Step 1: 상황 파악 + 소스 선택
+
+**착수의 단일 진입점은 이 커맨드다** — 아래 조회·캐시는 이 단계가 내부에서 실행하므로 사용자가 다른 커맨드를 따로 칠 필요 없다.
 
 다음을 사용자에게 물어보거나 인자로 받아라:
-- Jira 스토리 번호 — 있으면 `/jira-story-cache PROJ-{n}`으로 캐시 생성 후 `.claude/stories/PROJ-{n}.md`를 읽는다. description·AC가 비면 `/jira-refine` 착수 전 모드를 먼저 안내.
-- 없으면: 지금 하려는 작업이 뭔지 간단히 설명 요청.
+- **Jira 스토리 번호** (`.claude/team/tracker-config.md` 타입 `jira`): `/issue-cache PROJ-{n}`으로 캐시 생성 후 `.claude/stories/PROJ-{n}.md`를 읽는다. description·AC가 비면 `/issue-refine` 착수 전 모드를 먼저 안내.
+- **개인 백로그 후보** (사용자 스킬 `backlog-check`가 있으면): 이 프로젝트의 inbox·검토됨 항목을 조회해 "이번 착수에 같이 태울 후보"로 제시하고, **사용자가 고른 것만** 계획에 반영 (고른 항목은 상태 `티켓화`로). 스킬이 없는 환경이면 조용히 생략.
+- **소스 기본값** (가용성은 tracker-config의 타입이 결정, 이번 회차 포함은 실행 시 선택): 타입 `jira`는 **기본 Jira만** — 백로그 후보는 사용자가 요청할 때만 조회 (착수마다 노션 MCP 토큰 지출 방지). 타입 `notion`/`local` 또는 config 없음은 **기본 백로그**가 주 소스.
+- 둘 다 없으면: 지금 하려는 작업이 뭔지 간단히 설명 요청.
 
 ## Step 2: 작업 성격 판단
 
@@ -62,7 +66,9 @@ mkdir -p .claude/team/briefs .claude/team/confirm .claude/team/reports
 - `confirm/` — 컨펌 신호(request/reply) 교환
 - `reports/` — 팀원별 보고 파일 (팀원 세션이 기력회복 시 읽는 자리)
 
-> 애든덤(`.claude/team/agents/`)·프로젝트 Jira 설정(`.claude/team/jira-config.md`)은 필요 시점에 생성 — 부트스트랩 단계에서 강제하지 않는다.
+> 애든덤(`.claude/team/agents/`)·프로젝트 트래커 설정(`.claude/team/tracker-config.md`)은 필요 시점에 생성 — 부트스트랩 단계에서 강제하지 않는다.
+
+**허브 문서 아카이빙 (초기화 전에)**: 기존 TASKS.md/PROGRESS.md에 "대체됨"·"이력 보존" 표시 블록이나 지난 스토리/스프린트 블록이 있으면 `.claude/archive/TASKS-archive.md`·`PROGRESS-archive.md`로 원문 그대로 이동한다 (없으면 생성. 이동분 앞에 `## [YYYY-MM-DD 이동분]` 헤더, 원본 상단에 `> 과거 이력은 .claude/archive/ 참조` 포인터 유지). 요약·재작성 금지 — 순수 이동만. 애매하면 유지. 새 착수 시점이 구 블록이 "지난 것"이 되는 경계라 여기서 정리한다 (세션 중 롤링은 save-progress 소관).
 
 그다음 `.claude/PROGRESS.md`를 이 작업 기준으로 초기화하라. TASKS.md 태스크 목록도 함께 설계(`planning-and-task-breakdown`).
 

@@ -43,9 +43,9 @@ Claude Code(+ GitHub Copilot CLI)로 **"팀장 1 + 구현 팀원 N"** 멀티 세
 | `/kickoff` | 새 스토리/에픽 착수 — 팀 폴더 스캐폴딩 + Phase 설계 + 브리프 초안 + PROGRESS 초기화 |
 | `/save-progress` | PROGRESS.md 현행화 (체크포인트·세션 종료) |
 | `/progress-check` | PROGRESS/TASKS 기반 상태 브리핑 (읽기 전용) |
-| `/jira-story-cache` | Jira 스토리 1회 조회 → `.claude/stories/` 로컬 캐시 (acli, 읽기 전담) |
-| `/jira-refine` | 스토리 구체화·분할(착수 전) / 구현 기록·상태 전환(PR 머지 후) |
-| `/jira-capture` | 버그(스프린트)·아이디어(백로그) 빠른 등록 |
+| `/issue-cache` | Jira 스토리 1회 조회 → `.claude/stories/` 로컬 캐시 (acli, 읽기 전담) |
+| `/issue-refine` | 스토리 구체화·분할(착수 전) / 구현 기록·상태 전환(PR 머지 후) |
+| `/issue-capture` | 버그(스프린트)·아이디어(백로그) 빠른 등록 |
 | `/skill-audit` | 스킬 인벤토리 전수 스캔 → `~/.claude/REGISTRY.md` 현행화 (월 1회/스프린트 종료) |
 
 > Jira 커맨드 3종은 프로젝트의 `.claude/team/jira-config.md`(도메인·Key·제품 개요)를 읽어 동작 — 베이스엔 회사 정보 없음. 다른 프로젝트는 그 파일만 새로 쓰면 재사용.

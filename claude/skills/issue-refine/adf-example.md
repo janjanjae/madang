@@ -1,4 +1,4 @@
-# ADF 구조 예시 (jira-refine 보조)
+# ADF 구조 예시 (issue-refine 보조)
 
 ADF 구조 예시:
 

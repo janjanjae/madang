@@ -1,9 +1,9 @@
 ---
-name: jira-capture
-description: 개발 중 발견한 버그(스프린트)나 개선 아이디어(백로그)를 Jira에 빠르게 등록. 팀장 전용.
+name: issue-capture
+description: 개발 중 발견한 버그·개선 아이디어를 빠르게 등록 — 팀 티켓(Jira) vs 개인 백로그 분기, tracker-config 타입 분기(jira/notion/local). 팀장 전용.
 argument-hint: "[bug|idea] {한 줄 설명}"
 ---
-# jira-capture
+# issue-capture
 
 개발 중 발견한 버그나 떠오른 개선 아이디어를 Jira에 빠르게 등록한다.
 
@@ -20,12 +20,23 @@ argument-hint: "[bug|idea] {한 줄 설명}"
 
 인수로 힌트가 있으면 자동 판단한다. (예: `bug 로그인 시 토큰 만료`, `idea 다크모드 지원`)
 
+## 팀 티켓 vs 개인 백로그 분기 (모드 확인 직후)
+
+팀 Jira 등록은 **팀 합의가 필요한 일감일 때만** — 스프린트·백로그 임의 추가는 지양한다. 등록 전에 판단한다:
+
+- **팀 티켓**: 팀원이 고쳐야 할 버그, 팀 로드맵에 올릴 개선 → 아래 Bug/Idea 모드로 진행
+- **개인 메모**: 개인적 관찰·아이디어·기술부채, 아직 팀에 올릴 확신이 없는 것 → **개인 백로그로 등록** (사용자 스킬 `backlog-check`의 Config 절이 가리키는 노션 DB에 `notion-create-pages` — 상태 `inbox`, 출처 `AI세션`). 그 스킬이 없는 환경이면: "개인 백로그가 설정되지 않았습니다 — 팀 Jira에 등록할까요, 보류할까요?"로 안내
+
+애매하면 개인 백로그가 기본값이다 (개인 → 팀 승격은 `/backlog-check` 트리아지에서 가능하지만, 팀 Jira에 잘못 올라간 건 되돌리기 번거롭다).
+
 ---
 
 ## 프로젝트 Config
 
-**실행 첫 단계: 현재 프로젝트의 `.claude/team/jira-config.md`를 읽는다** — 도메인·Cloud ID·프로젝트 Key·보드 ID·제품 개요·MCP/acli 전제가 거기 있다.
-파일이 없으면 진행을 멈추고 사용자에게 안내한다: "이 프로젝트에는 jira-config.md가 없습니다 — `.claude/team/jira-config.md`를 만들어야 Jira 커맨드를 쓸 수 있어요" (템플릿: 다른 프로젝트 것 참조).
+**실행 첫 단계: 현재 프로젝트의 `.claude/team/tracker-config.md`를 읽는다** — 도메인·Cloud ID·프로젝트 Key·보드 ID·제품 개요·MCP/acli 전제가 거기 있다.
+파일이 없으면 진행을 멈추고 사용자에게 안내한다: "이 프로젝트에는 tracker-config.md가 없습니다 — `.claude/team/tracker-config.md`를 만들어야 Jira 커맨드를 쓸 수 있어요" (템플릿: issue-cache 스킬 디렉토리의 `tracker-config.template.md` 복사).
+
+**타입 분기**: config의 `타입`이 `jira`면 아래 본문대로 진행한다. `notion`/`local`이면 팀 Jira 경로 자체가 없으므로 **모든 캡처가 개인 백로그로** 간다 — notion: `backlog-check` Config의 DB에 등록(프로젝트 태그값 사용), local: 백로그 파일에 `## {제목}` 항목 추가. 이 경우 아래 "팀 티켓 vs 개인 백로그 분기"와 Bug/Idea 모드의 Jira 절차는 건너뛴다 (초안 작성 원칙은 동일 적용).
 
 ---
 
@@ -127,4 +138,4 @@ project = {Key} AND sprint in openSprints() ORDER BY created DESC
 
 ## 다른 프로젝트로 전환 시
 
-그 프로젝트에 `.claude/team/jira-config.md`만 새로 작성하면 재사용 가능 (커맨드 수정 불필요).
+그 프로젝트에 `.claude/team/tracker-config.md`만 새로 작성하면 재사용 가능 (커맨드 수정 불필요).

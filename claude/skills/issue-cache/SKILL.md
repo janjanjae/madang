@@ -1,12 +1,12 @@
 ---
-name: jira-story-cache
-description: 착수할 스토리를 Jira에서 acli로 1회 조회해 .claude/stories/ 로컬 캐시 생성 (읽기 전담, Jira 쓰기 금지). 팀장 전용.
+name: issue-cache
+description: 착수할 이슈를 트래커에서 1회 조회해 .claude/stories/ 로컬 캐시 생성 (타입 분기: jira=acli/notion/local. 읽기 전담, 트래커 쓰기 금지). 팀장 전용.
 argument-hint: "{KEY}-{n}[, ...] | 스프린트"
 ---
-# jira-story-cache
+# issue-cache
 
 착수할 스토리를 Jira에서 1회 조회해 프로젝트 로컬 캐시(`.claude/stories/`)에 저장한다.
-이후 팀장·팀원 세션은 Jira를 다시 읽지 않고 이 캐시만 참조한다. **읽기 전담** — Jira 쓰기는 `/jira-refine` 몫.
+이후 팀장·팀원 세션은 Jira를 다시 읽지 않고 이 캐시만 참조한다. **읽기 전담** — Jira 쓰기는 `/issue-refine` 몫.
 
 ## 언제 사용하나
 
@@ -18,8 +18,10 @@ argument-hint: "{KEY}-{n}[, ...] | 스프린트"
 
 ## 프로젝트 Config
 
-**실행 첫 단계: 현재 프로젝트의 `.claude/team/jira-config.md`를 읽는다** — 도메인·Cloud ID·프로젝트 Key·보드 ID·제품 개요·MCP/acli 전제가 거기 있다.
-파일이 없으면 진행을 멈추고 사용자에게 안내한다: "이 프로젝트에는 jira-config.md가 없습니다 — `.claude/team/jira-config.md`를 만들어야 Jira 커맨드를 쓸 수 있어요" (템플릿: 다른 프로젝트 것 참조).
+**실행 첫 단계: 현재 프로젝트의 `.claude/team/tracker-config.md`를 읽는다** — 도메인·Cloud ID·프로젝트 Key·보드 ID·제품 개요·MCP/acli 전제가 거기 있다.
+파일이 없으면 진행을 멈추고 사용자에게 안내한다: "이 프로젝트에는 tracker-config.md가 없습니다 — `.claude/team/tracker-config.md`를 만들어야 Jira 커맨드를 쓸 수 있어요" (템플릿: issue-cache 스킬 디렉토리의 `tracker-config.template.md` 복사).
+
+**타입 분기**: `jira`면 아래 본문(acli 조회→캐시)대로. `notion`이면 `backlog-check` Config의 DB에서 해당 항목(프로젝트 태그값 + 제목)을 fetch해 아래 캐시 템플릿 포맷으로 `.claude/stories/{슬러그}.md`에 저장한다 (항목 상태가 `티켓화`가 아니면 kickoff의 선택 절차를 먼저 안내). `local`이면 백로그 파일의 해당 항목을 같은 포맷으로 복사한다. 읽기 전담·캐시 포맷·재캐시 규칙은 타입 공통.
 
 - **캐시 경로 규칙(프로젝트 불문)**: `{프로젝트 루트}/.claude/stories/`
 
@@ -61,7 +63,7 @@ mkdir -p .claude/stories/
 ```markdown
 # {Key}-{n}: {summary}
 
-> Jira 캐시 — 직접 수정 금지, 갱신은 `/jira-story-cache {Key}-{n}` 재실행
+> Jira 캐시 — 직접 수정 금지, 갱신은 `/issue-cache {Key}-{n}` 재실행
 > 캐시 생성: {YYYY-MM-DD} · 원본: https://{config의 도메인}/browse/{프로젝트 Key}-{n}
 
 **Status**: {status} · **Priority**: {priority} · **Sprint**: {sprint}
@@ -69,17 +71,17 @@ mkdir -p .claude/stories/
 
 ## Description (Jira 원문)
 
-{description을 마크다운으로 정리. 없으면 "(비어 있음 — /jira-refine 착수 전 모드 필요)"}
+{description을 마크다운으로 정리. 없으면 "(비어 있음 — /issue-refine 착수 전 모드 필요)"}
 
 ## 수락 조건
 
-{description 내 AC 체크리스트. 없으면 "(없음 — /jira-refine 착수 전 모드 필요)"}
+{description 내 AC 체크리스트. 없으면 "(없음 — /issue-refine 착수 전 모드 필요)"}
 ```
 
 ### 4. 완료 안내
 
 - 생성/갱신된 파일 경로 목록만 출력하고 **여기서 멈춘다**.
-- description·AC가 비어 있으면 `/jira-refine` 착수 전 모드를 안내.
+- description·AC가 비어 있으면 `/issue-refine` 착수 전 모드를 안내.
 - 검토 질문·구체화·분할 판단은 이 커맨드의 일이 아니다.
 
 ---
@@ -87,7 +89,7 @@ mkdir -p .claude/stories/
 ## 가드레일
 
 - **읽기 전용** — Jira에 어떤 쓰기도 하지 않는다
-- 캐시는 Jira 원본의 사본 — 로컬에서 내용을 수정하지 않는다. 고칠 내용이 생기면 `/jira-refine`으로 Jira에 반영한 뒤 재캐시
+- 캐시는 Jira 원본의 사본 — 로컬에서 내용을 수정하지 않는다. 고칠 내용이 생기면 `/issue-refine`으로 Jira에 반영한 뒤 재캐시
 - 조회는 `--fields`로 필요한 필드만 (전체 JSON 덤프 금지)
 - `acli` 인증 오류 시: `acli auth` 실행 안내
 - 이슈 없음: 키 확인 요청
@@ -96,4 +98,4 @@ mkdir -p .claude/stories/
 
 ## 다른 프로젝트로 전환 시
 
-그 프로젝트에 `.claude/team/jira-config.md`만 새로 작성하면 재사용 가능 (커맨드 수정 불필요).
+그 프로젝트에 `.claude/team/tracker-config.md`만 새로 작성하면 재사용 가능 (커맨드 수정 불필요).

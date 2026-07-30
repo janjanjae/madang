@@ -1,9 +1,9 @@
 ---
-name: jira-refine
-description: 스토리 description 구체화 + 크기 판단·분할 (착수 전) / 구현 내용 기록 + 상태 전환 (완료 후, PR 머지 트리거). Jira 쓰기 전담. 팀장 전용.
+name: issue-refine
+description: 이슈 구체화 + 크기 판단·분할 (착수 전) / 구현 기록 + 상태 전환 (완료 후, PR 머지 트리거). 트래커 쓰기 전담, tracker-config 타입 분기. 팀장 전용.
 argument-hint: "[done] {KEY}-{n}"
 ---
-# jira-refine
+# issue-refine
 
 담당 스토리의 description 구체화(배경·구현 범위·수락 조건) + **크기 판단 및 스토리 분할**.
 완료된 스토리(PR 머지 시)에 구현 내용을 기록하고 상태를 전환하는 완료 처리도 담당한다.
@@ -25,8 +25,10 @@ argument-hint: "[done] {KEY}-{n}"
 
 ## 프로젝트 Config
 
-**실행 첫 단계: 현재 프로젝트의 `.claude/team/jira-config.md`를 읽는다** — 도메인·Cloud ID·프로젝트 Key·보드 ID·제품 개요·MCP/acli 전제가 거기 있다.
-파일이 없으면 진행을 멈추고 사용자에게 안내한다: "이 프로젝트에는 jira-config.md가 없습니다 — `.claude/team/jira-config.md`를 만들어야 Jira 커맨드를 쓸 수 있어요" (템플릿: 다른 프로젝트 것 참조).
+**실행 첫 단계: 현재 프로젝트의 `.claude/team/tracker-config.md`를 읽는다** — 도메인·Cloud ID·프로젝트 Key·보드 ID·제품 개요·MCP/acli 전제가 거기 있다.
+파일이 없으면 진행을 멈추고 사용자에게 안내한다: "이 프로젝트에는 tracker-config.md가 없습니다 — `.claude/team/tracker-config.md`를 만들어야 Jira 커맨드를 쓸 수 있어요" (템플릿: issue-cache 스킬 디렉토리의 `tracker-config.template.md` 복사).
+
+**타입 분기**: `jira`면 아래 본문대로. `notion` — 착수 전 모드: 해당 백로그 페이지 본문을 3단계 템플릿 수준으로 구체화하고, 크기 상한 초과면 항목을 새 페이지로 분할한다 / 완료 후 모드: 구현 요약을 페이지 본문에 추가하고 상태를 `완료`로 전환한다. `local` — 같은 작업을 백로그 파일 항목에 직접 한다. ADF·스프린트·이슈 링크 절차는 jira 타입 전용.
 
 ---
 
@@ -128,7 +130,7 @@ ADF 구조 예시는 이 스킬 폴더의 `adf-example.md` 참조 (heading·bull
 
 각 스토리 처리 완료 후 출력:
 - Story Key + URL (분할했으면 전체 목록 + 의존성 순서)
-- 캐시 갱신 안내: `/jira-story-cache {키들}` 재실행
+- 캐시 갱신 안내: `/issue-cache {키들}` 재실행
 - 다음 단계: "각 스토리 = 브랜치 1개 = PR 1개로 진행, 의존성 순서대로 머지"
 
 ---
@@ -230,4 +232,4 @@ ADF 구조 예시는 이 스킬 폴더의 `adf-example.md` 참조 (heading·bull
 
 ## 다른 프로젝트로 전환 시
 
-그 프로젝트에 `.claude/team/jira-config.md`만 새로 작성하면 재사용 가능 (커맨드 수정 불필요).
+그 프로젝트에 `.claude/team/tracker-config.md`만 새로 작성하면 재사용 가능 (커맨드 수정 불필요).
