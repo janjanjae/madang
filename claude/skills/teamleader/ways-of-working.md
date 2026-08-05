@@ -64,11 +64,13 @@
 ### ⚠️ 워크트리 셋업 체크리스트 (gitignore 파일이 워크트리엔 없다 — 필수)
 
 워크트리는 git 체크아웃이라 **gitignored 파일이 딸려오지 않는다.** 생성 직후 반드시:
-1. **env 복사**(Next.js/Nest는 `.env.local`을 읽는데 gitignore라 워크트리에 없음 → dev 서버 오동작, 예: 로그인 테스트버튼 사라짐):
+1. **env 복사**(Next.js/Nest는 `.env.local`을 읽는데 gitignore라 워크트리에 없음 → dev 서버 오동작, 예: 로그인 테스트버튼 사라짐). **앱이 늘면 이 목록도 늘어난다 — 프로젝트별 실제 앱 구성을 확인할 것**({app-repo}는 2026-08-04 PROJ-720으로 `apps/llm` 신설되어 3종):
    ```
    cp {repo}/{app-dir}/apps/web/.env.local  {wt}/{app-dir}/apps/web/.env.local
    cp {repo}/{app-dir}/apps/api/.env.local  {wt}/{app-dir}/apps/api/.env.local
+   cp {repo}/{app-dir}/apps/llm/.env.local  {wt}/{app-dir}/apps/llm/.env.local
    ```
+   - ⚠️ **Redis 등 공유 백킹서비스를 쓰는 프로젝트는 키 네임스페이스를 워크트리별로 분리**해야 병렬 기동이 서로 간섭하지 않는다({app-repo}: `REDIS_PREFIX=local:{ticket}`, api·llm 양쪽 동일 값). 프로젝트별 상세 절차는 `{프로젝트}/.claude/team/agents/_local-runtime.md`에 두고 팀원 애든덤에서 참조시킨다.
 2. **`.claude/team`**(briefs/confirm/reports)도 gitignore → 워크트리에 없음. **메인 트리 절대경로**로 접근(`/{repo}/.claude/team/...`). request/reply/report는 메인 트리 쪽에 쓴다.
 3. **node_modules는 복사 불필요** — 워크트리를 `.claude/worktrees/`(레포 하위)에 두면 Node 모듈 해석이 위로 올라가 **루트 node_modules 공유**(install 불필요).
 4. **Docker/Postgres·포트 공유** — 로컬 Postgres(5432)는 하나만 기동(`docker-compose up -d`, Docker 데몬 먼저). dev 서버는 메인 트리 것과 포트 겹치면 종료 후 하나만.
@@ -90,6 +92,7 @@
 
 **신호 디렉토리**: `{프로젝트}/.claude/team/confirm/` (없으면 작성자가 `mkdir -p`)
 - `{인스턴스명}.request.md` — **팀원 작성**. 유형(`CONFIRM`/`BLOCKED`/`DISCUSS`) + 태스크 번호 + 한일 요약 + 간략 테스트 플랜 + 변경 파일 목록. 꼬부기는 스크린샷 경로 포함. 인스턴스명은 보고 파일과 동일 규칙(`pairi`, `metamong2` 등). **`DISCUSS`(2026-07-22 신설)** = 브리프 지시가 기술적으로 불합리하다고 판단될 때 구현 전에 근거(공식문서·측정치)+대안을 제시하는 논의 요청 — 팀장은 근거를 검토해 reply에 `APPROVE`(대안 채택, 수정 브리프 포함) 또는 `FIX`(원안 유지, 이유 명시)로 답한다.
+- ⚠️ **`APPROVE`는 "커밋" 게이트다 — push·PR 승인이 아니다 (2026-08-05 명문화).** 팀장은 reply에 **"커밋까지만"**을 기본으로 명시하고, **push·PR은 사용자 스모크 통과 후 별도 지시**로 분리한다. 워커 브리프의 절차도 `⑦커밋 → ⑧보고`에서 끝내고 **PR 생성을 워커 자율에서 제외**한다. (근거: 운영 모델의 "적정 단위 + **모든 스모크 완료** 시 PR 제안 → 사용자 컨펌 → PR". 2026-08-05 실사고 — 팀장이 마감 압박과 "선행조건이라 급하다"를 이유로 APPROVE reply에 "커밋→push→PR까지 바로"를 묶어 승인해, **사용자 스모크 없이 PR 3건이 올라감**. 자동 검증(테스트·빌드·린트)과 스크린샷은 스모크를 대체하지 못한다 — 실제 브라우저 흐름에서만 드러나는 회귀가 있고, 스모크 없이 머지되면 그걸 잡을 마지막 기회가 사라진다.)
 - `{인스턴스명}.reply.md` — **팀장 작성**. 첫 줄 `APPROVE` 또는 `FIX`, FIX면 보완 지시 포함. **(2026-07-13 확장)** `APPROVE`인 경우 `---` 구분선 뒤에 `NEXT:` 섹션으로 **다음 태스크 브리프 전문**을 실을 수 있다(선택) — 의존성이 풀려 있고 다음 배분이 확정됐을 때만. FIX에는 NEXT를 싣지 않는다(보완 먼저).
 - 사이클 종료 시 **팀원이 두 파일 모두 삭제** (잔여 파일 = 미처리 신호). 단일 작성자 원칙 유지: request는 팀원만, reply는 팀장만 쓴다.
 
@@ -162,7 +165,8 @@ TASKS.md/PROGRESS.md 비대화는 별도: 스프린트 종료 체크포인트에
 - 체크포인트 검증(테스트 전체/빌드/E2E)은 팀원에게 명령, 팀장은 결과 확인.
 - 런타임 검증(LLM 실연, 외부 서비스 연동)은 자동 검증 한계를 명시하고 **사용자 직접 확인 항목**으로 분리.
 - **스모크 핸드오프 표준 3종 세트**(2026-07-14 신설 → 2026-07-28 확장): 사용자가 "스모크하겠다" 또는 "시나리오 줘"라고 하면 팀장이 **항상 아래 3개를 한 번에** 제공한다. 서버 재기동은 테스트 스위트 실행이 아닌 환경 준비라 팀장 읽기전용 원칙과 무관.
-  1. **시나리오에 맞게 서버 기동**: 검증 대상 코드가 있는 트리에서 기동한다 — **커밋 전 변경이면 그 워크트리**(`.claude/worktrees/wt-{ticket}`)에서, 머지 후면 메인 트리에서. 셋업: Docker/Postgres(5432) 확인 → 대상 트리 `env.local`(web+api) 없으면 메인에서 복사 → 포트(3000/8080) 잡은 stale 서버 종료 → 대상 트리에서 `pnpm nx serve api`·`pnpm nx dev web`를 **`run_in_background: true`로** 기동 → 포트 리스닝 + 로그의 "Nest application successfully started"/"Ready" 확인 → **기동 시각 명시**(dev api는 HMR 없어 커밋 자동반영 X, 이 시각 이후 요청만 유효). `NEXT_PUBLIC_AUTH_MODE=dev` 확인(로그인 테스트 버튼).
+  1. **시나리오에 맞게 서버 기동**: 검증 대상 코드가 있는 트리에서 기동한다 — **커밋 전 변경이면 그 워크트리**(`.claude/worktrees/wt-{ticket}`)에서, 머지 후면 메인 트리에서. 셋업: **인프라 컨테이너 확인**({app-repo}: `docker compose up -d postgres redis` — 5432·6379) → 대상 트리 `env.local` **전 앱분**(web+api+llm) 없으면 메인에서 복사 → 포트 잡은 stale 서버 종료 → 대상 트리에서 **전 앱 기동**({app-repo}: `pnpm nx serve llm`(6060)·`serve api`(8080)·`dev web`(3000))을 **`run_in_background: true`로** → 포트 리스닝 + 로그의 "Nest application successfully started"/"Ready" 확인 → **기동 시각 명시**(dev api는 HMR 없어 커밋 자동반영 X, 이 시각 이후 요청만 유효). `NEXT_PUBLIC_AUTH_MODE=dev` 확인(로그인 테스트 버튼).
+     - ⚠️ **런타임이 쪼개지면 기동 목록도 늘어난다**({app-repo}는 2026-08-04 PROJ-720으로 llm pod 분리 — api만 띄우면 LLM 경로가 조용히 죽는다). 앱 하나를 빠뜨린 채 "환경 준비 완료"라고 넘기면 스모크가 통째로 무효가 되므로, **프로젝트별 기동 절차는 `_local-runtime.md`에 문서화하고 팀장이 핸드오프 때 그 파일 기준으로 점검**한다.
   2. **로그 tail 명령 동봉**: 사용자가 원하면 직접 볼 수 있게 백/프론트 로그 파일 tail 명령을 같이 준다 — `tail -f {api background output 경로}` / `tail -f {web background output 경로}`(백그라운드 태스크 output 파일 경로). 이상 발생 시 팀장이 즉시 그 로그를 까서 진단.
   3. **체크 시나리오**: 브라우저에서 사용자가 밟을 항목(로그인→기능→기대결과)과, 그중 **팀장이 DB/git으로 확인할 항목**(예: `graph_sessions` row 쿼리)을 구분해 제시.
   - (PROJ-677 스모크가 stale 서버로 무효화된 사고에서 규칙화. 워크트리 도입 후 "어느 트리에서 기동?"이 새 마찰점이라 트리 선택을 명문화.)
@@ -228,4 +232,6 @@ TASKS.md/PROGRESS.md 비대화는 별도: 스프린트 종료 체크포인트에
 | 2026-07-27 (2) | E-4 훅 도입: 허브 문서 보호(전원)·커밋 게이트(파이리/메타몽, waiver 프로토콜 포함)를 페르소나 스킬 frontmatter 훅으로 구현. 로토무도감 FileChanged 대체는 **철회**(공식 문서상 훅은 유휴 세션을 못 깨움 — 현행 run_in_background 폴링 유지) | "훅이 강제, 스킬이 안내" 원칙 실행. 산문 금지 규칙의 기계적 강제. 단 frontmatter 훅 발화는 실측 미완(세션 중간 로드 시 미발화 확인) — 다음 워커 기동 시 검증 절차 명시 |
 | 2026-07-28 | 스모크 규칙을 **핸드오프 3종 세트**(①대상 트리에서 서버 기동+기동시각 ②백/프론트 로그 tail 명령 동봉 ③체크 시나리오=사용자 밟을 항목/팀장 DB·git 확인 항목 구분)로 확장. 워크트리별 기동(커밋 전=워크트리, 머지 후=메인) 명문화 | 사용자 요청 — "스모크 줘"면 팀장이 서버 기동+로그명령+시나리오를 항상 한 번에. 워크트리 도입으로 "어느 트리서 기동/로그 어디서 보나"가 새 마찰점 |
 | 2026-07-27 (3) | 4차 로드맵 완료: E-6 jira Config 외부화(프로젝트 `.claude/team/jira-config.md`) · E-5 에이전트 frontmatter `skills`·`memory` + 꼬부기 주특기 신설 · E-1 커맨드 7종 → 스킬 디렉토리 이관(install.sh 통합) | 베이스 프로젝트 불가지 원칙 실현 + 공식 권장형(스킬 통합) 정합. 사용 방법 불변(/kickoff 등 동일) |
+| 2026-08-05 (2) | **`APPROVE` = 커밋 게이트**임을 명문화 — push·PR은 **사용자 스모크 통과 후 별도 지시**로 분리, 워커 브리프 절차에서 PR 생성 제외 | 실사고: 팀장이 마감 압박("686이 다른 PR의 선행조건이라 급하다")을 이유로 APPROVE reply에 "커밋→push→PR까지 바로"를 묶어 승인 → **사용자 스모크 없이 PR 3건(#218·#219·#220)이 올라감.** 사용자가 "PR 올리기 전에 로컬 스모크가 맞지 않냐"고 지적해 발견. 자동 검증·스크린샷은 스모크 대체 불가 — 급할수록 게이트를 건너뛰고 싶어지는데, 그때가 정확히 회귀가 새는 지점 |
+| 2026-08-05 | 워크트리 셋업·스모크 3종 세트에 **"런타임 분해 대응"** 반영: env 복사 목록·기동 목록을 앱 구성에 따라 늘리도록 일반화 + 공유 백킹서비스 네임스페이스 워크트리 격리(`REDIS_PREFIX=local:{ticket}`) + 프로젝트별 `_local-runtime.md` 문서 패턴 신설(팀원 애든덤에서 참조) | {app-repo}가 PROJ-720으로 **llm pod를 분리**(2026-08-04) — api만 띄우면 LLM 경로가 **조용히** 죽는데 기존 체크리스트는 web+api 2종 고정이라 이를 못 잡음. 6일 공백 후 복귀 시 사용자 공유로 인지. "앱이 늘면 절차도 는다"를 규칙화해 다음 분해(pod 추가)에도 견디게 함 |
 | 2026-07-30 | E-10 트래커 불가지화: jira-* 스킬 3종 → **issue-capture / issue-refine / issue-cache** 개명 + `tracker-config.md`(타입 jira/notion/local) 신설·스킬별 타입 분기 + kickoff Step 1 소스 선택(타입 jira=Jira 기본, notion/local=개인 백로그 기본) | 레포 공개·개인 프로젝트 대비. config는 백엔드명(jira-config→tracker-config로 일반화), 스킬은 동사(issue-*). {app-repo} config 마이그레이션 완료 — 팀 워크플로우 동작 불변 |
