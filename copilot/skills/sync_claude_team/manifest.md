@@ -29,14 +29,17 @@
 | 18 | `~/.claude/agents/rotomdex.md` | `~/.copilot/agents/rotomdex.agent.md` | `.snapshots/agents/rotomdex.md` | **2026-07-22 신설 쌍** — Copilot 대상 파일 최초 생성 필요. 팀원 정의(쌍 1~3)와 동일 변환. 읽기 전용·`edu/` 출력 원칙은 도구 무관이라 그대로. 감시 루프의 `run_in_background` 언급은 Copilot async bash 개념으로 각색 + **폴링 윈도우 25분 제한 특칙**(아래 각색 규칙) 적용. |
 | 19 | `~/.claude/skills/rotomdex/SKILL.md` | `~/.copilot/skills/rotomdex/SKILL.md` | `.snapshots/skills/rotomdex/SKILL.md` | **2026-07-22 신설 쌍** — 세션 스킬(쌍 9~11)과 동일 변환. |
 
-## 동기화 상태 메모 (2026-07-22 갱신)
+## 동기화 상태 메모 (2026-08-04 갱신)
 
+- **2026-08-04 동기화 완료**: 쌍 1~3(팀원 정의) + 쌍 6(ways-of-working) — Claude 2026-07-29~30 변경분(**인스턴스 네이밍 규칙**: 첫 인스턴스 무번호, 병렬 2번째부터 숫자, `metamong1` 없음) 반영. 쌍 9~11·18~19는 diff 없음(스킵)이나, 세션 스킬 본문의 `metamong1`/`pairi1` **예시**는 새 네이밍 규칙에 맞게 Copilot 쪽만 선반영(Claude 원본은 아직 구 예시 — 다음 Claude 변경 시 재대조).
+- **부수 정비(2026-08-04)**: ①`verification-before-completion` 스킬이 Copilot 팀원 정의에서 참조되는데 `~/.copilot/skills/`에 미설치였음 → Claude 원본 그대로 설치(도구 무관, 각색 불필요). ②`~/.copilot/skills/issue-capture`·`issue-refine`의 frontmatter `name`이 구 `jira-*`로 남아 디렉토리명과 불일치 → `issue-*`로 정합화(본문은 보류 유지).
+- **신규 Claude 스킬 스캔 결과(2026-08-04)**: `backlog-check`·`resume-at`·`meeting-log`·`life-weekly`·`money-brief`·`money-check`·`money-lab` = 개인 유틸/개인 재무·생활 루프 → **동기화 대상 아님**(팀 시스템 무관). `save-progress`·`skill-audit`는 기존대로 보류(쌍 20·21).
 - **쌍 6 (ways-of-working)은 보류 해제 — 동기화 필수 승격 (2026-07-22).** 이 문서에 팀장 전용이 아닌 **워커 행동 규칙**(기술 주체성·DISCUSS request 유형, 코파일럿 폴링 특칙, 팀 파일 수명 정책)이 추가됐고, 팀원 정의(쌍 1~3)가 이 문서를 참조한다. 동기화 시 워커 관련 절(팀원 작업 규율·워커 기술 주체성·컨펌 신호 프로토콜·팀 파일 수명 정책·세션 수명주기)을 우선 반영하고, 팀장 전용 절(운영 루프·성찰·사용량 게이트)은 참고 수준으로.
-- **쌍 4·5·7·8 (teamleader SKILL/roster/model-guide/skill-guide) + 12~16 (jira 3종·kickoff·progress-check): 동기화 보류 유지.** 운영 모드 확정(팀장=클로드 전용, 팀원만 코파일럿 혼용)으로 Copilot 팀장 미사용. 단 **roster(쌍 5)의 포켓몬 인사말·로토무도감 행은 팀원 정의(쌍 1~3, 18)에 이미 반영되므로 별도 동기화 불필요**.
-- 쌍 1~3 (팀원 정의) + 9~11 (세션 스킬): 2026-07-13 동기화 완료. **2026-07-22 변경(포켓몬 인사말·기술 주체성·꼬부기 절차) + 2026-07-27 대규모 변경 → 재동기화 필요.** 2026-07-27 변경분: ①frontmatter 훅 추가(→ 제외 규칙 적용) ②에이전트 `skills:`·`memory:` frontmatter 추가(→ 제외, 본문 반영) ③파이리·메타몽 주특기에 `verification-before-completion` 추가 ④**꼬부기 "주특기 & 스킬 사용" 절 신설**(공식문서 선검증·디자인 반박검증·셀프체크 증거) → 본문 반영 필수.
-- 쌍 18~19 (rotomdex): Copilot 대상 파일 미생성 — 다음 동기화 때 신규 생성.
+- **쌍 4·5·7·8 (teamleader SKILL/roster/model-guide/skill-guide) + 12~16 (issue 3종·kickoff·progress-check): 동기화 보류 유지.** 운영 모드 확정(팀장=클로드 전용, 팀원만 코파일럿 혼용)으로 Copilot 팀장 미사용. **2026-08-04 기준 쌍 5·7·8에 미반영 diff 존재**(스냅샷 의도적으로 미갱신 — 보류 해제 시 그대로 감지됨). 단 **roster(쌍 5)의 포켓몬 인사말·로토무도감 행은 팀원 정의(쌍 1~3, 18)에 이미 반영되므로 별도 동기화 불필요**.
+- 쌍 1~3 (팀원 정의) + 9~11 (세션 스킬): 2026-07-13·07-28·08-04 동기화 완료.
+- 쌍 18~19 (rotomdex): Copilot 대상 파일 생성 완료, 2026-08-04 기준 diff 없음.
 - 쌍 17 (image): 개인 유틸, 변경 시에만.
-- **프로세스 스킬은 동기화 대상 아님(경계 확인)**: `verification-before-completion`(2026-07-27 신설)·debugging-and-error-recovery·incremental-implementation 등 개인 계층(claude-home) 프로세스 스킬은 이 manifest 쌍에 없다 — Copilot 워커가 이 스킬들을 이름으로 참조하지만 스킬 파일 자체는 Copilot 쪽에 별도 설치돼 있어야 한다(전역 동기화 범위 밖). 페르소나 본문의 "○○ 스킬 호출" 문구는 그대로 옮기되, 스킬 실체 배포는 별건.
+- **프로세스 스킬은 동기화 대상 아님(경계 확인)**: `verification-before-completion`(2026-07-27 신설)·debugging-and-error-recovery·incremental-implementation 등 개인 계층(claude-home) 프로세스 스킬은 이 manifest 쌍에 없다 — Copilot 워커가 이 스킬들을 이름으로 참조하지만 스킬 파일 자체는 Copilot 쪽에 별도 설치돼 있어야 한다(전역 동기화 범위 밖). 페르소나 본문의 "○○ 스킬 호출" 문구는 그대로 옮기되, 스킬 실체 배포는 별건. **단, 참조되는 스킬이 Copilot에 미설치면 워커가 규칙을 실행할 수 없으므로 동기화 시 설치 여부를 확인하고 없으면 설치한다**(2026-08-04: `verification-before-completion` 이렇게 설치됨 — 도구 무관 내용이라 무각색 복사).
 - **⚠️ 스냅샷 무결성**: `.snapshots/` 에 커맨드/스킬 쌍(12~17, 20~21) 스냅샷 없음 + 경로가 commands→skills로 이동함 → diff 기준점 전무. 보류 해제 시 반드시 "현재 Claude 원본 전체 검토 후 스냅샷 최초 생성(새 skills/ 경로로)"부터. 활성 쌍(1~3, 6, 9~11, 18~19)은 동기화 완료 시마다 스냅샷을 빠짐없이 갱신.
 
 ## 도구 차이 각색 규칙 (2026-07-13 추가, 2026-07-22 개정 — 파일 쌍 공통 적용)
