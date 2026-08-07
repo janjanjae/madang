@@ -29,7 +29,10 @@
 | 18 | `~/.claude/agents/rotomdex.md` | `~/.copilot/agents/rotomdex.agent.md` | `.snapshots/agents/rotomdex.md` | **2026-07-22 신설 쌍** — Copilot 대상 파일 최초 생성 필요. 팀원 정의(쌍 1~3)와 동일 변환. 읽기 전용·`edu/` 출력 원칙은 도구 무관이라 그대로. 감시 루프의 `run_in_background` 언급은 Copilot async bash 개념으로 각색 + **폴링 윈도우 25분 제한 특칙**(아래 각색 규칙) 적용. |
 | 19 | `~/.claude/skills/rotomdex/SKILL.md` | `~/.copilot/skills/rotomdex/SKILL.md` | `.snapshots/skills/rotomdex/SKILL.md` | **2026-07-22 신설 쌍** — 세션 스킬(쌍 9~11)과 동일 변환. |
 
-## 동기화 상태 메모 (2026-08-04 갱신)
+## 동기화 상태 메모 (2026-08-06 갱신)
+
+- **2026-08-06 동기화 완료**: 쌍 18(rotomdex agent) — 유튜브 링크 규칙에 생활코딩 채널 추가(코딩애플과 병기). 쌍 6(ways-of-working) — Claude 2026-08-05~06 변경분(PR Test Plan 용도 명문화, PR/커밋에 팀 디렉토리 내부경로 금지, APPROVE=커밋 게이트 명문화, 워크트리 env·백킹서비스 네임스페이스 분리 일반화, 브리프 대기 재무장 커맨드 구체화) 반영. Claude 쪽의 frontmatter 훅 기반 커밋 게이트 버그(`gate-commit.sh`) 항목은 manifest 규칙(frontmatter 훅 제외)에 따라 미반영 — 대신 산문 규칙(APPROVE=커밋만)으로 동일 위험 완화. 그 외 쌍(1~3, 9~11, 18의 SKILL.md 짝, 19)은 diff 없음.
+
 
 - **2026-08-04 동기화 완료**: 쌍 1~3(팀원 정의) + 쌍 6(ways-of-working) — Claude 2026-07-29~30 변경분(**인스턴스 네이밍 규칙**: 첫 인스턴스 무번호, 병렬 2번째부터 숫자, `metamong1` 없음) 반영. 쌍 9~11·18~19는 diff 없음(스킵)이나, 세션 스킬 본문의 `metamong1`/`pairi1` **예시**는 새 네이밍 규칙에 맞게 Copilot 쪽만 선반영(Claude 원본은 아직 구 예시 — 다음 Claude 변경 시 재대조).
 - **부수 정비(2026-08-04)**: ①`verification-before-completion` 스킬이 Copilot 팀원 정의에서 참조되는데 `~/.copilot/skills/`에 미설치였음 → Claude 원본 그대로 설치(도구 무관, 각색 불필요). ②`~/.copilot/skills/issue-capture`·`issue-refine`의 frontmatter `name`이 구 `jira-*`로 남아 디렉토리명과 불일치 → `issue-*`로 정합화(본문은 보류 유지).
