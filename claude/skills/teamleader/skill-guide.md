@@ -44,6 +44,7 @@
 | 시점 | 스킬 | 용도 |
 |---|---|---|
 | 세션 시작 | `/pairi` / `/metamong` | 정체성 로드 + 기력회복 (reports·TASKS·git log) 후 브리프 대기 |
+| 모든 코드 작성 전 (상시 — 스킬 아님) | 최소코드 사다리 (agents/*.md 작업 규율) | 필요한가→코드베이스에 이미 있나→stdlib/네이티브→기존 의존성→최소 diff. **규모 무관, 한 줄 수정에도** — incremental Rule 0의 사다리를 에이전트 정의로 상시화 (2026-08-12, ponytail 재점화). 팀장 측 대응은 브리프 "재사용 후보" 줄 (ways-of-working) |
 | M 이상 구현 | `incremental-implementation` | 슬라이스 단위 점진 구현 — **메타몽 주특기** (구현 메인 축) |
 | 테스트 실패·버그 1차 | `debugging-and-error-recovery` | 발견한 팀원이 직접 근본 원인 디버깅 (추측 수정 금지) |
 | 버그 2회 실패·통합·재현 불가·아키텍처급 | `debugging-and-error-recovery` | **파이리 주특기** — 팀장이 파이리에게 재배정 (관련 보고·커밋 이력 선독 후 진행) |
