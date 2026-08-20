@@ -81,6 +81,7 @@ project = {Key} AND sprint in openSprints() ORDER BY created DESC
 - **description**: `contentFormat: "markdown"`으로 B2 초안 내용
 - **priority**: `Medium`
 - **sprint**: 조회한 활성 스프린트 ID
+- **duedate**: 🔴 **비워 둔다** (아래 "기한은 배분 시점에" 참조)
 
 ### B5. 완료 안내
 
@@ -118,11 +119,29 @@ project = {Key} AND sprint in openSprints() ORDER BY created DESC
 - **priority**: `Medium`
 - **labels**: `improvement`
 - 스프린트 미배정 (백로그)
+- **duedate**: 🔴 **비워 둔다** (아래 "기한은 배분 시점에" 참조)
 
 ### I4. 완료 안내
 
 - 생성된 이슈 Key + URL
 - "스프린트 배정은 다음 sprint planning 때 검토"
+
+---
+
+## 기한은 배분 시점에 — 캡처 때는 비운다 (2026-08-20 확정)
+
+**`duedate` = 그 티켓이 나갈 PR 묶음**이다. 하루에 PR 1~2개가 나가므로 날짜가 사실상 묶음 식별자다.
+
+| 시점 | `duedate` / 시작일 | 누가 |
+|---|---|---|
+| **캡처(이 스킬)** | **비움** | — |
+| **배분(브리프 작성)** | **필수 입력 = 그 PR 예정일** | 팀장 |
+| PR 발행 | (기한 대신) 티켓에 PR 링크 코멘트 | 팀장 |
+
+- 캡처 시점에 비우는 이유: 스모크 중 개선 건이 여러 개 쏟아지는데 그때마다 기한을 고민하면 **흐름이 끊기고**, 그 순간엔 크기·우선순위·담당 정보가 아직 없다. 캡처는 빠른 게 미덕이다.
+- 이 규칙 하에서 **"기한 없음 = 아직 배분 안 된 것"**이 된다 → `assignee = currentUser() AND duedate IS EMPTY AND status != 완료`가 곧 미배분 백로그.
+- ⚠️ **사용자가 캡처 시점에 기한을 명시하면 그대로 넣는다** — 위는 기본값이지 금지가 아니다.
+- 계기: 2026-08-20 — PROJ-1085가 코드는 이미 커밋돼 PR에 실려 있었는데 **배분 시점에 Jira를 안 갱신**해서 사용자 현황판에서 사라져 있었다. 문제는 캡처가 아니라 배분 시점 누락이었다.
 
 ---
 
