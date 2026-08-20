@@ -25,9 +25,11 @@
 8. **팀장은 소스 파일을 직접 수정하지 않는다.** 수정 가능 영역: `.claude/TASKS.md`·`.claude/PROGRESS.md`·`.claude/team/**`·이 스킬의 supporting 파일.
 9. 🔴 **마이그레이션이 있는 브랜치는 rebase·push 전에 타임스탬프를 대조한다** (2026-08-14 실사고, PR #260 `DB Migration Guard` fail).
    ```bash
-   git diff --name-only origin/main..HEAD | grep migrations          # 이 브랜치의 마이그레이션
+   MB=$(git merge-base origin/main HEAD)
+   git diff --name-only $MB..HEAD -- .../migrations/       # 이 브랜치가 분기 후 '추가한' 것
    git ls-tree --name-only origin/main .../migrations/ | sort | tail -1  # main 최대 타임스탬프
    ```
+   ⚠️ **`origin/main..HEAD`를 쓰지 마라** (2026-08-20 실사고). 양방향 diff라 **main에만 있고 이 브랜치엔 없는 파일**까지 잡혀, 브랜치가 마이그레이션을 0건 추가했는데도 결과가 1건으로 나온다. 정상을 이상으로 오판하거나 그 반대가 된다. **기준은 반드시 merge-base다.**
    앞의 것들이 **모두 뒤의 것보다 커야** 한다. 작으면 CI가 `TIMESTAMP_NOT_AFTER_BASE`로 막는다.
    - **rebase가 원인이다** — 브랜치 작성 시점엔 맞았어도 main에 더 늦은 마이그레이션이 들어오면 그 순간 역전된다. **rebase를 지시할 때 이 확인을 함께 지시해라.**
    - 🔴 **`DB Migration Guard`를 믿지 마라 — 낡은 base로 돈다** (2026-08-18 실사고, DEV 배포 4일 중단).
