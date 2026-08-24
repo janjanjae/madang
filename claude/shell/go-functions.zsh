@@ -21,10 +21,21 @@ _go_worker_prompt() {
   printf '%s' "$p"
 }
 
+# 브리프 첫 줄에서 작업 요약을 뽑아 세션 이름 꼬리표로 만든다 (2026-08-24)
+# 규격: "# {이름} 브리프 ({차수}) — {요약}" → " · {요약}"(38자)
+# 브리프가 없거나 규격이 다르면 조용히 생략 — 기존 동작과 동일하다.
+# ⚠️ 상대경로라 프로젝트 루트에서 기동해야 한다.
+_go_brief_tag() {
+  local f=".claude/team/briefs/${1}.md"
+  [ -f "$f" ] || return 0
+  head -1 "$f" | grep -q '—' || return 0
+  printf ' · %s' "$(head -1 "$f" | sed -E 's/^#+ *//; s/\*\*//g; s/^[^—]*— *//' | cut -c1-38)"
+}
+
 # 모델은 GO_MODEL 로 덮어쓸 수 있다 (예: GO_MODEL=opus go-pairi)
-go-pairi()    { claude --model "${GO_MODEL:-sonnet}" -n "파이리${1} $(date +%m%d)" "$(_go_worker_prompt pairi 파이리 "$1")"; }
-go-metamong() { claude --model "${GO_MODEL:-sonnet}" -n "메타몽${1} $(date +%m%d)" "$(_go_worker_prompt metamong 메타몽 "$1")"; }
-go-kkobugi()  { claude --model "${GO_MODEL:-sonnet}" -n "꼬부기${1} $(date +%m%d)" "$(_go_worker_prompt kkobugi 꼬부기 "$1")"; }
+go-pairi()    { claude --model "${GO_MODEL:-sonnet}" -n "파이리${1} $(date +%m%d)$(_go_brief_tag pairi${1})" "$(_go_worker_prompt pairi 파이리 "$1")"; }
+go-metamong() { claude --model "${GO_MODEL:-sonnet}" -n "메타몽${1} $(date +%m%d)$(_go_brief_tag metamong${1})" "$(_go_worker_prompt metamong 메타몽 "$1")"; }
+go-kkobugi()  { claude --model "${GO_MODEL:-sonnet}" -n "꼬부기${1} $(date +%m%d)$(_go_brief_tag kkobugi${1})" "$(_go_worker_prompt kkobugi 꼬부기 "$1")"; }
 go-teamleader() {
   # 세션 기동 전 개인 레포 3종(베이스+컨텍스트) 최신화 — 개인 GitHub 접근 불가(ZTNA ON)면 '보류'만 뜨고 기동은 계속된다
   command -v work-sync >/dev/null 2>&1 && work-sync pull
