@@ -105,22 +105,31 @@ Monitor({
 
 ```bash
 cd <프로젝트 루트>
-C=.claude/team/confirm; R=.claude/team/reports
+C=.claude/team/confirm; R=.claude/team/reports; B=.claude/team/briefs
 seen=""; idle=""
 while true; do
   # 1) 컨펌 대기 — request가 있는데 reply가 없거나 더 오래됨
-  for f in "$C"/*.request.md; do
+  # 🔴 `for f in "$C"/*.request.md` 도 `for f in $(find ...)` 도 쓰지 마라 (2026-08-26 실사고 2건).
+  #    전자: zsh는 매칭 0건이면 fatal → confirm/이 비면 감시가 즉사한다.
+  #    후자: zsh는 unquoted 확장을 **단어분리하지 않아** request가 2개가 되는 순간
+  #          개행이 붙은 한 덩어리가 되고 `-e`에서 조용히 탈락한다 → 컨펌을 통째로 못 본다.
+  #    while read + 프로세스 치환은 **현재 셸에서** 돌아 seen/idle 누적도 살아남는다(파이프면 서브셸이라 날아간다).
+  while IFS= read -r f; do
     [ -e "$f" ] || continue
     n=$(basename "$f" .request.md); rp="$C/$n.reply.md"
     if [ ! -f "$rp" ] || [ "$f" -nt "$rp" ]; then
       k="$n@$(md5 -q "$f" 2>/dev/null)"        # md5로 같은 요청 중복 알림 방지
       case "$seen" in *"|$k|"*) ;; *) echo "🔔 컨펌 대기: $n  ($(date +%H:%M))"; seen="$seen|$k|";; esac
     fi
-  done
+  done < <(find "$C" -name '*.request.md' 2>/dev/null)
   # 2) 유휴 의심 — reports가 25분 이상 정지 + 대기 중인 컨펌 없음
+  #    🔴 보고가 **현재 브리프보다 오래됐으면 건너뛴다** — 그건 "노는 중"이 아니라 "아직 기동
+  #       안 함"이고, 팀장이 이미 아는 사실이라 알릴 값이 없다. 안 걸러내면 기동 전까지
+  #       45분마다 워커 수만큼 반복 발화한다(2026-08-26).
   now=$(date +%s)
   for w in pairi kkobugi metamong; do
-    rf="$R/$w.md"; [ -e "$rf" ] || continue
+    rf="$R/$w.md"; bf="$B/$w.md"; [ -e "$rf" ] || continue
+    [ -e "$bf" ] && [ ! "$rf" -nt "$bf" ] && continue   # 미기동 = 유휴 아님
     [ -f "$C/$w.request.md" ] && { case "$seen" in *"|$w@"*) continue;; esac; }
     m=$(stat -f %m "$rf" 2>/dev/null || echo "$now")
     gap=$(( (now - m) / 60 ))
