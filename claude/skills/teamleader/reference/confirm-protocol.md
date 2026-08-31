@@ -67,6 +67,20 @@ Copilot CLI/SDK는 **세션 idle 타임아웃 ~30분**이 있어(공식 세션 �
 3. **그래도 멈추면(세션이 이미 정리된 경우) 복구는 한 마디**: 사용자가 해당 탭에 **"이어서"**라고 치면 워커는 ①자기 브리프 파일 ②자기 reply 파일을 순서대로 읽고 미처리분부터 재개 + 폴링 재무장한다 — 이것이 표준 재개 키워드(전 워커 공통, 클로드에도 무해).
 4. 팀장은 코파일럿 워커 브리프/시작 프롬프트에 폴링 명령을 넣을 때 `seq 1 100` 버전으로 넣는다.
 
+**🔴 코파일럿 워커 기동 실측 (2026-08-31 — 세 가지가 전부 틀려 있었다)**
+
+`go-{이름}-cop` 셸 함수(`~/Desktop/pokemon-agent-team/claude/shell/go-functions.zsh`)로 띄운다. 그날 고친 것:
+
+| 항목 | 틀렸던 것 | 맞는 것 |
+|---|---|---|
+| 페르소나 | 프롬프트 첫 토큰 `/pairi` | `--agent pairi` — **코파일럿에 `/pairi` 슬래시는 없다**(`copilot help commands`: `/agent [name]`뿐). 텍스트로 흘러 페르소나가 안 붙었다 |
+| 프롬프트 | pbcopy → 사람이 Cmd+V | `-i "<프롬프트>"` (CLI 1.0.82부터. 구 주석의 "초기 프롬프트 인자 없음"은 폐기) |
+| 도구 | 에이전트 frontmatter `tools: all` | **`tools:` 줄 삭제**. 파서가 `s.tools \|\| ["*"]` — 배열이 아니면 필터가 오작동해 `skill`·`sql` 2개만 남는다 |
+
+- **모델은 ID 전체로**: `GO_MODEL=claude-opus-5` (Claude 별칭 `opus`/`sonnet`은 안 먹는다). 가용 ID 실사용 이력: `sqlite3 ~/.copilot/session-store.db "select distinct model from assistant_usage_events;"`
+- **오토파일럿**: `--autopilot --allow-all-tools --max-autopilot-continues 3`이 기본(끄려면 `GO_AUTOPILOT=0`). 🔴 코파일럿에는 커밋 게이트를 강제할 훅이 없으므로 **브리프 최상단**(`[목표]`보다 위)에 「멈춰야 할 자리」 블록을 둔다 — 오토파일럿은 뒤쪽 제약을 안 읽는다. `--allow-all`(경로·URL까지)은 쓰지 않는다.
+- 🔑 **원본은 `~/.claude/agents/*.md`, 코파일럿 파일은 생성물이다.** 생성물만 고치면 `sync_claude_team` 다음 실행에서 되돌아간다 — 변환 규칙(`~/Desktop/pokemon-agent-team/copilot/skills/sync_claude_team/manifest.md`)을 같이 고쳐야 한다. 2026-08-31의 `tools: all` 장애가 정확히 그 매니페스트 규칙에서 나왔다.
+
 **주의**
 - 컨펌 대기 중 워킹트리에 미커밋 변경이 체류한다 → 병렬 배분 시 **파일 경로 비겹침**이 더욱 중요.
 - 게이트 강도는 팀장이 배분 시 결정: 런타임 확인이 불필요한 태스크는 브리프에 "컨펌 생략" 명시 가능.
@@ -164,3 +178,4 @@ done
 
 - 포그라운드 read 루프 금지 이유: 매 사이클 LLM이 재engage돼 토큰을 태운다(2026-07-14 실측). 백그라운드면 sleep 중 토큰 0.
 - 코파일럿 워커는 위 「코파일럿 폴링 특칙」의 `seq 1 100` 버전으로.
+- 🔴 **코파일럿 워커는 이 템플릿을 쓰지 마라** — `/{skill}` 슬래시가 없다. `go-{이름}-cop`이 만드는 프롬프트(슬래시 제거 + `--agent`)를 쓴다. 위 「코파일럿 워커 기동 실측」 참조.

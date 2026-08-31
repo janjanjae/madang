@@ -43,18 +43,43 @@ go-teamleader() {
 }
 go-rotomdex()   { claude --model "${GO_MODEL:-sonnet}" -n "로토무도감 $(date +%m%d)" "/rotomdex"; }
 
-# 코파일럿 워커용 — Copilot CLI는 인터랙티브 모드에 초기 프롬프트 인자가 없다.
-# 그래서 같은 시작 프롬프트를 클립보드에 넣고 화면에도 찍어준다 → 뜨면 바로 붙여넣기(Cmd+V).
+# 코파일럿 워커용 (2026-08-31 전면 수정 — CLI 1.0.82 기준으로 두 전제가 낡아 있었다)
+#
+#   ① 프롬프트: 예전 주석은 "인터랙티브 모드에 초기 프롬프트 인자가 없다"였으나 지금은 `-i <prompt>`가
+#      있다(`copilot --help` 참조). pbcopy로 클립보드에 넣고 사람이 Cmd+V 하던 걸 자동 전달로 바꿨다.
+#      pbcopy는 -i가 실패할 때를 위한 보험으로 남겨둔다.
+#
+#   ② 페르소나: 🔴 코파일럿에는 `/pairi` 같은 슬래시 명령이 없다(`copilot help commands`로 확인 —
+#      `/agent [name]`뿐). 그동안 `-cop`으로 띄운 워커는 프롬프트 첫 토큰 "/pairi"가 그냥 텍스트로
+#      들어가 **페르소나가 안 붙은 채** 돌고 있었다. 이제 `--agent`로 붙이고 프롬프트에서 슬래시를 뗀다.
+#      에이전트 정의는 ~/.copilot/agents/{skill}.agent.md (Claude 쪽 ~/.claude/agents 와 별도 파일).
+#
+#   ③ 모델: GO_MODEL로 덮어쓴다 (Claude 변형과 대칭).
+#      ⚠️ 코파일럿은 모델 ID 전체를 써야 한다: GO_MODEL=claude-opus-5 go-pairi-cop
+#      (claude 쪽 별칭 opus/sonnet은 안 먹는다). 가용 ID: claude-opus-5 · claude-sonnet-5 ·
+#      gpt-5.6-sol · gpt-5.4 · gpt-5.4-mini · claude-opus-4.8
+#
+#   ④ 오토파일럿 (2026-08-31 신설): 워커는 오토파일럿으로 뜬다. 승인창마다 멈추면 무인 진행이
+#      불가능하므로 --allow-all-tools(도구만)를 함께 준다. 경로·URL은 열지 않는다 —
+#      브리프의 작업트리 제약이 살아 있어야 한다.
+#      🔴 오토파일럿은 컨펌 게이트와 부딪힌다. 코파일럿에는 Claude Code의 hooks/gate-commit.sh 같은
+#         강제 장치가 없어 게이트가 브리프의 약속뿐이다. 그래서 연속 진행을 3회로 묶는다(기본 5).
+#      끄려면: GO_AUTOPILOT=0 go-pairi-cop
+#
+#   기동 후 확인: 워커가 포켓몬 인사("파이리~!" 등)로 열면 페르소나가 붙은 것이다.
 _go_cop_launch() {
   local skill="$1" kname="$2" n="$3" p
+  local -a autoflags
+  if [ "${GO_AUTOPILOT:-1}" != "0" ]; then
+    autoflags=(--autopilot --allow-all-tools --max-autopilot-continues "${GO_AUTOPILOT_CONTINUES:-3}")
+  fi
   p="$(_go_worker_prompt "$skill" "$kname" "$n")"
-  printf '%s' "$p" | pbcopy
-  print -P "%F{green}── 시작 프롬프트를 클립보드에 복사했다. 뜨면 Cmd+V ──%f"
-  echo "$p"
-  print -P "%F{green}────────────────────────────────────────────%f"
-  copilot --model claude-sonnet-5 -n "${kname}${n} $(date +%m%d)"
+  p="${p#/$skill }"                      # 코파일럿은 --agent로 붙이므로 앞의 "/pairi " 제거
+  printf '%s' "$p" | pbcopy              # -i가 안 먹을 때를 위한 보험
+  copilot --agent "$skill" --model "${GO_MODEL:-claude-sonnet-5}" \
+          "${autoflags[@]}" -n "${kname}${n} $(date +%m%d)" -i "$p"
 }
 go-pairi-cop()      { _go_cop_launch pairi 파이리 "$1"; }
 go-metamong-cop()   { _go_cop_launch metamong 메타몽 "$1"; }
 go-kkobugi-cop()    { _go_cop_launch kkobugi 꼬부기 "$1"; }
-go-rotomdex-cop()   { copilot --model claude-sonnet-5 -n "로토무도감 $(date +%m%d)"; }
+go-rotomdex-cop()   { copilot --agent rotomdex --model "${GO_MODEL:-claude-sonnet-5}" -n "로토무도감 $(date +%m%d)"; }

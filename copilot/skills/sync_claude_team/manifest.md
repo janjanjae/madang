@@ -7,7 +7,7 @@
 
 | # | Claude 원본 (source) | Copilot 대상 (target) | 스냅샷 | 변환 규칙 |
 |---|---|---|---|---|
-| 1 | `~/.claude/agents/pairi.md` | `~/.copilot/agents/pairi.agent.md` | `.snapshots/agents/pairi.md` | frontmatter를 `name`/`description`/`tools: all` 형식으로 유지(모델 필드는 Copilot에서 생략, model-guide.md가 대신함). 본문 내용(역할·작업규율·보고양식)은 의미 동일하게 반영. "탭 모드"/"팀 모드" 표현은 유지 가능(개념은 동일). |
+| 1 | `~/.claude/agents/pairi.md` | `~/.copilot/agents/pairi.agent.md` | `.snapshots/agents/pairi.md` | frontmatter는 **`name`/`description` 두 개만** 둔다(모델 필드는 Copilot에서 생략, model-guide.md가 대신함). 🔴 **`tools:` 줄을 넣지 마라** — 아래 「코파일럿 에이전트 frontmatter 특칙」 참조. 본문 내용(역할·작업규율·보고양식)은 의미 동일하게 반영. "탭 모드"/"팀 모드" 표현은 유지 가능(개념은 동일). |
 | 2 | `~/.claude/agents/metamong.md` | `~/.copilot/agents/metamong.agent.md` | `.snapshots/agents/metamong.md` | 상동 |
 | 3 | `~/.claude/agents/kkobugi.md` | `~/.copilot/agents/kkobugi.agent.md` | `.snapshots/agents/kkobugi.md` | 상동. proto worktree 경로 예시(`{app-repo}-ux` 등 특정 프로젝트명)는 일반화(`{repo-name}-ux`)해서 반영 — Copilot 쪽은 전역 설정이라 특정 프로젝트명을 박아넣지 않는다. |
 | 4 | `~/.claude/skills/teamleader/SKILL.md` | `~/.copilot/skills/teamleader/SKILL.md` | `.snapshots/skills/teamleader/SKILL.md` | "`/pairi` `/metamong`" 같은 슬래시커맨드 표현 → "`skill` 도구로 pairi/metamong 호출"로 변환. "네이티브 팀 모드(`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`)" 언급은 Copilot의 `/fleet`·`task` 서브에이전트 개념으로 각색(기능이 동일하지 않으므로 그대로 베끼지 말 것). 절대원칙·운영루프·성찰루틴 등 정책성 내용은 그대로 반영. |
@@ -31,7 +31,10 @@
 
 ## 동기화 상태 메모 (2026-08-06 갱신)
 
+- 🔴 **2026-08-31 긴급 정정 (쌍 1~3·18 전체)**: 매니페스트의 변환 규칙 자체가 버그를 만들고 있었다 — 「frontmatter를 `tools: all` 형식으로 유지」가 Copilot 파서와 맞지 않아 **네 페르소나 전부 도구가 `skill`·`sql` 2개로 잘려 있었다**. 규칙을 「`tools:` 줄 제거」로 고치고 `~/.copilot/agents/*.agent.md` 4개에서 해당 줄을 삭제(백업 `.bak-20260831-134702`). 같은 날 `--agent`/`-i`/모델 ID/오토파일럿 각색 규칙 4건을 신설. **다음 동기화 시 이 규칙대로 재생성되는지 확인할 것** — 규칙만 고치고 생성물을 안 고치면(또는 그 반대면) 다시 어긋난다.
+
 - **2026-08-31 동기화 완료**: 쌍 1~3(pairi/metamong/kkobugi agent) + 쌍 6(ways-of-working) — Claude 2026-08-19~27 변경분 중 Copilot 워커 공통 정책을 반영. `[기계]`/`[사용자]` 스모크 분리와 실행 증거, 브리프 5요소 헤더·재사용 후보, 최소코드 사다리, 장시간 작업 중간 저장, 도구 출력 축소를 추가했다. 꼬부기는 폐기된 "확정안 메인 공유 트리 복사" 흐름을 제거하고 자기 worktree·자기 브랜치에서 확정 커밋과 스모크를 수행하도록 갱신했다. Copilot 전용 25분 폴링 제한과 일반화된 프로젝트 표현은 유지. 쌍 4·5·7·8 및 12~16은 기존 방침대로 보류해 스냅샷을 갱신하지 않음.
+- **2026-08-31 재동기화**: 쌍 6(ways-of-working) — 같은 날 Claude 원본이 349줄에서 180줄로 압축 리라이트됨. Copilot 대상은 기존 커스터마이징을 보존하고, 새 실행 정책(대상 브랜치에서 코드 위치 확인, 작업 중 브리프 교체 금지, PR 분할 기준, worktree 파일 복사·되돌리기·의존성 갱신·스크립트 치환 함정)만 추가했다. Claude 팀장 전용 compact/SessionStart 훅/모델·사용량 규칙과 프로젝트 고유 사고 이력은 미반영. 새 `reference/incidents.md`는 이 제외된 사고 이력 전용 supporting 파일이므로 Copilot 파일 쌍으로 추가하지 않음.
 
 - **2026-08-06 동기화 완료**: 쌍 18(rotomdex agent) — 유튜브 링크 규칙에 생활코딩 채널 추가(코딩애플과 병기). 쌍 6(ways-of-working) — Claude 2026-08-05~06 변경분(PR Test Plan 용도 명문화, PR/커밋에 팀 디렉토리 내부경로 금지, APPROVE=커밋 게이트 명문화, 워크트리 env·백킹서비스 네임스페이스 분리 일반화, 브리프 대기 재무장 커맨드 구체화) 반영. Claude 쪽의 frontmatter 훅 기반 커밋 게이트 버그(`gate-commit.sh`) 항목은 manifest 규칙(frontmatter 훅 제외)에 따라 미반영 — 대신 산문 규칙(APPROVE=커밋만)으로 동일 위험 완화. 그 외 쌍(1~3, 9~11, 18의 SKILL.md 짝, 19)은 diff 없음.
 
@@ -54,6 +57,12 @@
   - **광범위 프로세스 킬 금지**: `pkill node` 류는 Copilot 자기 세션을 죽인다(copilot-cli#3033) — `lsof`로 PID 특정 후 그 PID만 kill.
   - **재개 키워드 "이어서"**: 세션이 그래도 정리됐으면 사용자가 "이어서" 한 마디 → 브리프 파일·reply 파일 순서로 읽고 미처리분부터 재개.
   - 근거 원문: `~/.claude/skills/teamleader/ways-of-working.md` "코파일럿 워커 폴링 특칙".
+- 🔴 **코파일럿 에이전트 frontmatter `tools:` 금지 (2026-08-31 신설 — 실제 장애로 확인)**: Copilot 번들의 에이전트 파서는 `let a = s.tools || ["*"]` — **`tools`는 배열이어야 하고, 생략하면 기본값이 `["*"]`(전체 도구)**다. 우리가 Claude 포맷을 그대로 옮겨 `tools: all`(문자열)을 넣었더니 도구 필터가 오작동해 **`skill`·`sql` 두 개만 남았다**. 2026-08-31 파이리 세션이 "파일을 읽을 수도, 폴 루프를 돌릴 수도 없다"고 보고해 발각. 쌍 1~3·18 전부 같은 문제였다.
+  → **대상 파일에서 `tools:` 줄을 아예 뺀다.** 굳이 명시하려면 `tools: ["*"]`(배열)만 허용. 문자열 금지.
+- 🔴 **페르소나 로드 = `--agent`, 슬래시 아님 (2026-08-31 신설)**: Copilot에는 `/pairi` 같은 슬래시 명령이 **없다**(`copilot help commands` 확인 — `/agent [name]`뿐). 기동은 `copilot --agent {skill}`. 프롬프트 첫 토큰에 `/{skill}`을 넣으면 그냥 텍스트로 흘러 **페르소나가 안 붙는다**. 세션 절차 스킬(`~/.copilot/skills/{skill}/SKILL.md`, 쌍 9~11·19)은 별개 — 그건 `skill` 도구로 호출한다. 둘을 혼동하지 말 것.
+- **초기 프롬프트는 `-i` 로 전달 (2026-08-31 — 구 규칙 폐기)**: ~~"Copilot CLI는 인터랙티브 모드에 초기 프롬프트 인자가 없다"~~는 CLI 1.0.82에서 뒤집혔다. `copilot -i "<프롬프트>"`가 인터랙티브로 뜨면서 프롬프트를 자동 실행한다. 클립보드+수동 Cmd+V 방식은 폴백으로만 유지.
+- **모델 지정은 전체 ID로**: `--model claude-opus-5` 처럼 **모델 ID 전체**를 써야 한다. Claude Code 쪽 별칭(`opus`/`sonnet`)은 코파일럿에서 안 먹는다. 가용 ID 확인은 `sqlite3 ~/.copilot/session-store.db "select distinct model from assistant_usage_events;"`(실사용 이력) 또는 `copilot help config`.
+- **오토파일럿 + 컨펌 게이트 (2026-08-31 신설)**: 워커를 `--autopilot --allow-all-tools`로 띄우면 승인창 없이 진행한다. 🔴 **코파일럿에는 커밋 게이트를 강제할 훅이 없으므로**(위 frontmatter 훅 제외 규칙 참조) 오토파일럿은 "컨펌 없이 커밋"으로 직행할 수 있다. 대책: ①`--max-autopilot-continues 3`으로 폭 제한 ②브리프 **최상단**(`[목표]`보다 위)에 「멈춰야 할 자리」 블록 배치 — 오토파일럿에서는 뒤쪽 제약이 안 읽힌다 ③`--allow-all`(경로·URL까지)은 쓰지 않는다. 작업트리 제약이 살아 있어야 한다.
 - **Artifact 도구 없음**: 꼬부기 L1 일회용 목업은 Artifact 대신 **임시 폴더에 HTML 파일 생성 + `open {파일}`로 브라우저 확인** 방식으로 각색. "여러 안 한 페이지 비교" 원칙은 유지.
 - **Playwright MCP**: Copilot 쪽에 미설정. 꼬부기 셀프체크 규칙은 "Playwright MCP가 설정돼 있으면 사용, 없으면 dev 서버 스크린샷을 직접 캡처하거나 확인 요청에 수동 확인 항목으로 명시"로 완화 반영.
 - **운영 모드 표**(ways-of-working): Copilot 버전에는 "코파일럿 팀원은 모드 1에서만 등장"이라는 관점으로 반영 — 모드 2·3(풀 클로드)은 참고 정보로만.
