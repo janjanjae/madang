@@ -15,6 +15,7 @@
 4. **명시 호출 우선** — 페르소나·허브 문서 커맨드는 `/이름` + `disable-model-invocation`.
 5. **변경에는 이력** — 날짜+변경+사유 (ways-of-working 표준). 패치 노트 3개 누적 = 리라이트 신호.
 6. **상류 추종** — 활발한 상류(superpowers 등)가 있는 스킬은 포크 동결하지 않는다. 고유 자산만 직접 유지.
+7. **본문은 규칙, 서사는 reference** (2026-08-31) — 매 세션 읽히는 문서(ways-of-working·SKILL.md·model-guide)는 "언제 확인 → 하지 마라 → 대신"만 적고, 사고 경위·실측·폐기 규칙은 `reference/incidents.md`에 규칙 번호로 색인한다. 컴팩션 생존은 기억이 아니라 `SessionStart(compact)` 훅이 담당. 원칙 5의 후속 — 패치 노트가 쌓이면 서사가 본문을 잠식하므로 리라이트 때 이 형식으로 돌아온다(ways-of-working 349→179줄, `plans/lecture-claude-code-prompt-optimization-2026-08-31-pass2.md`).
 
 ## 로드맵 (2026-07-26 사용자 승인 — 레포 소관분)
 
