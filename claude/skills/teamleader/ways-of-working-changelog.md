@@ -127,6 +127,6 @@
 
 **변경**: 본문 349줄/55KB → 규칙만 남기고(「언제 확인 → 하지 마라 → 대신」 형식), 사고 경위·실측 수치·폐기 규칙은 `reference/incidents.md`(규칙 번호로 색인)로 이동. 규칙은 하나도 빼지 않았다 — 본문 끝에 떠 있던 "워커 트리 규칙 추가(08-25)" 4건은 「팀원 작업 규율 › 에이전트용 함정 메모」로 편입, 「16」 밑에 잘못 붙어 있던 request 재독 서술은 「12」로 복귀. 리라이트 전 원문은 `bff8128`.
 **신설**: `hooks/reinject-rules.sh` — teamleader 스킬 frontmatter의 `SessionStart(matcher: compact)` 훅이 컴팩션 뒤 「이것만은」 절(≈2K 토큰)만 자동 재주입한다. 2026-08-13 "too large to include" 문제의 정공법(공식 hooks-guide "Re-inject context after compaction").
-**추가 규칙**: compact 시점에 "1시간 이상 자리 비우기 직전" · `autoCompactWindow: 200000` 안전망 · `/loop`·야간 루프는 새 세션에서 · 전역 기본 모델 opus 정정(settings.json이 fable로 남아 있었다).
+**추가 규칙**: compact 시점에 "1시간 이상 자리 비우기 직전" · 자동 컴팩션 창은 기본값 유지(`autoCompactWindow: 200000`은 같은 날 철회 — 사용자 체감 "너무 금방 접힌다" + 공식 문서: 기본값은 모델 한도, 200K 초과 프리미엄 없음, compact 자체가 큰 요청; 재검토 트리거 = `/usage` Long context ≥10%) · `/loop`·야간 루프는 새 세션에서 · 전역 기본 모델 opus 정정(settings.json이 fable로 남아 있었다).
 
 > 형식 근거: 실제 공개 레포(Sentry·Grafana·Cloudflare·Terraform AGENTS.md)의 공통 패턴 — 금지는 대안과 함께, 명령어엔 '언제', 사람은 안 겪는 함정은 에이전트용 메모로. 강의 S2 사례 5장에서 추출, 원문 확인(2026-08-31).
