@@ -1,6 +1,7 @@
 ---
 name: progress-check
 description: PROGRESS.md와 TASKS.md 기반 프로젝트 전체 상태 브리핑 (읽기 전용). 사용자가 진행 상황·상태를 물을 때 사용.
+context: fork
 ---
 .claude/PROGRESS.md와 .claude/TASKS.md (있으면)를 읽고 현재 프로젝트 전체 상태를 보여줘라.
 
@@ -9,3 +10,5 @@ description: PROGRESS.md와 TASKS.md 기반 프로젝트 전체 상태 브리핑
 - 완료된 태스크 / 남은 태스크 수
 - 블로커나 미결 결정사항
 - 다음으로 해야 할 것 (구체적으로)
+
+브리핑은 **20줄 이내**. 파일 원문을 옮겨 적지 말고 요약만 반환한다 (이 스킬은 별도 컨텍스트(fork)에서 돌고 결과만 본 대화로 돌아온다 — 2026-08-31).

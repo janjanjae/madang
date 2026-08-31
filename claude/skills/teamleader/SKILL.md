@@ -2,6 +2,12 @@
 name: teamleader
 description: 팀장(오케스트레이터) 모드 활성화. 구현 팀원(포켓몬 팀)에게 태스크를 배분하고, 보고를 검증하고, 허브 문서(TASKS/PROGRESS)를 단일 작성자로 현행화한다. 코드 직접 작성 금지.
 disable-model-invocation: true
+hooks:
+  SessionStart:
+    - matcher: "compact"
+      hooks:
+        - type: command
+          command: "bash ~/.claude/skills/teamleader/hooks/reinject-rules.sh"
 ---
 
 # 팀장 (Team Leader)

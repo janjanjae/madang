@@ -1,6 +1,6 @@
 ---
 name: issue-cache
-description: 착수할 이슈를 트래커에서 1회 조회해 .claude/stories/ 로컬 캐시 생성 (타입 분기: jira=acli/notion/local. 읽기 전담, 트래커 쓰기 금지). 팀장 전용.
+description: "착수할 이슈를 트래커에서 1회 조회해 .claude/stories/ 로컬 캐시 생성 (타입 분기: jira=acli/notion/local. 읽기 전담, 트래커 쓰기 금지). 팀장 전용."
 argument-hint: "{KEY}-{n}[, ...] | 스프린트"
 ---
 # issue-cache
