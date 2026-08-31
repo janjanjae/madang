@@ -31,7 +31,7 @@
 |---|---|
 | **DIRECTION.md** (이 문서) | 팀 시스템 비전·설계 원칙·로드맵 |
 | README.md | 소개 + 설치 (신규 진입점) |
-| claude/skills/teamleader/ways-of-working.md | 팀 운영 규칙 + 변경 이력 |
+| claude/skills/teamleader/ways-of-working.md | 팀 운영 규칙(규칙만) · `ways-of-working-changelog.md` 변경 이력 · `reference/incidents.md` 사고 경위·실측 (2026-08-31 3분할) |
 | claude/skills/teamleader/roster.md · model-guide.md · skill-guide.md | 팀원 명부 · 모델 배분 · 스킬 매핑 |
 | plans/ | 감사 리포트·제안서 (시점 스냅샷 — 결론은 이 문서로 승격) |
 

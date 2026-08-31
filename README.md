@@ -50,7 +50,7 @@ Claude Code(+ GitHub Copilot CLI)로 **"팀장 1 + 구현 팀원 N"** 멀티 세
 
 > Jira 커맨드 3종은 프로젝트의 `.claude/team/jira-config.md`(도메인·Key·제품 개요)를 읽어 동작 — 베이스엔 회사 정보 없음. 다른 프로젝트는 그 파일만 새로 쓰면 재사용.
 
-**팀장 구동 문서 (`claude/skills/teamleader/`)**: `roster`(명부) · `ways-of-working`(운영 규칙+변경 이력) · `model-guide`(모델 배분) · `skill-guide`(역할×시점 스킬 매핑).
+**팀장 구동 문서 (`claude/skills/teamleader/`)**: `roster`(명부) · `ways-of-working`(운영 규칙 — 규칙만; 변경 이력은 `ways-of-working-changelog`, 사고 경위·실측은 `reference/incidents`) · `model-guide`(모델 배분) · `skill-guide`(역할×시점 스킬 매핑).
 
 ## 설치
 
@@ -80,7 +80,7 @@ DIRECTION.md            # 팀 시스템의 방향 (비전·설계 원칙·로드
 claude/
   agents/               # 팀원 페르소나 (pairi, metamong, kkobugi, rotomdex)
   skills/               # 페르소나 세션 스킬 + teamleader(구동 문서 4종) + 팀장 커맨드 스킬
-  skills/teamleader/hooks/   # 커밋 게이트·허브 문서 보호 훅 스크립트
+  skills/teamleader/hooks/   # 커밋 게이트·허브 문서 보호·컴팩션 후 규칙 재주입(SessionStart compact) 훅 스크립트
 plans/                  # 감사 리포트·설계 스냅샷 (결론은 DIRECTION으로 승격)
 copilot/
   skills/sync_claude_team/   # Claude → Copilot 단방향 설정 동기화 (manifest 기반 의미 번역)
