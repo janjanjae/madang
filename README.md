@@ -18,7 +18,7 @@ Claude Code(+ GitHub Copilot CLI)로 **"팀장 1 + 구현 팀원 N"** 멀티 세
 - **탭 모드**: 사람이 터미널 탭을 열어 팀원 세션을 기동(사람 개입은 탭당 시작 프롬프트 1회). 브리프는 `.claude/team/briefs/{인스턴스}.md` 파일 폴링으로 자동 수령.
 - **컨펌 신호 프로토콜**: 커밋 전 팀원이 `.claude/team/confirm/{인스턴스}.request.md`(CONFIRM/BLOCKED/DISCUSS) 작성 → 팀장이 백그라운드 감시로 감지·검증 → `reply.md`(APPROVE/FIX)로 응답.
 - **기술 주체성**: 팀원은 공식문서로 브리프를 선검증하고, 세부 판단은 자율, 브리프와 충돌하면 `DISCUSS`로 논의.
-- **커밋 게이트 훅**: 파이리·메타몽 세션은 페르소나 frontmatter 훅으로 `git commit`을 차단 — APPROVE reply 또는 팀장이 만든 `commit-waiver` 파일이 있을 때만 통과. 허브 문서(TASKS/PROGRESS) 수정 차단 훅은 전 팀원 적용. ("훅이 강제, 스킬이 안내" — 산문 규칙의 기계적 강제)
+- **커밋 게이트 훅**: 파이리·메타몽·꼬부기 세션은 페르소나 frontmatter 훅으로 `git commit`을 차단 — **자기 인스턴스의** APPROVE reply 또는 팀장이 만든 `commit-waiver` 파일이 있을 때만 통과(꼬부기 `[proto]` 실험 커밋은 예외). 2026-09-02 이전 판은 stdin 결함으로 한 번도 동작한 적이 없었다(changelog 09-02). 허브 문서(TASKS/PROGRESS) 수정 차단 훅은 전 팀원 적용. ("훅이 강제, 스킬이 안내" — 산문 규칙의 기계적 강제)
 - **프로젝트 애든덤**: 프로젝트별 상시 특화는 `{프로젝트}/.claude/team/agents/{이름}.md`에 두면 기력회복 시 베이스 정의 위에 겹쳐 적용(델타만, 통째 오버라이드 금지). 베이스 업데이트는 자동 반영.
 - 상세 규칙: `claude/skills/teamleader/ways-of-working.md` · 방향·로드맵: `DIRECTION.md`
 
@@ -80,7 +80,7 @@ DIRECTION.md            # 팀 시스템의 방향 (비전·설계 원칙·로드
 claude/
   agents/               # 팀원 페르소나 (pairi, metamong, kkobugi, rotomdex)
   skills/               # 페르소나 세션 스킬 + teamleader(구동 문서 4종) + 팀장 커맨드 스킬
-  skills/teamleader/hooks/   # 커밋 게이트·허브 문서 보호·컴팩션 후 규칙 재주입(SessionStart compact) 훅 스크립트
+  skills/teamleader/hooks/   # 커밋 게이트·허브 문서 보호(.sh 래퍼 + 짝 .py)·컴팩션 후 규칙 재주입(SessionStart compact) 훅 스크립트
 plans/                  # 감사 리포트·설계 스냅샷 (결론은 DIRECTION으로 승격)
 copilot/
   skills/sync_claude_team/   # Claude → Copilot 단방향 설정 동기화 (manifest 기반 의미 번역)

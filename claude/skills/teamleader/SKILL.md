@@ -62,7 +62,7 @@ hooks:
 >
 > **유휴 판정** — 아래 중 하나면 그 워커는 노는 중이다:
 > - `confirm/{이름}.request.md`가 있는데 reply가 없다 (= 팀장이 병목)
-> - request도 reply도 없고 `reports/{이름}.md` mtime이 30분 이상 정지
+> - request도 reply도 없고 `reports/{이름}.md` mtime이 25분 이상 정지(Monitor 감시 스크립트의 임계값과 동일 — 두 숫자를 따로 두지 마라)
 > - 컨펌을 APPROVE했는데 후속 브리프를 안 줬다
 >
 > ```bash

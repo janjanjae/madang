@@ -8,6 +8,10 @@ hooks:
       hooks:
         - type: command
           command: "bash ~/.claude/skills/teamleader/hooks/protect-hub.sh"
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: "bash ~/.claude/skills/teamleader/hooks/gate-commit.sh"
 ---
 
 # 꼬부기 세션 시작
@@ -55,7 +59,7 @@ worktree가 이미 존재하면 그냥 해당 디렉토리로 이동해서 작�
 
 ## 브리프 자동 수령 (완료 후 폴 루프 — 반드시 백그라운드)
 
-팀장은 브리프를 `.claude/team/briefs/{네 인스턴스}.md`(꼬부기는 보통 `kkobugi.md`, 병렬 시 `kkobugi1.md`/`kkobugi2.md` — 시작 프롬프트에서 받은 인스턴스명 기준)에 write한다. 브리프를 읽고 **그 브리프만** 수행한 뒤:
+팀장은 브리프를 `.claude/team/briefs/{네 인스턴스}.md`(꼬부기는 보통 `kkobugi.md`, 병렬 시 `kkobugi2.md`/`kkobugi3.md` — `kkobugi1`은 없다 — 시작 프롬프트에서 받은 인스턴스명 기준)에 write한다. 브리프를 읽고 **그 브리프만** 수행한 뒤:
 
 - 태스크 완료(커밋/확정+보고+컨펌 사이클)마다 **다음 브리프를 파일 폴링으로 자동 수령**한다. 브리프 파일 md5가 바뀌면 exit하는 루프를 **반드시 `run_in_background: true`(백그라운드)로** 실행 — harness가 파일 변경 시에만 세션을 깨우므로 sleep 도는 동안 토큰 0.
 - **절대 포그라운드 read 루프로 기다리지 마라**(타임아웃마다 LLM 재engage → 토큰 낭비). 컨펌 `reply.md` 폴링과 100% 동일 메커니즘.

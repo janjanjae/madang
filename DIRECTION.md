@@ -23,7 +23,7 @@
 
 - [x] **1차** E-2 플러그인 마켓플레이스화 — `.claude-plugin/marketplace.json` + `claude/.claude-plugin/plugin.json`, 심링크와 병행 (2026-07-26 적용. 클라우드 세션 호환 E-9는 `/schedule` 실사용 시 이걸로 충족)
 - [x] **2차** E-3 superpowers 도입 검토 — **판단 변경(2026-07-27)**: 로컬 3종은 한글·팀 커스터마이징 자산이라 대체하지 않고 유지 확정. verification-before-completion만 선별 도입(상류@3dcbd5c, claude-home에 원본 무수정 + provenance). subagent-driven-development는 탭 모드와 상충해 SKIP. 상류 diff는 /skill-audit 트렌드 스캔에 편입
-- [x] **3차** E-4 훅 — 커밋 게이트(파이리/메타몽)+허브 문서 보호(전원)를 페르소나 frontmatter 훅으로 구현(2026-07-27, **발화 검증 대기** — 다음 워커 기동 시 확인). 로토무도감 FileChanged 대체는 철회(훅은 유휴 세션을 못 깨움 — 공식 문서 확인)
+- [x] **3차** E-4 훅 — 커밋 게이트(파이리/메타몽)+허브 문서 보호(전원)를 페르소나 frontmatter 훅으로 구현(2026-07-27). **2026-09-02 실측: 발화는 됐으나 stdin 결함으로 6,900회 전부 실패 → 전면 수정**(꼬부기 적용·인스턴스 구분 포함, 단위 테스트 21건). 실세션 차단 1회 확인은 다음 워커 컨펌 사이클. 로토무도감 FileChanged 대체는 철회(훅은 유휴 세션을 못 깨움 — 공식 문서 확인)
 - [x] **4차** E-1 커맨드→스킬 마이그레이션(2026-07-27 완료 — ADF 예시 보조 파일 분리 포함) · ~~E-5~~ 에이전트 frontmatter 구조화+꼬부기 주특기(2026-07-27 완료) · ~~E-6~~ jira Config 외부화(2026-07-27 완료 — `.claude/team/jira-config.md`) · ~~E-7~~ save-progress 문구 현행화(2026-07-27 완료)
 
 ## 문서 지도 (레포 내부)
