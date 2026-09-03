@@ -86,5 +86,35 @@ find $K/briefs $K/reports -mmin -30 -name "*.md"  # 30분 내 갱신 있으면 �
 
 - **00:12 · 0단계 통과** — confirm/*.request.md 없음, 30분 내 briefs/reports 갱신 없음, 워커 세션(파이리·메타몽·꼬부기) 30분 내 실제 턴 없음. pokepet은 돌고 있음(뒤에 madang으로 교체 기동).
 - **00:14 · 1단계 완료** — 커밋 A 27cc2de(세션 이모지), B 8368ef5(브랜드 문서), C e4a5730(스킨 표·SVG·펫). 남은 미커밋 = 팀장 WIP **4파일**(model-guide·confirm-protocol·worktree-setup·ways-of-working — confirm-protocol이 09-03 중 추가로 수정돼 있어 WIP로 취급). 이 4파일은 기계 치환에서도 제외한다(아침에 사람이 커밋 후 재실행).
-- **00:2x · 2단계 완료** — `rename-roster.sh --apply`: 파일/디렉토리 8개 이동(agents·skills), 본문 치환(WIP 4파일 제외 — EXCLUDE에 추가). plans/·changelog·incidents 무변경 확인. 훅(gate-commit.py/.sh) 정규식이 새 식별자로 바뀜.
-- **00:3x · 3단계 완료** — agents 4개 정체성 재서술(깊이/넓이/시안/해설, 시니어리티 문구 제거, 인사말 "번뜩!/몽글~/슥슥~/조잘조잘!", 분신 표기 몽글2·3) · roster.md 표·운영 메모 · teamleader/skill-audit/save-progress SKILL 문구 · go-functions(이모지 🔺☁️🟦💬⚪, go-madang, 구 이름 alias 8개 → 09-11 제거 예정) · tools/pokepet→tools/madang(소스 madang.swift, MADANG_SILENT, UserDefaults madang.*) · .gitignore · 플러그인 매니페스트 name `madang` · DIRECTION 제목+완료 줄 · README 전면 재작성(훅·로스터 "언제 부르나"·기원·설치·영문 요약·크레딧) · BRANDING.md 신설 · changelog 09-04 항목. install.sh 실행 → 새 심링크 8개, 옛 심링크 8개 제거, 깨진 링크 0. 훅 스모크 3건 통과(APPROVE 없음→exit 2 차단 / APPROVE→통과 / sketcher [proto]→통과). 옛 이름 `pairi`는 미인식 → 구 동작 폴백(통과) — 워커가 새 이름으로 뜨는 한 무관.
+- **00:15 · 2단계 완료** — `rename-roster.sh --apply`: 파일/디렉토리 8개 이동(agents·skills), 본문 치환(WIP 4파일 제외 — EXCLUDE에 추가). plans/·changelog·incidents 무변경 확인. 훅(gate-commit.py/.sh) 정규식이 새 식별자로 바뀜.
+- **00:18 · 3단계 완료** — agents 4개 정체성 재서술(깊이/넓이/시안/해설, 시니어리티 문구 제거, 인사말 "번뜩!/몽글~/슥슥~/조잘조잘!", 분신 표기 몽글2·3) · roster.md 표·운영 메모 · teamleader/skill-audit/save-progress SKILL 문구 · go-functions(이모지 🔺☁️🟦💬⚪, go-madang, 구 이름 alias 8개 → 09-11 제거 예정) · tools/pokepet→tools/madang(소스 madang.swift, MADANG_SILENT, UserDefaults madang.*) · .gitignore · 플러그인 매니페스트 name `madang` · DIRECTION 제목+완료 줄 · README 전면 재작성(훅·로스터 "언제 부르나"·기원·설치·영문 요약·크레딧) · BRANDING.md 신설 · changelog 09-04 항목. install.sh 실행 → 새 심링크 8개, 옛 심링크 8개 제거, 깨진 링크 0. 훅 스모크 3건 통과(APPROVE 없음→exit 2 차단 / APPROVE→통과 / sketcher [proto]→통과). 옛 이름 `pairi`는 미인식 → 구 동작 폴백(통과) — 워커가 새 이름으로 뜨는 한 무관.
+- **00:20 · 4단계 완료** — {app-repo} `.claude/team/`: agents 3개·briefs 7개·reports 7개 파일명 교체(confirm 비어 있었음), agents 오버레이·_local-runtime 인사말·이름 치환, PROGRESS.md·TASKS.md 상단에 안내 1줄(과거 기록 옛 이름 유지). `reports/archive/`는 그대로. `reports/builder1.md`는 옛 `metamong1.md`(무번호 규칙 위반 잔존물) — 아침에 삭제 여부 판단.
+- **00:21 · 5단계 완료** — 커밋 b35bf94 `refactor(brand): 포켓몬 → 마당(madang)` (34파일, 이동 10). 미커밋 = 팀장 WIP 4파일만.
+- **00:22 · 6단계 완료(조건 충족)** — 사용자가 자기 전 janjanjae 재인증 → `gh repo rename madang` 성공(원격 `janjanjae/madang.git`), 회사 계정으로 복귀. 로컬 폴더 `~/Desktop/madang`. 참조 갱신: `~/.zshrc` 51·53행, `work-context/bin/work-sync` REPOS, claude-home DIRECTION·README·MIGRATION의 레포 이름 언급 9곳 → madang(구 이름 병기, MIGRATION clone URL 포함) + REGISTRY E-17 줄(claude-home 미커밋 — 다른 세션의 money-brief 변경과 섞여 있어 사람이 분리 커밋), 메모리 경로. `install.sh` 재실행 → 심링크 새 경로, 깨진 링크 0. `zsh -ic 'type go-madang'` 정상. madang 펫을 새 경로에서 재기동({app-repo}, 3마리 눈 감음 = 밤이라 정상).
+- **7단계 실패** — TMview API 집 네트워크에서도 http 000(어제 사내망도 동일). **KIPRIS 수동 조회 필요**: "madang", "마당" 9류·42류.
+- **8단계 완료** — REGISTRY E-17 완료 줄, 메모리·MEMORY.md 갱신.
+
+### 최종 요약 (2026-09-04 새벽)
+
+**한 것**
+- 리포 안: 식별자·캐릭터·인사말·이모지·도구·플러그인 ID 전부 마당으로. 역할 재정의(깊이/넓이/시안/해설). README 재작성, BRANDING.md, changelog 09-04. 커밋 4개(로컬): 27cc2de 세션 이모지 · 8368ef5 브랜드 문서 · e4a5730 스킨 표·SVG·펫 · b35bf94 리네임.
+- 리포 밖: GitHub `janjanjae/madang`, 폴더 `~/Desktop/madang`, ~/.claude 심링크 8+, .zshrc·work-sync·claude-home 경로, {app-repo} 오버레이 파일명·인사말, REGISTRY·메모리.
+- 검증: 훅 스모크 3건(차단/통과/proto 예외), 심링크 깨짐 0, 셸 함수 로드, 펫 빌드·기동·창 캡처.
+
+**건너뛴 것**
+- 팀장 WIP 4파일(model-guide·ways-of-working·confirm-protocol·worktree-setup) 치환 — 미커밋 변경과 섞이지 않게 제외.
+- 상표 조회(TMview 차단).
+- push (지시).
+
+**아침에 사람이 할 것**
+1. WIP 4파일 커밋 → `claude/tools/rename-roster.sh`의 `WIP=` 줄을 지우고 `--apply` 재실행 → 그 4파일만 치환됨 → 커밋.
+2. `git push`(madang), claude-home 4문서 변경도 커밋·push.
+3. KIPRIS에서 "madang"·"마당" 9·42류 조회 → brand-strategy §4에 결과 기록.
+4. 워커 탭 재기동은 `go-solver` / `go-builder` / `go-sketcher` (옛 이름도 경고 후 동작, 09-11 제거). 첫 발화가 "번뜩!"으로 열리는지 확인 — 훅 실세션 차단 1회 확인도 이때.
+5. README 히어로 GIF(넷이 서로 다른 상태로 동시에), `{app-repo}/.claude/team/reports/builder1.md` 삭제 여부.
+6. 새 터미널을 열어야 .zshrc 변경(경로)이 적용된다. 열려 있던 워커 탭은 옛 함수 정의를 갖고 있으나 파일 신호 경로는 이미 새 이름이라, **탭을 새로 여는 게 맞다**.
+
+**되돌리는 법**
+- 리포: `git revert b35bf94` (리네임만) 또는 `git reset --hard 7ff2def` (오늘·어제 것 전부, 4커밋). 이후 `./install.sh`.
+- GitHub: `gh repo rename pokemon-agent-team -R janjanjae/madang`(리다이렉트는 양방향 아님 — 되돌리면 새 URL 링크가 죽음). 폴더는 `mv ~/Desktop/madang ~/Desktop/pokemon-agent-team` + .zshrc/work-sync 경로 복원 + install.sh.
+- {app-repo} 오버레이: 파일명 역방향 mv(solver→pairi …), 인사말은 agents 오버레이 3파일만.
