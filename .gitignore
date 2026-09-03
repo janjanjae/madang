@@ -1,3 +1,6 @@
 .DS_Store
 
 __pycache__/
+
+# pokepet 빌드 산출물 (소스만 추적)
+claude/tools/pokepet/pokepet

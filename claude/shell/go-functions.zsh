@@ -1,7 +1,8 @@
 # go-functions.zsh — 팀 워커/팀장 세션 기동 함수 (~/.zshrc에서 source)
 # 2026-08-20 ~/.zshrc에서 레포로 이동: 머신 간 공유 (재택 동기화 체계 — work-context/SETUP.md 참조)
 # ============================================================================
-# 팀 워커 세션 기동 (세션 이름 자동 설정: "<이름>[분신번호] MMDD")
+# 팀 워커 세션 기동 (세션 이름 자동 설정: "<이모지><이름>[분신번호] MMDD")
+# 2026-09-02 이모지 접두(REGISTRY E-17 L0): 🔥파이리 🟣메타몽 💧꼬부기 👑팀장 ⚡로토무도감 — 탭 목록에서 발화자 식별용
 # 새 탭에서 이 함수로 기동하면 `claude -n`으로 이름을 지정하면서 동시에
 # 해당 스킬(/pairi 등)을 첫 프롬프트로 보낸다 — 이후 수동 /rename 불필요.
 # 분신(파이리2 등)은 숫자 인자로: go-metamong 2 → "메타몽2 MMDD" +
@@ -32,16 +33,33 @@ _go_brief_tag() {
   printf ' · %s' "$(head -1 "$f" | sed -E 's/^#+ *//; s/\*\*//g; s/^[^—]*— *//' | cut -c1-38)"
 }
 
+# 역할 이모지 (세션명 접두) — 클로드·코파일럿 공통
+_go_emoji() {
+  case "$1" in
+    pairi) printf "🔥";; metamong) printf "🟣";; kkobugi) printf "💧";;
+    rotomdex) printf "⚡";; teamleader) printf "👑";;
+  esac
+}
+
 # 모델은 GO_MODEL 로 덮어쓸 수 있다 (예: GO_MODEL=opus go-pairi)
-go-pairi()    { claude --model "${GO_MODEL:-sonnet}" -n "파이리${1} $(date +%m%d)$(_go_brief_tag pairi${1})" "$(_go_worker_prompt pairi 파이리 "$1")"; }
-go-metamong() { claude --model "${GO_MODEL:-sonnet}" -n "메타몽${1} $(date +%m%d)$(_go_brief_tag metamong${1})" "$(_go_worker_prompt metamong 메타몽 "$1")"; }
-go-kkobugi()  { claude --model "${GO_MODEL:-sonnet}" -n "꼬부기${1} $(date +%m%d)$(_go_brief_tag kkobugi${1})" "$(_go_worker_prompt kkobugi 꼬부기 "$1")"; }
+go-pairi()    { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji pairi)파이리${1} $(date +%m%d)$(_go_brief_tag pairi${1})" "$(_go_worker_prompt pairi 파이리 "$1")"; }
+go-metamong() { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji metamong)메타몽${1} $(date +%m%d)$(_go_brief_tag metamong${1})" "$(_go_worker_prompt metamong 메타몽 "$1")"; }
+go-kkobugi()  { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji kkobugi)꼬부기${1} $(date +%m%d)$(_go_brief_tag kkobugi${1})" "$(_go_worker_prompt kkobugi 꼬부기 "$1")"; }
 go-teamleader() {
   # 세션 기동 전 개인 레포 3종(베이스+컨텍스트) 최신화 — 개인 GitHub 접근 불가(ZTNA ON)면 '보류'만 뜨고 기동은 계속된다
   command -v work-sync >/dev/null 2>&1 && work-sync pull
-  claude --model "${GO_MODEL:-opus}" -n "팀장 $(date +%m%d)" "/teamleader"
+  claude --model "${GO_MODEL:-opus}" -n "$(_go_emoji teamleader)팀장 $(date +%m%d)" "/teamleader"
 }
-go-rotomdex()   { claude --model "${GO_MODEL:-sonnet}" -n "로토무도감 $(date +%m%d)" "/rotomdex"; }
+go-rotomdex()   { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji rotomdex)로토무도감 $(date +%m%d)" "/rotomdex"; }
+
+# 데스크톱 펫 (2026-09-02, REGISTRY E-17): 워커 상태를 화면 위 캐릭터로. 프로젝트 루트에서 실행.
+# 읽기 전용 — .claude/team/ 파일 신호만 읽는다. 종료는 메뉴바 👾 → 종료.
+go-pokepet() {
+  local dir="${${(%):-%x}:A:h}/../tools/pokepet"   # 이 파일 기준 상대 경로 (레포 위치 무관)
+  [ -x "$dir/pokepet" ] || "$dir/build.sh" || return 1
+  pkill -x pokepet 2>/dev/null
+  "$dir/pokepet" "${1:-$PWD/.claude/team}" >/dev/null 2>&1 &!
+}
 
 # 코파일럿 워커용 (2026-08-31 전면 수정 — CLI 1.0.82 기준으로 두 전제가 낡아 있었다)
 #
@@ -77,9 +95,9 @@ _go_cop_launch() {
   p="${p#/$skill }"                      # 코파일럿은 --agent로 붙이므로 앞의 "/pairi " 제거
   printf '%s' "$p" | pbcopy              # -i가 안 먹을 때를 위한 보험
   copilot --agent "$skill" --model "${GO_MODEL:-claude-sonnet-5}" \
-          "${autoflags[@]}" -n "${kname}${n} $(date +%m%d)" -i "$p"
+          "${autoflags[@]}" -n "$(_go_emoji "$skill")${kname}${n} $(date +%m%d)" -i "$p"
 }
 go-pairi-cop()      { _go_cop_launch pairi 파이리 "$1"; }
 go-metamong-cop()   { _go_cop_launch metamong 메타몽 "$1"; }
 go-kkobugi-cop()    { _go_cop_launch kkobugi 꼬부기 "$1"; }
-go-rotomdex-cop()   { copilot --agent rotomdex --model "${GO_MODEL:-claude-sonnet-5}" -n "로토무도감 $(date +%m%d)"; }
+go-rotomdex-cop()   { copilot --agent rotomdex --model "${GO_MODEL:-claude-sonnet-5}" -n "$(_go_emoji rotomdex)로토무도감 $(date +%m%d)"; }
