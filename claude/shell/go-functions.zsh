@@ -106,11 +106,12 @@ go-narrator-cop()   { copilot --agent narrator --model "${GO_MODEL:-claude-sonne
 # 구 이름 alias (2026-09-04 마당 리네임 — 손이 기억하는 이름. 1주 뒤 2026-09-11 제거)
 # ============================================================================
 _go_renamed() { echo "⚠️ $1 은 $2 로 이름이 바뀌었다 (2026-09-04 마당 리네임). 이번엔 대신 실행한다." >&2; }
-go-solver()        { _go_renamed go-solver go-solver;         go-solver "$@"; }
-go-builder()     { _go_renamed go-builder go-builder;     go-builder "$@"; }
-go-sketcher()      { _go_renamed go-sketcher go-sketcher;     go-sketcher "$@"; }
-go-narrator()     { _go_renamed go-narrator go-narrator;    go-narrator "$@"; }
-go-solver-cop()    { _go_renamed go-solver-cop go-solver-cop; go-solver-cop "$@"; }
-go-builder-cop() { _go_renamed go-builder-cop go-builder-cop; go-builder-cop "$@"; }
-go-sketcher-cop()  { _go_renamed go-sketcher-cop go-sketcher-cop; go-sketcher-cop "$@"; }
+# rename-roster.sh 제외 대상 — 아래 옛 이름은 의도적으로 남긴 것
+go-pairi()        { _go_renamed go-pairi go-solver;         go-solver "$@"; }
+go-metamong()     { _go_renamed go-metamong go-builder;     go-builder "$@"; }
+go-kkobugi()      { _go_renamed go-kkobugi go-sketcher;     go-sketcher "$@"; }
+go-rotomdex()     { _go_renamed go-rotomdex go-narrator;    go-narrator "$@"; }
+go-pairi-cop()    { _go_renamed go-pairi-cop go-solver-cop; go-solver-cop "$@"; }
+go-metamong-cop() { _go_renamed go-metamong-cop go-builder-cop; go-builder-cop "$@"; }
+go-kkobugi-cop()  { _go_renamed go-kkobugi-cop go-sketcher-cop; go-sketcher-cop "$@"; }
 go-pokepet()      { _go_renamed go-pokepet go-madang;       go-madang "$@"; }

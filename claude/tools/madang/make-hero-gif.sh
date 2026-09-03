@@ -24,7 +24,7 @@ scene() {  # $1=solver $2=builder $3=sketcher — working|confirm|blocked|idle|o
   done
 }
 
-winid() { "$DIR/../../../plans/.." >/dev/null 2>&1; swift - <<'EOF' 2>/dev/null
+winid() { swift - <<'EOF' 2>/dev/null
 import CoreGraphics
 let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as! [[String: Any]]
 for w in list where (w[kCGWindowOwnerName as String] as? String) == "madang" { print(w[kCGWindowNumber as String]!) ; break }

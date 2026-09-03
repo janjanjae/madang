@@ -25,7 +25,7 @@ MAP_KO="파이리:번뜩 메타몽:몽글 꼬부기:슥슥 로토무도감:조�
 # 인사말은 공백을 포함하므로 줄 단위로 (탭 구분)
 MAP_CRY="$(printf '파이리~!\t번뜩!\n메타몽...\t몽글~\n꼬부기~ 꼬북꼬북!\t슥슥~\n로토무! 지지직—\t조잘조잘!')"
 
-EXCLUDE='(^\./\.git/|^\./plans/|changelog|reference/incidents|^\./claude/roster\.json|^\./claude/assets/|rename-roster\.sh)'   # 이 스크립트 자신도 제외 (09-04 자기 치환 사고)
+EXCLUDE='(^\./\.git/|^\./plans/|changelog|reference/incidents|^\./claude/roster\.json|^\./claude/assets/|rename-roster\.sh|go-functions\.zsh)'   # 이 스크립트 자신도 제외 (09-04 자기 치환 사고)
 files() { grep -rIl -E "$1" . 2>/dev/null | grep -Ev "$EXCLUDE" || true; }
 
 echo "== 드라이런: 본문 치환 대상 (plans/·changelog·incidents 제외)"
