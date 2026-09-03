@@ -118,3 +118,12 @@ find $K/briefs $K/reports -mmin -30 -name "*.md"  # 30분 내 갱신 있으면 �
 - 리포: `git revert b35bf94` (리네임만) 또는 `git reset --hard 7ff2def` (오늘·어제 것 전부, 4커밋). 이후 `./install.sh`.
 - GitHub: `gh repo rename pokemon-agent-team -R janjanjae/madang`(리다이렉트는 양방향 아님 — 되돌리면 새 URL 링크가 죽음). 폴더는 `mv ~/Desktop/madang ~/Desktop/pokemon-agent-team` + .zshrc/work-sync 경로 복원 + install.sh.
 - {app-repo} 오버레이: 파일명 역방향 mv(solver→pairi …), 인사말은 agents 오버레이 3파일만.
+
+### 아침 이어서 (2026-09-04 08:30~09:00, 사용자 기상 후 "다 이어서 진행")
+
+- 상표 조회 완료(7단계 갱신 참조) → brand-strategy §4 표.
+- 팀장 WIP 4파일 커밋(4a3f529) → 재치환. **사고 2건**: ① rename-roster.sh가 자기 매핑표까지 치환해 첫 재실행이 무효(ab81bba 메시지 오류 → 1125aed 정정) ② 재실행이 go-functions alias 블록의 옛 이름까지 바꿔 `go-solver`가 자기 재귀 → 2731de0 복구. 스크립트 EXCLUDE에 자기 자신·go-functions.zsh 추가.
+- push: madang(main = origin/main), claude-home 4문서 분리 커밋(abbb2f0) 후 push. money-brief 변경은 남겨 둠(다른 세션 것).
+- `{app-repo}/.claude/team/reports/builder1.md` → `reports/archive/metamong1-2026-08.md`(삭제 대신 보관).
+- README 히어로 GIF: `claude/tools/madang/make-hero-gif.sh`(가짜 팀 폴더로 4장면 연출 → 창 캡처 → ffmpeg). 1x 캡처라 318px — 나중에 레티나 화면에서 다시 뽑으면 2배 선명. 스크립트 사고: ffmpeg 무한 color 소스로 3분 행(→ shortest=1·프레임별 합성), `${f/\/f/\/g}` 치환이 /folders를 잡음(→ basename).
+- 남은 사람 작업: 워커 탭 재기동(`go-solver` 등)과 첫 발화·커밋 게이트 실세션 확인.

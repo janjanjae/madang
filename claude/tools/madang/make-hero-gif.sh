@@ -33,6 +33,8 @@ EOF
 
 pkill -x madang 2>/dev/null || true
 scene working working working
+# 메인(레티나) 화면 왼쪽 아래에 띄운다 — 외장 1x 모니터에 뜨면 캡처가 작다
+defaults write madang "madang.origin.$T" -array 120 120
 MADANG_SILENT=1 "$DIR/madang" "$T" >/dev/null 2>&1 &
 sleep 3
 ID=$(winid); [ -n "$ID" ] || { echo "madang 창을 못 찾음"; exit 1; }
@@ -45,5 +47,12 @@ scene confirm blocked working; sleep 3.5; snap 6     # 몽글 막힘 (적 발광
 scene working working idle;    sleep 3.5; snap 6     # 슥슥 유휴 (눈 감음)
 
 pkill -x madang 2>/dev/null || true
-ffmpeg -y -loglevel error -framerate 2 -i "$F/f%03d.png" -vf "scale=iw/2:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=64[p];[s1][p]paletteuse=dither=bayer:bayer_scale=3" -loop 0 "$OUT"
+# 투명 창 캡처를 프레임별로 종이색 위에 합성(여백 24px) → GIF 2fps. (시퀀스 오버레이는 타임스탬프가 어긋나 빈 프레임이 나온다)
+for f in "$F"/f*.png; do
+  ffmpeg -y -loglevel error -i "$f" -f lavfi -i "color=c=#F5F7F8:s=16x16" -filter_complex \
+    "[0:v]format=rgba,pad=iw+48:ih+48:24:24:color=#F5F7F8@0[fg];[1:v][fg]scale2ref[bg][fg2];[bg][fg2]overlay=shortest=1:format=auto,format=rgb24" \
+    -frames:v 1 "$F/g$(basename "$f" | cut -c2-)"
+done
+ffmpeg -y -loglevel error -framerate 2 -i "$F/g%03d.png" -vf "split[s0][s1];[s0]palettegen=max_colors=96[pal];[s1][pal]paletteuse=dither=bayer:bayer_scale=4" -loop 0 "$OUT"
+defaults delete madang "madang.origin.$T" 2>/dev/null || true
 echo "built: $OUT ($(du -k "$OUT" | cut -f1)KB, $i frames)"
