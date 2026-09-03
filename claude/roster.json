@@ -1,0 +1,86 @@
+{
+  "_about": "madang 팀 스킨 표(2026-09-03). 표시 이름·울음소리·이모지·그림의 단일 원천 — pokepet·go-functions·README가 이 표를 본다. `key`는 현재 파일 신호 경로 식별자(briefs/{key}.md 등)로, 식별자 리네임(rename-roster.sh) 후에는 id와 같아진다. `aliases`는 세션 제목(claude -n) 매칭용 — 리네임 전 이름도 포함해 옛 세션 제목이 남아 있어도 잡는다.",
+  "project": {
+    "id": "madang",
+    "name": "마당",
+    "by": "잔잔재 (janjanjae)",
+    "license_mascots": "CC BY 4.0"
+  },
+  "roster": [
+    {
+      "id": "lead",
+      "key": "teamleader",
+      "name": "도담",
+      "roman": "dodam",
+      "cry": "도담도담.",
+      "emoji": "⚪",
+      "shape": "원",
+      "color": "#1E2430",
+      "pet": false,
+      "aliases": [
+        "팀장",
+        "teamleader"
+      ]
+    },
+    {
+      "id": "solver",
+      "key": "pairi",
+      "name": "번뜩",
+      "roman": "beontteok",
+      "cry": "번뜩!",
+      "emoji": "🔺",
+      "shape": "세모",
+      "color": "#B8563F",
+      "pet": true,
+      "aliases": [
+        "파이리",
+        "pairi"
+      ]
+    },
+    {
+      "id": "builder",
+      "key": "metamong",
+      "name": "몽글",
+      "roman": "monggeul",
+      "cry": "몽글~",
+      "emoji": "☁️",
+      "shape": "구름",
+      "color": "#7A6FA8",
+      "pet": true,
+      "aliases": [
+        "메타몽",
+        "metamong"
+      ]
+    },
+    {
+      "id": "sketcher",
+      "key": "kkobugi",
+      "name": "슥슥",
+      "roman": "seukseuk",
+      "cry": "슥슥~",
+      "emoji": "🟦",
+      "shape": "네모",
+      "color": "#3E8E8A",
+      "pet": true,
+      "aliases": [
+        "꼬부기",
+        "kkobugi"
+      ]
+    },
+    {
+      "id": "narrator",
+      "key": "rotomdex",
+      "name": "조잘",
+      "roman": "jojal",
+      "cry": "조잘조잘!",
+      "emoji": "💬",
+      "shape": "말풍선",
+      "color": "#C09A2B",
+      "pet": false,
+      "aliases": [
+        "로토무도감",
+        "rotomdex"
+      ]
+    }
+  ]
+}
