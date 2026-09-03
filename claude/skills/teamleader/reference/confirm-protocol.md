@@ -46,6 +46,34 @@ f=".claude/team/confirm/{인스턴스명}.reply.md"; for i in $(seq 1 120); do [
 for i in $(seq 1 240); do f=$(find .claude/team/confirm -name "*.request.md" 2>/dev/null | while read -r x; do [ ! -f "${x%.request.md}.reply.md" ] && echo "$x"; done | head -1); if [ -n "$f" ]; then echo "$f"; exit 0; fi; sleep 15; done; exit 1
 ```
 
+🔴 **감시 판정을 `[ ! -f reply ]`(reply 파일 없음)로만 쓰지 마라 — 두 번째 사이클을 통째로 놓친다 (2026-09-03 실사고).**
+
+워커가 **APPROVE를 받고 다음 사이클 request를 올리면** `reply.md`는 **이전 사이클 것이 아직 남아 있다**
+(삭제는 워커가 커밋 후에 한다). 존재 여부만 보면 그걸 "처리됨"으로 오판한다.
+
+```bash
+# 🔴 틀림 — 이전 사이클 reply가 남아 있으면 새 request를 영원히 못 본다
+if [ ! -f "$r" ]; then ...
+
+# ✅ 맞음 — 없거나(신규), request가 reply보다 새롭다(다음 사이클·워커가 덧붙임)
+if [ ! -f "$r" ] || [ "$x" -nt "$r" ]; then ...
+```
+
+**실사고(2026-09-03)**: 꼬부기 재동기화 request가 10:52에 올라왔는데 `kkobugi.reply.md`(10:50, 직전
+사이클)가 남아 있어 감시가 침묵했다. 팀장이 13:0x에 매 턴 `confirm/` 직접 확인(「이것만은」 10)으로
+발견 — **워커가 2시간 10분을 대기**했다. 그날 그 워커는 규약을 정확히 지켰고, 틀린 건 팀장 도구다.
+
+📌 「이것만은」 10(매 턴 `confirm/` 직접 확인)이 정확히 이 구멍을 메우려고 있는 규칙이다. **감시는 보조
+수단이라는 전제를 잊지 마라** — 감시가 조용한 것은 "일이 없다"의 증거가 아니다.
+🔴 「이것만은」 10의 점검 명령도 같은 버그가 있었다 → **아래 형태로 쓴다**:
+
+```bash
+find .claude/team/confirm -name "*.request.md" | while read -r x; do
+  r="${x%.request.md}.reply.md"
+  { [ ! -f "$r" ] || [ "$x" -nt "$r" ]; } && echo "🔴 미처리: $x"
+done
+```
+
 🔴 **구 감시 명령은 버그였다 (2026-08-12 실측·교체).** 이전 형태
 `for ...; do while IFS= read -r f; do ... && exit 0; done < <(find ...); sleep 15; done`는
 **`while`이 파이프/프로세스 치환 안에서 서브셸로 돌아 `exit 0`이 서브셸만 종료**시킨다. 바깥 for
