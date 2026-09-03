@@ -25,9 +25,7 @@ MAP_KO="번뜩:번뜩 몽글:몽글 슥슥:슥슥 조잘:조잘 조잘:조잘"
 # 인사말은 공백을 포함하므로 줄 단위로 (탭 구분)
 MAP_CRY="$(printf '번뜩!\t번뜩!\n몽글~\t몽글~\n슥슥~\t슥슥~\n조잘조잘!\t조잘조잘!')"
 
-# 팀장 WIP(미커밋) 파일은 제외 — 커밋 뒤 이 스크립트를 다시 돌리면 잡힌다
-WIP='teamleader/(model-guide\.md|ways-of-working\.md|reference/(confirm-protocol|worktree-setup)\.md)'
-EXCLUDE="(^\./\.git/|^\./plans/|changelog|reference/incidents|^\./claude/roster\.json|^\./claude/assets/|$WIP)"
+EXCLUDE='(^\./\.git/|^\./plans/|changelog|reference/incidents|^\./claude/roster\.json|^\./claude/assets/)'
 files() { grep -rIl -E "$1" . 2>/dev/null | grep -Ev "$EXCLUDE" || true; }
 
 echo "== 드라이런: 본문 치환 대상 (plans/·changelog·incidents 제외)"

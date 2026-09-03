@@ -91,7 +91,7 @@ find $K/briefs $K/reports -mmin -30 -name "*.md"  # 30분 내 갱신 있으면 �
 - **00:20 · 4단계 완료** — {app-repo} `.claude/team/`: agents 3개·briefs 7개·reports 7개 파일명 교체(confirm 비어 있었음), agents 오버레이·_local-runtime 인사말·이름 치환, PROGRESS.md·TASKS.md 상단에 안내 1줄(과거 기록 옛 이름 유지). `reports/archive/`는 그대로. `reports/builder1.md`는 옛 `metamong1.md`(무번호 규칙 위반 잔존물) — 아침에 삭제 여부 판단.
 - **00:21 · 5단계 완료** — 커밋 b35bf94 `refactor(brand): 포켓몬 → 마당(madang)` (34파일, 이동 10). 미커밋 = 팀장 WIP 4파일만.
 - **00:22 · 6단계 완료(조건 충족)** — 사용자가 자기 전 janjanjae 재인증 → `gh repo rename madang` 성공(원격 `janjanjae/madang.git`), 회사 계정으로 복귀. 로컬 폴더 `~/Desktop/madang`. 참조 갱신: `~/.zshrc` 51·53행, `work-context/bin/work-sync` REPOS, claude-home DIRECTION·README·MIGRATION의 레포 이름 언급 9곳 → madang(구 이름 병기, MIGRATION clone URL 포함) + REGISTRY E-17 줄(claude-home 미커밋 — 다른 세션의 money-brief 변경과 섞여 있어 사람이 분리 커밋), 메모리 경로. `install.sh` 재실행 → 심링크 새 경로, 깨진 링크 0. `zsh -ic 'type go-madang'` 정상. madang 펫을 새 경로에서 재기동({app-repo}, 3마리 눈 감음 = 밤이라 정상).
-- **7단계 실패** — TMview API 집 네트워크에서도 http 000(어제 사내망도 동일). **KIPRIS 수동 조회 필요**: "madang", "마당" 9류·42류.
+- **7단계 (00:30 사용자 기상 후 완료)** — 사내망(ZTNA)이 켜져 있어 http 000이었음. 끄고 User-Agent 헤더로 TMview 성공: "마당" 9·42류 9건 중 살아 있는 건 "CONTENTS MADANG"(콘텐츠마당, 9류 결합상표, 2034 만료) 1건뿐, 단독 "마당"은 전부 소멸. 리스크 낮음 → 이름 유지. 결과 표는 brand-strategy §4.
 - **8단계 완료** — REGISTRY E-17 완료 줄, 메모리·MEMORY.md 갱신.
 
 ### 최종 요약 (2026-09-04 새벽)
