@@ -20,12 +20,12 @@ cd "$(dirname "$0")/../.."
 APPLY=0; [ "$1" = "--apply" ] && APPLY=1
 
 # 구 식별자 → 신 식별자 / 구 표시 이름 → 신 표시 이름 / 인사말
-MAP_ID="solver:solver builder:builder sketcher:sketcher narrator:narrator"
-MAP_KO="번뜩:번뜩 몽글:몽글 슥슥:슥슥 조잘:조잘 조잘:조잘"
+MAP_ID="pairi:solver metamong:builder kkobugi:sketcher rotomdex:narrator"
+MAP_KO="파이리:번뜩 메타몽:몽글 꼬부기:슥슥 로토무도감:조잘 로토무:조잘"
 # 인사말은 공백을 포함하므로 줄 단위로 (탭 구분)
-MAP_CRY="$(printf '번뜩!\t번뜩!\n몽글~\t몽글~\n슥슥~\t슥슥~\n조잘조잘!\t조잘조잘!')"
+MAP_CRY="$(printf '파이리~!\t번뜩!\n메타몽...\t몽글~\n꼬부기~ 꼬북꼬북!\t슥슥~\n로토무! 지지직—\t조잘조잘!')"
 
-EXCLUDE='(^\./\.git/|^\./plans/|changelog|reference/incidents|^\./claude/roster\.json|^\./claude/assets/)'
+EXCLUDE='(^\./\.git/|^\./plans/|changelog|reference/incidents|^\./claude/roster\.json|^\./claude/assets/|rename-roster\.sh)'   # 이 스크립트 자신도 제외 (09-04 자기 치환 사고)
 files() { grep -rIl -E "$1" . 2>/dev/null | grep -Ev "$EXCLUDE" || true; }
 
 echo "== 드라이런: 본문 치환 대상 (plans/·changelog·incidents 제외)"
@@ -52,10 +52,10 @@ echo "== 남는 'pokemon/포켓몬' (레포명·플러그인·README 훅 — 손
 echo "== 적용"
 for pair in $MAP_ID; do
   old=${pair%%:*}; new=${pair##*:}
-  [ -e "claude/agents/$old.md" ] && git mv "claude/agents/$old.md" "claude/agents/$new.md"
-  [ -d "claude/skills/$old" ]   && git mv "claude/skills/$old" "claude/skills/$new"
+  [ -e "claude/agents/$old.md" ] && [ ! -e "claude/agents/$new.md" ] && git mv "claude/agents/$old.md" "claude/agents/$new.md"
+  [ -d "claude/skills/$old" ]   && [ ! -d "claude/skills/$new" ] && git mv "claude/skills/$old" "claude/skills/$new"
 done
-for f in $(files "solver|builder|sketcher|narrator|번뜩|몽글|슥슥|조잘"); do
+for f in $(files "pairi|metamong|kkobugi|rotomdex|파이리|메타몽|꼬부기|로토무"); do
   printf '%s\n' "$MAP_CRY" | while IFS="$(printf '\t')" read -r old new; do [ -n "$old" ] && perl -pi -e "s/\Q$old\E/$new/g" "$f"; done
   for pair in $MAP_ID;  do old=${pair%%:*}; new=${pair##*:}; perl -pi -e "s/\b$old(?=[0-9]*\b)/$new/g" "$f"; done
   for pair in $MAP_KO;  do old=${pair%%:*}; new=${pair##*:}; perl -pi -e "s/\Q$old\E/$new/g" "$f"; done
