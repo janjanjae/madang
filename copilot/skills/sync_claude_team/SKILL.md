@@ -1,6 +1,6 @@
 ---
 name: sync_claude_team
-description: Claude Code의 팀장/팀원(teamleader, pairi, metamong, kkobugi) 전역 설정 변경사항을 Copilot CLI의 대응 파일에 반영하는 단방향 동기화. 사용자가 "sync_claude_team", "클로드 팀 설정 동기화", "팀 시스템 동기화"를 요청할 때 사용.
+description: Claude Code의 팀장/팀원(teamleader, solver, builder, sketcher) 전역 설정 변경사항을 Copilot CLI의 대응 파일에 반영하는 단방향 동기화. 사용자가 "sync_claude_team", "클로드 팀 설정 동기화", "팀 시스템 동기화"를 요청할 때 사용.
 ---
 
 # sync_claude_team — Claude → Copilot 팀 시스템 동기화
@@ -21,7 +21,7 @@ description: Claude Code의 팀장/팀원(teamleader, pairi, metamong, kkobugi) 
    - diff 없음 → 해당 쌍은 스킵.
    - diff 있음 → 변경분 사람이 읽을 수 있게 정리(무엇이 추가/삭제/수정됐는지 요약).
 4. **번역·반영** — 변경이 있는 쌍마다:
-   - manifest.md의 해당 변환 규칙 적용 (예: `/pairi` 슬래시커맨드 언급 → `skill 도구로 pairi 호출`, Claude 전용 모델명 → Copilot 모델명은 model-guide.md 규칙 참고, 특정 프로젝트명 언급은 일반화).
+   - manifest.md의 해당 변환 규칙 적용 (예: `/solver` 슬래시커맨드 언급 → `skill 도구로 solver 호출`, Claude 전용 모델명 → Copilot 모델명은 model-guide.md 규칙 참고, 특정 프로젝트명 언급은 일반화).
    - Copilot 대상 파일(`~/.copilot/...`)을 **edit 도구로 해당 diff에 대응하는 부분만 수정** (전체 재작성 금지 — Copilot 쪽에서 이미 커스터마이징된 표현은 보존).
    - 정책성 내용(작업 규율, 보고 양식, 체크리스트 등)은 그대로 반영. Claude 전용 기능/용어는 절대 직역하지 말고 Copilot 대응 개념으로 각색.
 5. **잔재 검증** — 반영한 Copilot 대상 파일에 Claude 전용 용어가 새어들지 않았는지 grep으로 확인: `grep -nE 'run_in_background|use-claude|use-glm|CLAUDE_CODE_|/model |Artifact 도구|claude-fable|claude-opus' {대상파일}`. 검출되면 각색 누락 — 해당 부분 재작성. (Copilot 폴링 특칙 관련: 백오프 확장(`seq 1 240` 이상)이 Copilot 팀원 파일에 들어가 있으면 안 된다 — 25분 윈도우 제약 위반.)
@@ -32,6 +32,6 @@ description: Claude Code의 팀장/팀원(teamleader, pairi, metamong, kkobugi) 
 ## 주의사항
 
 - **단방향**: Copilot 쪽에서만 존재하는 커스터마이징(예: 이 매니페스트 자체, `.snapshots/`, Copilot 전용 모델 표 내용)은 Claude 쪽으로 역반영하지 않는다. 사용자가 명시적으로 반대 방향 동기화를 요청하면 별도로 처리(이 스킬 범위 아님).
-- **새 파일 쌍 추가**: Claude 쪽에 `~/.claude/agents/` 또는 `~/.claude/skills/`에 새 팀원/스킬이 추가되면(예: 새 포켓몬 팀원 신설), manifest.md에 새 행을 추가하고 `.snapshots/`에 대응 디렉토리를 만든 뒤 Copilot에도 대응 파일을 신설한다.
+- **새 파일 쌍 추가**: Claude 쪽에 `~/.claude/agents/` 또는 `~/.claude/skills/`에 새 팀원/스킬이 추가되면(예: 새 팀원 신설), manifest.md에 새 행을 추가하고 `.snapshots/`에 대응 디렉토리를 만든 뒤 Copilot에도 대응 파일을 신설한다.
 - **충돌 시 사람에게 확인**: Claude 원본의 변경이 Copilot 쪽 기존 커스터마이징과 상충하면(예: 서로 다른 방향으로 규칙이 바뀜) 임의로 덮어쓰지 말고 사용자에게 어떻게 반영할지 물어본다.
 - 이 스킬은 파일시스템에 직접 접근 가능한 환경(같은 컴퓨터, `~/.claude/`와 `~/.copilot/` 모두 접근 가능)에서만 동작한다.

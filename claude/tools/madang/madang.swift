@@ -1,4 +1,4 @@
-// pokepet.swift — 마당(madang) 팀 데스크톱 펫 (REGISTRY E-17 L1+L2, v0 2026-09-02 · 마스코트 v1 2026-09-03)
+// madang.swift — 마당(madang) 팀 데스크톱 펫 (REGISTRY E-17 L1+L2, v0 2026-09-02 · 마스코트 v1 2026-09-03)
 //
 // 화면 위에 떠 있는 작은 창에 워커(번뜩·몽글·슥슥)를 띄우고,
 // `.claude/team/` 파일 신호만 읽어 상태를 말풍선으로 보여준다. 읽기 전용 — 팀 파일을 절대 쓰지 않는다.
@@ -11,9 +11,9 @@
 //   그 외                               → 작업중
 //   브리프 파일 없음                    → 휴식
 //
-// 빌드: ./build.sh   실행: pokepet <프로젝트>/.claude/team   (인자 없으면 $PWD/.claude/team)
+// 빌드: ./build.sh   실행: madang <프로젝트>/.claude/team   (인자 없으면 $PWD/.claude/team)
 // 조작: 드래그로 이동 · 더블클릭 = request/보고 파일 열기 · 메뉴바 👾 = 위치 초기화/종료
-// 환경: POKEPET_SILENT=1 이면 컨펌·막힘 전환 시 효과음 없음
+// 환경: MADANG_SILENT=1 이면 컨펌·막힘 전환 시 효과음 없음
 
 import AppKit
 import Foundation
@@ -27,17 +27,17 @@ let petW: CGFloat = 96, petH: CGFloat = 132
 // 스킨 표(claude/roster.json)가 이름·이모지·그림의 단일 원천. key = 파일 신호 경로 식별자(briefs/{key}.md).
 struct Role { let id: String; let key: String; let name: String; let emoji: String; let color: NSColor; let aliases: [String] }
 let repoClaudeDir = Bundle.main.executableURL!.resolvingSymlinksInPath()
-    .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()   // tools/pokepet/pokepet → claude/
+    .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()   // tools/madang/madang → claude/
 let mascotDir = repoClaudeDir.appendingPathComponent("assets/mascots")
 let roles: [Role] = {
     let url = repoClaudeDir.appendingPathComponent("roster.json")
     guard let data = try? Data(contentsOf: url),
           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
           let list = json["roster"] as? [[String: Any]] else {
-        FileHandle.standardError.write("pokepet: roster.json 을 못 읽음: \(url.path)\n".data(using: .utf8)!)
-        return [Role(id: "solver", key: "pairi", name: "번뜩", emoji: "🔺", color: hex("#B8563F"), aliases: ["파이리"]),
-                Role(id: "builder", key: "metamong", name: "몽글", emoji: "☁️", color: hex("#7A6FA8"), aliases: ["메타몽"]),
-                Role(id: "sketcher", key: "kkobugi", name: "슥슥", emoji: "🟦", color: hex("#3E8E8A"), aliases: ["꼬부기"])]
+        FileHandle.standardError.write("madang: roster.json 을 못 읽음: \(url.path)\n".data(using: .utf8)!)
+        return [Role(id: "solver", key: "solver", name: "번뜩", emoji: "🔺", color: hex("#B8563F"), aliases: ["번뜩"]),
+                Role(id: "builder", key: "builder", name: "몽글", emoji: "☁️", color: hex("#7A6FA8"), aliases: ["몽글"]),
+                Role(id: "sketcher", key: "sketcher", name: "슥슥", emoji: "🟦", color: hex("#3E8E8A"), aliases: ["슥슥"])]
     }
     return list.compactMap { r in
         guard (r["pet"] as? Bool) == true, let id = r["id"] as? String, let key = r["key"] as? String,
@@ -51,7 +51,7 @@ func hex(_ h: String) -> NSColor {
 }
 // 잔잔 팔레트 — 시스템 외양(다크/라이트)에 따라 잉크·종이가 뒤집힌다. 그림도 @dark 변형을 고른다.
 // 마스코트 잉크: 메뉴에서 흰색/검정/자동(시스템 외양) 선택. 기본 흰색 — 바탕화면은 대개 사진이라 밝은 실루엣이 잘 보인다.
-func inkMode() -> String { UserDefaults.standard.string(forKey: "pokepet.ink") ?? "white" }
+func inkMode() -> String { UserDefaults.standard.string(forKey: "madang.ink") ?? "white" }
 func isDark() -> Bool {
     switch inkMode() {
     case "white": return true
@@ -77,7 +77,7 @@ func resolveTeamDir() -> URL {
 }
 let teamDir = resolveTeamDir()
 if !FileManager.default.fileExists(atPath: teamDir.appendingPathComponent("briefs").path) {
-    FileHandle.standardError.write("pokepet: briefs/ 가 없다: \(teamDir.path)\n사용법: pokepet <프로젝트>/.claude/team\n".data(using: .utf8)!)
+    FileHandle.standardError.write("madang: briefs/ 가 없다: \(teamDir.path)\n사용법: madang <프로젝트>/.claude/team\n".data(using: .utf8)!)
     exit(1)
 }
 
@@ -149,7 +149,7 @@ func discoverInstances() -> [Instance] {
     var out: [Instance] = []
     for role in roles {
         out.append(Instance(key: role.key, role: role, suffix: ""))
-        // 분신(metamong2 …)은 브리프가 24시간 내에 갱신된 것만 — 8월 브리프가 남아 있어도 안 띄운다
+        // 분신(builder2 …)은 브리프가 24시간 내에 갱신된 것만 — 8월 브리프가 남아 있어도 안 띄운다
         let numbered: [Instance] = names.compactMap { n in
             guard n.hasPrefix(role.key), n.hasSuffix(".md") else { return nil }
             let mid = n.dropFirst(role.key.count).dropLast(3)
@@ -188,7 +188,7 @@ func sessionTitle(_ url: URL) -> String {
     return title
 }
 /// 세션 기록 끝부분에서 "모델이 실제로 산출한 마지막 턴"(텍스트·도구 호출, API 오류 제외)과 "마지막 API 오류" 시각.
-/// 사용자가 "이어서"를 친 것, 529 Overloaded 같은 오류 턴은 활동이 아니다 (2026-09-03 밤, 파이리 오판 사례).
+/// 사용자가 "이어서"를 친 것, 529 Overloaded 같은 오류 턴은 활동이 아니다 (2026-09-03 밤, 번뜩 오판 사례).
 let isoFmt: ISO8601DateFormatter = { let f = ISO8601DateFormatter(); f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]; return f }()
 let isoFmtPlain = ISO8601DateFormatter()
 func parseTS(_ s: String) -> Date? { isoFmt.date(from: s) ?? isoFmtPlain.date(from: s) }
@@ -220,14 +220,14 @@ func lastRealTurn(_ url: URL) -> (work: Date?, error: Date?) {
     }
     return (work, err)
 }
-/// 이 인스턴스 이름으로 시작하는 세션 기록들 중 가장 최근 실제 턴 / 그 뒤의 API 오류. "메타몽 0903"은 메타몽2와 구분한다.
+/// 이 인스턴스 이름으로 시작하는 세션 기록들 중 가장 최근 실제 턴 / 그 뒤의 API 오류. "몽글 0903"은 몽글2와 구분한다.
 func lastSessionActivity(_ inst: Instance) -> (work: Date?, error: Date?) {
     guard let files = try? FileManager.default.contentsOfDirectory(at: sessionsDir, includingPropertiesForKeys: [.contentModificationDateKey]) else { return (nil, nil) }
     let names = ([inst.role.name, inst.role.key] + inst.role.aliases).map { $0 + inst.suffix }
     var bestWork: Date?, bestErr: Date?
     for f in files where f.pathExtension == "jsonl" {
         guard let m = mtime(f), Date().timeIntervalSince(m) < 12 * 3600 else { continue }   // 오늘 것만 훑는다
-        // 세션명은 "🔥파이리 0903 · …" 꼴 — 앞의 이모지를 떼고 워커 이름으로 *시작*해야 한다.
+        // 세션명은 "🔥번뜩 0903 · …" 꼴 — 앞의 이모지를 떼고 워커 이름으로 *시작*해야 한다.
         let t = String(sessionTitle(f).drop(while: { !$0.isLetter && !$0.isNumber }))
         guard names.contains(where: { n in
             guard t.hasPrefix(n) else { return false }
@@ -287,7 +287,7 @@ func snapshot(_ inst: Instance) -> Snapshot {
 
 var appController: PetController?
 var peekUntil: Date?   // 엿보기 — 모든 펫이 말풍선을 잠시 보여준다
-func alwaysBubbles() -> Bool { UserDefaults.standard.bool(forKey: "pokepet.bubbles") }   // 메뉴 "말풍선 항상 표시"
+func alwaysBubbles() -> Bool { UserDefaults.standard.bool(forKey: "madang.bubbles") }   // 메뉴 "말풍선 항상 표시"
 
 func mascotImage(_ id: String, variant: String = "") -> NSImage? {
     NSImage(contentsOf: mascotDir.appendingPathComponent(id + variant + (isDark() ? "@dark" : "") + ".svg"))
@@ -455,7 +455,7 @@ final class PetController: NSObject {
     var pets: [PetView] = []
     var lastStates: [String: PetState] = [:]
     var statusItem: NSStatusItem!
-    let silent = ProcessInfo.processInfo.environment["POKEPET_SILENT"] != nil
+    let silent = ProcessInfo.processInfo.environment["MADANG_SILENT"] != nil
 
     override init() {
         panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: petW, height: petH),
@@ -520,7 +520,7 @@ final class PetController: NSObject {
     }
 
     // 위치 기억
-    var originKey: String { "pokepet.origin." + teamDir.path }
+    var originKey: String { "madang.origin." + teamDir.path }
     @objc func saveOrigin() {
         UserDefaults.standard.set([panel.frame.origin.x, panel.frame.origin.y], forKey: originKey)
     }
@@ -565,12 +565,12 @@ final class PetController: NSObject {
         statusItem.menu = buildMenu()
     }
     @objc func setInk(_ sender: NSMenuItem) {
-        UserDefaults.standard.set(sender.representedObject as? String ?? "white", forKey: "pokepet.ink")
+        UserDefaults.standard.set(sender.representedObject as? String ?? "white", forKey: "madang.ink")
         pets.forEach { $0.retheme() }
         statusItem.menu = buildMenu()
     }
     @objc func toggleBubbles(_ sender: NSMenuItem) {
-        UserDefaults.standard.set(!alwaysBubbles(), forKey: "pokepet.bubbles")
+        UserDefaults.standard.set(!alwaysBubbles(), forKey: "madang.bubbles")
         pets.forEach { $0.refreshBubble() }
         statusItem.menu = buildMenu()
     }

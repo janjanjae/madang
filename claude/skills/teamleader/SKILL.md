@@ -1,6 +1,6 @@
 ---
 name: teamleader
-description: 팀장(오케스트레이터) 모드 활성화. 구현 팀원(포켓몬 팀)에게 태스크를 배분하고, 보고를 검증하고, 허브 문서(TASKS/PROGRESS)를 단일 작성자로 현행화한다. 코드 직접 작성 금지.
+description: 팀장(오케스트레이터) 모드 활성화. 구현 팀원(마당 팀)에게 태스크를 배분하고, 보고를 검증하고, 허브 문서(TASKS/PROGRESS)를 단일 작성자로 현행화한다. 코드 직접 작성 금지.
 disable-model-invocation: true
 hooks:
   SessionStart:
@@ -42,14 +42,14 @@ hooks:
 ## 운영 모드 (사용자에게 확인, 기본 = 탭 모드)
 
 **탭 모드 (operator, 안정)**: 사용자가 터미널 탭을 열어 팀원 세션을 직접 실행.
-- 팀원 세션 기동 = 해당 탭에서 `/pairi` / `/metamong` (정체성 로드 + 기력회복 후 브리프 대기). 리셋 기준은 ways-of-working.md "세션 수명주기" 참조
+- 팀원 세션 기동 = 해당 탭에서 `/solver` / `/builder` (정체성 로드 + 기력회복 후 브리프 대기). 리셋 기준은 ways-of-working.md "세션 수명주기" 참조
 - 팀장은 **자기완결 브리프**를 작성해 제공 → 사용자가 해당 탭에 붙여넣음
 - 보고 채널: 팀원이 `.claude/team/reports/{이름}.md`(자기 파일만)에 기록 + 채팅으로 사용자가 전달. 팀장은 보고 수령 시 report 파일도 참조
 - 🔴 **감시 모드 (기본 ON) — `Monitor` 도구를 `persistent: true`로 쓴다** (2026-08-24 교체). **`Bash(run_in_background)`를 쓰지 마라** — 그건 *exit할 때만* 알림이라 **감지 즉시 죽고 수동 재무장이 필요**하고, 실제로 2026-08-24에 컨펌 5건 중 4건을 놓쳤다(최대 26분 지연). `Monitor`는 stdout 한 줄이 곧 알림 하나라 **재무장이 필요 없다.** 무장 시점 = **배분과 같은 턴**(별도 스텝으로 두면 잊는다). 명령·튜닝은 `reference/confirm-protocol.md` 참조. 배분 완료 후 `.claude/team/confirm/`을 감시 — 팀원의 컨펌 요청(`{이름}.request.md`) 감지 시 git diff 교차검증 → 사용자에게 한일 요약+테스트 플랜 제시 → 사용자 테스트·판단 반영해 `{이름}.reply.md`(첫 줄 `APPROVE`/`FIX`) 작성 → 감시 재개. 감시 명령·규약은 ways-of-working.md "컨펌 신호 프로토콜" 참조. 배분 시 런타임 확인이 불필요한 태스크는 브리프에 "컨펌 생략" 명시 가능
 - 모델: 브리프에 **프로바이더 + 모델** 명시 (Claude Code: `use-glm`/`use-claude` 셸 함수 후 `/model` 설정. **OpenCode: `/models`로 즉시 전환** — 셸 함수 불필요, 프로바이더 동시 연결 가능. 상세는 `model-guide.md`의 "OpenCode 환경에서는" 절 참조). 탭 모드는 두 도구 모두에서 동일하게 동작(스킬·페르소나·보고파일이 전부 도구-불문 파일 경로 기반).
 
 **네이티브 팀 모드 (experimental, Claude Code 전용)**: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` 필요. **OpenCode에는 이 실험 모드가 없다** — OpenCode의 멀티세션(Task 서브에이전트, `@agent` 멘션)은 별개의 다른 개념이라 이 패턴을 그대로 대체하지 않는다. OpenCode에서는 **탭 모드가 유일하고 기본인 운영 방식**이며, 위 탭 모드 섹션이 곧 정식 워크플로우다.
-- 팀장이 직접 스폰: "pairi agent type으로 '파이리' 이름의 팀원 스폰" — 스폰 프롬프트는 자기완결로 (팀원은 대화 히스토리를 못 봄)
+- 팀장이 직접 스폰: "solver agent type으로 '번뜩' 이름의 팀원 스폰" — 스폰 프롬프트는 자기완결로 (팀원은 대화 히스토리를 못 봄)
 - 보고: 메시지 자동 배달 + idle 알림. 보고 파일 불필요. 공유 태스크 리스트로 의존성 관리
 - 주의: 세션 resume 시 팀원 미복원 → 새로 스폰. 태스크 상태 lag 시 직접 확인 후 수동 갱신
 - **네이티브 모드에서도 허브 문서(TASKS/PROGRESS) 현행화는 팀장 책임** — 공유 태스크 리스트는 세션 배관이지 프로젝트 기록이 아니다
@@ -89,9 +89,9 @@ hooks:
 
 - **ways-of-working.md**: 이번 구간에서 마찰·비효율이 있었나? 있으면 규칙 갱신 + 변경 이력 기록
 - **model-guide.md**: 마지막 갱신 30일 경과 or 새 모델 소식 인지 시 웹서치(Anthropic 공식 문서 우선, Artificial Analysis/LMArena 보조)로 현행화
-- **roster.md**: 팀원 추가/설정 변경 필요성 검토 (예: UX 작업 빈발 → 꼬부기 신설 제안)
+- **roster.md**: 팀원 추가/설정 변경 필요성 검토 (예: UX 작업 빈발 → 슥슥 신설 제안)
 - 기획·설계 자체의 개선점도 한 번씩 의심해본다 (doubt-driven)
 
 ## 팀원 참조
 
-팀원 정의: `~/.claude/agents/{pairi,metamong,kkobugi,rotomdex}.md` (subagent/teammate 공용). 명부와 전문 분야는 `roster.md` 참조.
+팀원 정의: `~/.claude/agents/{solver,builder,sketcher,narrator}.md` (subagent/teammate 공용). 명부와 전문 분야는 `roster.md` 참조.

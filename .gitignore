@@ -2,5 +2,5 @@
 
 __pycache__/
 
-# pokepet 빌드 산출물 (소스만 추적)
-claude/tools/pokepet/pokepet
+# madang(데스크톱 펫) 빌드 산출물 (소스만 추적)
+claude/tools/madang/madang

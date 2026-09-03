@@ -1,6 +1,6 @@
 {
-  "name": "pokemon-team",
-  "description": "팀장 1 + 포켓몬 팀원 N 멀티 세션 개발 팀 시스템 (탭 모드 + 파일 신호 협업)",
+  "name": "madang",
+  "description": "마당(madang) — 팀장 1 + 팀원 N 멀티 세션 개발 팀 시스템 (탭 모드 + 파일 신호 협업)",
   "version": "1.0.0",
   "author": { "name": "janjanjae" }
 }

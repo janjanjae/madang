@@ -67,8 +67,8 @@ def detect_instance(d):
     if not tp or not os.path.isfile(tp):
         return None
     names = collections.Counter()
-    pat = re.compile(r'(?:briefs|confirm|reports)/((?:pairi|metamong|kkobugi)\d*)\.(?:request\.md|reply\.md|md)')
-    inst = re.compile(r'인스턴스:\s*\{?((?:pairi|metamong|kkobugi)\d*)\}?')
+    pat = re.compile(r'(?:briefs|confirm|reports)/((?:solver|builder|sketcher)\d*)\.(?:request\.md|reply\.md|md)')
+    inst = re.compile(r'인스턴스:\s*\{?((?:solver|builder|sketcher)\d*)\}?')
     try:
         with open(tp, encoding='utf-8', errors='ignore') as f:
             for line in f:
@@ -86,7 +86,7 @@ inst = detect_instance(d)
 if not inst:
     # --agent로 띄운 세션은 훅 입력에 agent_type이 온다(번호 없는 기본 인스턴스로 간주)
     at = d.get('agent_type') or ''
-    if re.fullmatch(r'(pairi|metamong|kkobugi)\d*', at):
+    if re.fullmatch(r'(solver|builder|sketcher)\d*', at):
         inst = at
 
 # 2) waiver
@@ -95,8 +95,8 @@ if os.path.exists(os.path.join(confirm, 'commit-waiver')):
 if inst and os.path.exists(os.path.join(confirm, 'commit-waiver-' + inst)):
     sys.exit(0)
 
-# 3) 꼬부기 실험 커밋
-if '[proto]' in cmd and (inst is None or inst.startswith('kkobugi')):
+# 3) 슥슥 실험 커밋
+if '[proto]' in cmd and (inst is None or inst.startswith('sketcher')):
     sys.exit(0)
 
 def approved(path):

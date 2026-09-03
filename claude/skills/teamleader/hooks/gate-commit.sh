@@ -8,7 +8,7 @@
 # 통과 조건(순서대로):
 #   1) 커밋 명령이 아니면 통과 (`git commit`, `git -C <dir> commit` 등 첫 서브커맨드가 commit인 경우만 검사)
 #   2) 팀장이 만든 waiver: `.claude/team/confirm/commit-waiver`(전원) 또는 `commit-waiver-{인스턴스}`
-#   3) 꼬부기의 실험 커밋: 인스턴스가 kkobugi*이고 메시지에 `[proto]` 포함 (정리 커밋은 APPROVE 필요)
+#   3) 슥슥의 실험 커밋: 인스턴스가 sketcher*이고 메시지에 `[proto]` 포함 (정리 커밋은 APPROVE 필요)
 #   4) `.claude/team/confirm/{인스턴스}.reply.md` 첫 줄이 APPROVE — 인스턴스는 transcript에서 추정
 #      (자기 briefs/confirm/reports 파일 경로가 가장 많이 등장한 이름). 추정 실패 시에만 아무 APPROVE reply로 통과(구 동작).
 # `.claude/team`은 메인 트리에만 있으므로(gitignore) 워크트리에서는 `git rev-parse --git-common-dir`로 메인 트리를 찾는다.

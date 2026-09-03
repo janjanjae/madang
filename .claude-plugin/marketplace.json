@@ -1,11 +1,11 @@
 {
-  "name": "pokemon-agent-team",
+  "name": "madang",
   "owner": { "name": "janjanjae" },
   "plugins": [
     {
-      "name": "pokemon-team",
+      "name": "madang",
       "source": "./claude",
-      "description": "팀장 1 + 포켓몬 팀원 N 멀티 세션 개발 팀 — 페르소나 에이전트(파이리·메타몽·꼬부기·로토무도감), 팀장 커맨드(kickoff, save-progress, jira-*, skill-audit), 세션 시작 스킬",
+      "description": "마당(madang) — 역할이 다른 여러 에이전트가 동시에 뛰고 파일 신호로 조율되는 Claude Code 팀. 팀장 1 + 팀원 4(번뜩·몽글·슥슥·조잘), 팀장 커맨드(kickoff, save-progress, issue-*, skill-audit), 세션 시작 스킬",
       "version": "1.0.0"
     }
   ]

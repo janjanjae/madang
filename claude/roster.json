@@ -24,7 +24,7 @@
     },
     {
       "id": "solver",
-      "key": "pairi",
+      "key": "solver",
       "name": "번뜩",
       "roman": "beontteok",
       "cry": "번뜩!",
@@ -39,7 +39,7 @@
     },
     {
       "id": "builder",
-      "key": "metamong",
+      "key": "builder",
       "name": "몽글",
       "roman": "monggeul",
       "cry": "몽글~",
@@ -54,7 +54,7 @@
     },
     {
       "id": "sketcher",
-      "key": "kkobugi",
+      "key": "sketcher",
       "name": "슥슥",
       "roman": "seukseuk",
       "cry": "슥슥~",
@@ -69,7 +69,7 @@
     },
     {
       "id": "narrator",
-      "key": "rotomdex",
+      "key": "narrator",
       "name": "조잘",
       "roman": "jojal",
       "cry": "조잘조잘!",

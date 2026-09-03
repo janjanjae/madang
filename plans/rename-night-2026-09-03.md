@@ -85,3 +85,6 @@ find $K/briefs $K/reports -mmin -30 -name "*.md"  # 30분 내 갱신 있으면 �
 (밤 작업이 단계마다 여기에 추가)
 
 - **00:12 · 0단계 통과** — confirm/*.request.md 없음, 30분 내 briefs/reports 갱신 없음, 워커 세션(파이리·메타몽·꼬부기) 30분 내 실제 턴 없음. pokepet은 돌고 있음(뒤에 madang으로 교체 기동).
+- **00:14 · 1단계 완료** — 커밋 A 27cc2de(세션 이모지), B 8368ef5(브랜드 문서), C e4a5730(스킨 표·SVG·펫). 남은 미커밋 = 팀장 WIP **4파일**(model-guide·confirm-protocol·worktree-setup·ways-of-working — confirm-protocol이 09-03 중 추가로 수정돼 있어 WIP로 취급). 이 4파일은 기계 치환에서도 제외한다(아침에 사람이 커밋 후 재실행).
+- **00:2x · 2단계 완료** — `rename-roster.sh --apply`: 파일/디렉토리 8개 이동(agents·skills), 본문 치환(WIP 4파일 제외 — EXCLUDE에 추가). plans/·changelog·incidents 무변경 확인. 훅(gate-commit.py/.sh) 정규식이 새 식별자로 바뀜.
+- **00:3x · 3단계 완료** — agents 4개 정체성 재서술(깊이/넓이/시안/해설, 시니어리티 문구 제거, 인사말 "번뜩!/몽글~/슥슥~/조잘조잘!", 분신 표기 몽글2·3) · roster.md 표·운영 메모 · teamleader/skill-audit/save-progress SKILL 문구 · go-functions(이모지 🔺☁️🟦💬⚪, go-madang, 구 이름 alias 8개 → 09-11 제거 예정) · tools/pokepet→tools/madang(소스 madang.swift, MADANG_SILENT, UserDefaults madang.*) · .gitignore · 플러그인 매니페스트 name `madang` · DIRECTION 제목+완료 줄 · README 전면 재작성(훅·로스터 "언제 부르나"·기원·설치·영문 요약·크레딧) · BRANDING.md 신설 · changelog 09-04 항목. install.sh 실행 → 새 심링크 8개, 옛 심링크 8개 제거, 깨진 링크 0. 훅 스모크 3건 통과(APPROVE 없음→exit 2 차단 / APPROVE→통과 / sketcher [proto]→통과). 옛 이름 `pairi`는 미인식 → 구 동작 폴백(통과) — 워커가 새 이름으로 뜨는 한 무관.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 포켓몬 팀 시스템 설치 — ~/.claude / ~/.copilot 에 심링크 생성
+# 마당(madang) 팀 시스템 설치 — ~/.claude / ~/.copilot 에 심링크 생성
 # 기존 파일/디렉토리는 .bak 으로 백업 후 링크. 롤백 = .bak 을 원위치로 복원.
 set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -16,12 +16,12 @@ link() {
 }
 
 # 팀원 페르소나 (subagent/teammate 공용 정의)
-for f in pairi metamong kkobugi rotomdex; do
+for f in solver builder sketcher narrator; do
   link "$REPO/claude/agents/$f.md" "$HOME/.claude/agents/$f.md"
 done
 
 # 스킬 (디렉토리 단위 링크) — 페르소나 + 팀장 커맨드(2026-07-27 E-1: commands/*.md → skills/*/SKILL.md 통합)
-for d in teamleader pairi metamong kkobugi rotomdex kickoff save-progress progress-check issue-capture issue-refine issue-cache skill-audit; do
+for d in teamleader solver builder sketcher narrator kickoff save-progress progress-check issue-capture issue-refine issue-cache skill-audit; do
   link "$REPO/claude/skills/$d" "$HOME/.claude/skills/$d"
 done
 

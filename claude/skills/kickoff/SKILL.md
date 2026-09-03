@@ -40,7 +40,7 @@ disable-model-invocation: true
 ## Step 4: 모델·팀원 배분 전략
 
 - 모델 배분은 `~/.claude/skills/teamleader/model-guide.md`가 SSOT — Phase별 권장 모델을 이 문서 기준으로 제안 (이 커맨드 안에 모델표를 두지 않는다: 이중 관리 방지).
-- 팀원 배분은 `roster.md` 기준: 일반 구현·병렬 물량 → 메타몽(분신), 핵심·까다로운 슬라이스 → 파이리, UX 시안 → 꼬부기.
+- 팀원 배분은 `roster.md` 기준: 일반 구현·병렬 물량 → 몽글(분신), 핵심·까다로운 슬라이스 → 번뜩, UX 시안 → 슥슥.
 
 ## Step 5: Phase별 브리프 초안 생성
 

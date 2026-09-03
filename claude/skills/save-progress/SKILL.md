@@ -43,6 +43,6 @@ done
 PROGRESS/TASKS 갱신을 마치면 **반드시** `work-sync push`를 실행한다 (`$HOME/Desktop/work-context/bin/work-sync push`, PATH에 있으면 `work-sync push`). 이 스크립트는:
 
 - work-context 레포(오버레이 작업 상태 원본)를 자동 커밋하고 push
-- pokemon-agent-team·claude-home의 **이미 커밋된** ahead 커밋도 함께 push (미커밋 변경은 건드리지 않고 경고만)
+- madang(구 pokemon-agent-team)·claude-home의 **이미 커밋된** ahead 커밋도 함께 push (미커밋 변경은 건드리지 않고 경고만)
 
 **ZTNA 주의**: 개인 GitHub은 ZTNA를 꺼야 접근된다. 출력에 "push 보류"가 뜨면 커밋은 로컬에 안전하게 쌓인 상태다 — 사용자에게 **"퇴근/이동 전 ZTNA 끄고 터미널에서 `work-sync push` 한 번 실행"**을 리마인드하고 끝낸다 (재시도 루프 금지, 세션에서 ZTNA를 제어할 수 없다).
