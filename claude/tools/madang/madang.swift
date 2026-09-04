@@ -12,7 +12,7 @@
 //   브리프 파일 없음                    → 휴식
 //
 // 빌드: ./build.sh   실행: madang <프로젝트>/.claude/team   (인자 없으면 $PWD/.claude/team)
-// 조작: 드래그로 이동 · 더블클릭 = request/보고 파일 열기 · 메뉴바 👾 = 위치 초기화/종료
+// 조작: 드래그로 이동 · 더블클릭 = request/보고 파일 열기 · 메뉴바 아이콘(도담) = 위치 초기화/종료
 // 환경: MADANG_SILENT=1 이면 컨펌·막힘 전환 시 효과음 없음
 
 import AppKit
@@ -462,7 +462,7 @@ final class PetView: NSView {
         window?.performDrag(with: event)
         if before == window?.frame.origin { peekUntil = Date().addingTimeInterval(2.5) }   // 엿보기 2.5초 — 세 개 훑기엔 충분, 거슬리진 않는 길이
     }
-    // 우클릭 = 메뉴 (상단바 👾가 넘쳐서 안 보일 때의 조작 경로)
+    // 우클릭 = 메뉴 (상단바 아이콘이 넘쳐서 안 보일 때의 조작 경로)
     override func rightMouseDown(with event: NSEvent) {
         guard let c = appController else { return }
         NSMenu.popUpContextMenu(c.buildMenu(), with: event, for: self)
@@ -470,6 +470,31 @@ final class PetView: NSView {
     @objc func openFile() {
         if let u = openTarget { NSWorkspace.shared.open(u) }
     }
+}
+
+// MARK: - 메뉴바 아이콘 (도담 잉크 실루엣, 템플릿 18pt)
+
+/// 도담(팀장) 원 얼굴을 18pt 템플릿 이미지로 — 라이트/다크 메뉴바에서 시스템이 자동 반전한다.
+/// 잉크 실루엣 채움 + 눈 두 개 구멍(even-odd) — 말랑(~/dev/slime)과 같은 "흰 실루엣 + 눈 구멍" 문법.
+/// 좌표는 make-mascots.py의 lead 얼굴(circle r=40 @ 120 캔버스, eye_y=62)과 같은 비율 감각을
+/// 18pt로 옮기되, 눈 크기는 소형 아이콘 가독성을 위해 비율보다 키웠다(순수 비례 축소 시 1pt 미만이라 안 보임).
+func mascotStatusIcon() -> NSImage {
+    let size = NSSize(width: 18, height: 18)
+    let image = NSImage(size: size, flipped: false) { _ in
+        let cx: CGFloat = 9, cy: CGFloat = 9.2, r: CGFloat = 7.6   // 지름 15.2pt, 가장자리 여백 1.4pt
+        let eyeR: CGFloat = 1.6, eyeDX: CGFloat = 2.7, eyeDY: CGFloat = 0.6
+        func eye(_ dx: CGFloat) -> NSBezierPath {
+            NSBezierPath(ovalIn: NSRect(x: cx + dx - eyeR, y: cy + eyeDY - eyeR, width: eyeR * 2, height: eyeR * 2))
+        }
+        let face = NSBezierPath(ovalIn: NSRect(x: cx - r, y: cy - r, width: r * 2, height: r * 2))
+        face.append(eye(-eyeDX)); face.append(eye(eyeDX))
+        face.windingRule = .evenOdd
+        NSColor.black.set()
+        face.fill()
+        return true
+    }
+    image.isTemplate = true
+    return image
 }
 
 // MARK: - 컨트롤러
@@ -586,7 +611,7 @@ final class PetController: NSObject {
     }
     func setupStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        statusItem.button?.title = "👾"
+        statusItem.button?.image = mascotStatusIcon()
         statusItem.menu = buildMenu()
     }
     @objc func setInk(_ sender: NSMenuItem) {
