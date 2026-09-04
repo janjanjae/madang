@@ -52,8 +52,8 @@ go-teamleader() {
 }
 go-narrator()   { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji narrator)조잘 $(date +%m%d)" "/narrator"; }
 
-# 마당 데스크톱 펫 (2026-09-02, REGISTRY E-17 · 09-04 madang으로 개명): 워커 상태를 화면 위 캐릭터로. 프로젝트 루트에서 실행.
-# 읽기 전용 — .claude/team/ 파일 신호 + 세션 기록만 읽는다. 종료는 펫 우클릭 또는 메뉴바 👾 → 종료.
+# 마당 워커 오버레이 (2026-09-02, REGISTRY E-17 · 09-04 madang으로 개명): 워커 상태를 화면 위 캐릭터로. 프로젝트 루트에서 실행.
+# 읽기 전용 — .claude/team/ 파일 신호 + 세션 기록만 읽는다. 종료는 워커 우클릭 또는 메뉴바 👾 → 종료.
 go-madang() {
   local dir="${${(%):-%x}:A:h}/../tools/madang"   # 이 파일 기준 상대 경로 (레포 위치 무관)
   [ -x "$dir/madang" ] || "$dir/build.sh" || return 1

@@ -28,7 +28,7 @@ Co-Authored-By: … (AI 보조 커밋이면 그대로 둔다)
 
 `teamleader` `agents` `skills` `hooks` `shell` `madang` `copilot` `brand` `plans` `readme` `direction` `install`
 
-- `madang` = 데스크톱 펫(`claude/tools/madang/`). 프로젝트 전체를 뜻하는 스코프는 없다 — 전체에 걸치면 스코프 생략.
+- `madang` = 워커 오버레이(`claude/tools/madang/`). 프로젝트 전체를 뜻하는 스코프는 없다 — 전체에 걸치면 스코프 생략.
 - `brand` = 이름·마스코트·스킨 표·BRANDING.md.
 
 **요약 줄**
