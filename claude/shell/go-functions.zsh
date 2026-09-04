@@ -1,5 +1,7 @@
 # go-functions.zsh — 팀 워커/팀장 세션 기동 함수 (~/.zshrc에서 source)
 # 2026-08-20 ~/.zshrc에서 레포로 이동: 머신 간 공유 (재택 동기화 체계 — work-context/SETUP.md 참조)
+# 2026-09-05 구 이름 alias 제거 — 공개(09-13) 준비로 09-11 예정을 앞당겼다.
+#            옛 이름 목록·경위는 plans/rename-night-2026-09-03.md
 # ============================================================================
 # 팀 워커 세션 기동 (세션 이름 자동 설정: "<이모지><이름>[분신번호] MMDD")
 # 2026-09-02 이모지 접두(REGISTRY E-17 L0), 2026-09-04 마당 리네임: 🔺번뜩 ☁️몽글 🟦슥슥 ⚪팀장 💬조잘 — 탭 목록에서 발화자 식별용 (원천: claude/roster.json)
@@ -57,7 +59,7 @@ go-narrator()   { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji narrator)
 go-madang() {
   local dir="${${(%):-%x}:A:h}/../tools/madang"   # 이 파일 기준 상대 경로 (레포 위치 무관)
   [ -x "$dir/madang" ] || "$dir/build.sh" || return 1
-  pkill -x madang 2>/dev/null; pkill -x pokepet 2>/dev/null
+  pkill -x madang 2>/dev/null
   "$dir/madang" "${1:-$PWD/.claude/team}" >/dev/null 2>&1 &!
 }
 
@@ -101,17 +103,3 @@ go-solver-cop()      { _go_cop_launch solver 번뜩 "$1"; }
 go-builder-cop()   { _go_cop_launch builder 몽글 "$1"; }
 go-sketcher-cop()    { _go_cop_launch sketcher 슥슥 "$1"; }
 go-narrator-cop()   { copilot --agent narrator --model "${GO_MODEL:-claude-sonnet-5}" -n "$(_go_emoji narrator)조잘 $(date +%m%d)"; }
-
-# ============================================================================
-# 구 이름 alias (2026-09-04 마당 리네임 — 손이 기억하는 이름. 1주 뒤 2026-09-11 제거)
-# ============================================================================
-_go_renamed() { echo "⚠️ $1 은 $2 로 이름이 바뀌었다 (2026-09-04 마당 리네임). 이번엔 대신 실행한다." >&2; }
-# rename-roster.sh 제외 대상 — 아래 옛 이름은 의도적으로 남긴 것
-go-pairi()        { _go_renamed go-pairi go-solver;         go-solver "$@"; }
-go-metamong()     { _go_renamed go-metamong go-builder;     go-builder "$@"; }
-go-kkobugi()      { _go_renamed go-kkobugi go-sketcher;     go-sketcher "$@"; }
-go-rotomdex()     { _go_renamed go-rotomdex go-narrator;    go-narrator "$@"; }
-go-pairi-cop()    { _go_renamed go-pairi-cop go-solver-cop; go-solver-cop "$@"; }
-go-metamong-cop() { _go_renamed go-metamong-cop go-builder-cop; go-builder-cop "$@"; }
-go-kkobugi-cop()  { _go_renamed go-kkobugi-cop go-sketcher-cop; go-sketcher-cop "$@"; }
-go-pokepet()      { _go_renamed go-pokepet go-madang;       go-madang "$@"; }
