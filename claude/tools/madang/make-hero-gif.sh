@@ -9,12 +9,22 @@ T="$(mktemp -d)/team"; mkdir -p "$T/briefs" "$T/confirm" "$T/reports"
 F="$(mktemp -d)"
 touch_at() { touch -t "$2" "$1"; }   # -t YYYYMMDDhhmm
 
+# 실제 브리프 H1 형식("브리프 — 이름 · 날짜 · 태스크명") — 말풍선 제목 줄(3번 작업)이 진짜처럼 보이게,
+# 인스턴스마다 다른 태스크명으로 (2026-09-05 팀장 리뷰 — "# 브리프" 한 줄뿐이면 말풍선에 "브리프"만 뜬다)
+briefTitle() {
+  case $1 in
+    solver)   echo "# 브리프 — 번뜩 (solver) · 2026-09-05 · 백로그 1번: tracker-config github 타입";;
+    builder)  echo "# 브리프 — 몽글 (builder) · 2026-09-05 · 백로그 7번: v0.5 공개 준비";;
+    sketcher) echo "# 브리프 — 슥슥 (sketcher) · 2026-09-05 · 백로그 4번: 히어로 GIF 레티나 재캡처";;
+  esac
+}
+
 # 세션 기록 없이 파일만으로 상태를 만든다 (madang은 세션 기록이 없으면 보고 mtime만 본다)
 scene() {  # $1=solver $2=builder $3=sketcher — working|confirm|blocked|idle|off
   rm -f "$T"/confirm/*.md "$T"/reports/*.md "$T"/briefs/*.md
   for pair in "solver:$1" "builder:$2" "sketcher:$3"; do k=${pair%%:*}; s=${pair##*:}
     [ "$s" = off ] && continue
-    echo "# 브리프" > "$T/briefs/$k.md"; touch_at "$T/briefs/$k.md" "$(date -v-2H +%Y%m%d%H%M)"
+    briefTitle "$k" > "$T/briefs/$k.md"; touch_at "$T/briefs/$k.md" "$(date -v-2H +%Y%m%d%H%M)"
     case $s in
       working) echo "# 보고" > "$T/reports/$k.md";;
       confirm) echo "CONFIRM 요청" > "$T/confirm/$k.request.md";;
@@ -41,18 +51,33 @@ ID=$(winid); [ -n "$ID" ] || { echo "madang 창을 못 찾음"; exit 1; }
 
 i=0
 snap() { for n in $(seq 1 "$1"); do i=$((i+1)); screencapture -x -l "$ID" "$(printf "$F/f%03d.png" $i)"; sleep 0.5; done; }
-scene working working working; sleep 3.5; snap 6     # 셋 다 작업중 (바운스)
-scene confirm working working; sleep 3.5; snap 6     # 번뜩 컨펌 대기 (호박 발광 + 말풍선)
-scene confirm blocked working; sleep 3.5; snap 6     # 몽글 막힘 (적 발광)
-scene working working idle;    sleep 3.5; snap 6     # 슥슥 유휴 (눈 감음)
+scene working working working; sleep 3.5; snap 3     # 셋 다 작업중 (바운스)
+scene confirm working working; sleep 3.5; snap 3     # 번뜩 컨펌 대기 (호박 발광 + 말풍선)
+scene confirm blocked working; sleep 3.5; snap 2     # 몽글 막힘 (적 발광)
+scene working working idle;    sleep 3.5; snap 2     # 슥슥 유휴 (눈 감음)
 
 pkill -x madang 2>/dev/null || true
-# 투명 창 캡처를 프레임별로 종이색 위에 합성(여백 24px) → GIF 2fps. (시퀀스 오버레이는 타임스탬프가 어긋나 빈 프레임이 나온다)
+# 컨펌 대기·막힘 장면은 말풍선·발광이 떠 창 캡처 크기 자체가 커진다 — 프레임마다 크기가 다르면 ffmpeg
+# 이미지 시퀀스가 첫 크기 변경에서 멈춰 GIF가 1프레임으로 끊긴다(2026-09-05 발견 — 레티나 여부와 무관한
+# 기존 버그). 고정 캔버스로 맞추고 펫 하단을 기준으로 정렬(여백 24px는 그대로) — 큰 프레임엔 위쪽에만 여유가 생긴다.
+MAXW=0; MAXH=0
 for f in "$F"/f*.png; do
-  ffmpeg -y -loglevel error -i "$f" -f lavfi -i "color=c=#F5F7F8:s=16x16" -filter_complex \
-    "[0:v]format=rgba,pad=iw+48:ih+48:24:24:color=#F5F7F8@0[fg];[1:v][fg]scale2ref[bg][fg2];[bg][fg2]overlay=shortest=1:format=auto,format=rgb24" \
+  w=$(sips -g pixelWidth "$f" | awk '/pixelWidth/{print $2}')
+  h=$(sips -g pixelHeight "$f" | awk '/pixelHeight/{print $2}')
+  [ "$w" -gt "$MAXW" ] && MAXW=$w
+  [ "$h" -gt "$MAXH" ] && MAXH=$h
+done
+PADW=$((MAXW + 48)); PADH=$((MAXH + 48))
+# 투명 창 캡처를 고정 캔버스 위 종이색 배경에 합성. (시퀀스 오버레이는 타임스탬프가 어긋나 빈 프레임이 나온다)
+for f in "$F"/f*.png; do
+  ffmpeg -y -loglevel error -i "$f" -f lavfi -i "color=c=#F5F7F8:s=${PADW}x${PADH}" -filter_complex \
+    "[0:v]format=rgba,pad=${PADW}:${PADH}:(ow-iw)/2:oh-ih-24:color=#F5F7F8@0[fg];[1:v][fg]overlay=shortest=1:format=auto,format=rgb24" \
     -frames:v 1 "$F/g$(basename "$f" | cut -c2-)"
 done
-ffmpeg -y -loglevel error -framerate 2 -i "$F/g%03d.png" -vf "split[s0][s1];[s0]palettegen=max_colors=96[pal];[s1][pal]paletteuse=dither=bayer:bayer_scale=4" -loop 0 "$OUT"
+# 원본 펫 창(296x132pt)이 README 표시 폭(~900px)엔 작아 업스케일한다. 진짜 다프레임 GIF가 되며
+# (위 고정 캔버스 전엔 1프레임에서 멈췄다) 용량이 커져 300KB를 넘기므로 순서대로: 팔레트는 48색
+# 이상 유지(12색은 호박·적 발광이 안 구분돼 2026-09-05 팀장 리뷰에서 기각) → 폭 1050 → 스냅 밀도
+# 6→3·3·2·2(총 10프레임). 4장면·순서·간격은 그대로.
+ffmpeg -y -loglevel error -framerate 2 -i "$F/g%03d.png" -vf "scale=1050:-2:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=48:stats_mode=diff[pal];[s1][pal]paletteuse=dither=none" -loop 0 "$OUT"
 defaults delete madang "madang.origin.$T" 2>/dev/null || true
 echo "built: $OUT ($(du -k "$OUT" | cut -f1)KB, $i frames)"
