@@ -97,7 +97,7 @@ Copilot CLI/SDK는 **세션 idle 타임아웃 ~30분**이 있어(공식 세션 �
 
 **🔴 코파일럿 워커 기동 실측 (2026-08-31 — 세 가지가 전부 틀려 있었다)**
 
-`go-{이름}-cop` 셸 함수(`~/Desktop/pokemon-agent-team/claude/shell/go-functions.zsh`)로 띄운다. 그날 고친 것:
+`go-{이름}-cop` 셸 함수(레포의 `claude/shell/go-functions.zsh`)로 띄운다. 그날 고친 것:
 
 | 항목 | 틀렸던 것 | 맞는 것 |
 |---|---|---|
@@ -107,7 +107,7 @@ Copilot CLI/SDK는 **세션 idle 타임아웃 ~30분**이 있어(공식 세션 �
 
 - **모델은 ID 전체로**: `GO_MODEL=claude-opus-5` (Claude 별칭 `opus`/`sonnet`은 안 먹는다). 가용 ID 실사용 이력: `sqlite3 ~/.copilot/session-store.db "select distinct model from assistant_usage_events;"`
 - **오토파일럿**: `--autopilot --allow-all-tools --max-autopilot-continues 3`이 기본(끄려면 `GO_AUTOPILOT=0`). 🔴 코파일럿에는 커밋 게이트를 강제할 훅이 없으므로 **브리프 최상단**(`[목표]`보다 위)에 「멈춰야 할 자리」 블록을 둔다 — 오토파일럿은 뒤쪽 제약을 안 읽는다. `--allow-all`(경로·URL까지)은 쓰지 않는다.
-- 🔑 **원본은 `~/.claude/agents/*.md`, 코파일럿 파일은 생성물이다.** 생성물만 고치면 `sync_claude_team` 다음 실행에서 되돌아간다 — 변환 규칙(`~/Desktop/pokemon-agent-team/copilot/skills/sync_claude_team/manifest.md`)을 같이 고쳐야 한다. 2026-08-31의 `tools: all` 장애가 정확히 그 매니페스트 규칙에서 나왔다.
+- 🔑 **원본은 `~/.claude/agents/*.md`, 코파일럿 파일은 생성물이다.** 생성물만 고치면 `sync_claude_team` 다음 실행에서 되돌아간다 — 변환 규칙(레포의 `copilot/skills/sync_claude_team/manifest.md`)을 같이 고쳐야 한다. 2026-08-31의 `tools: all` 장애가 정확히 그 매니페스트 규칙에서 나왔다.
 
 **주의**
 - 컨펌 대기 중 워킹트리에 미커밋 변경이 체류한다 → 병렬 배분 시 **파일 경로 비겹침**이 더욱 중요.
