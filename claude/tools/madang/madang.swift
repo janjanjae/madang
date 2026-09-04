@@ -434,15 +434,18 @@ final class PetView: NSView {
         }
     }
 
-    // 시동: 브리프를 받아 일을 시작하는 순간 자기 도형으로 한 바퀴 (0.6초, 1회)
+    // 시동: 잠에서 깨어 일을 시작하는 순간 제자리에서 살짝 기울었다 돌아온다 (1회, 0.9초 — 한 바퀴는 튄다는 사용자 피드백)
     func spinOnce() {
         guard let l = figure.layer else { return }
         l.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         l.position = CGPoint(x: figure.frame.midX, y: figure.frame.midY)
-        let a = CABasicAnimation(keyPath: "transform.rotation.z")
-        a.fromValue = 0; a.toValue = -2 * Double.pi; a.duration = 0.6
-        a.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        l.add(a, forKey: "spin")
+        let a = CAKeyframeAnimation(keyPath: "transform.rotation.z")
+        let d = Double.pi / 180
+        a.values = [0, -9 * d, 6 * d, -2 * d, 0]
+        a.keyTimes = [0, 0.3, 0.6, 0.85, 1]
+        a.duration = 0.9
+        a.timingFunctions = Array(repeating: CAMediaTimingFunction(name: .easeInEaseOut), count: 4)
+        l.add(a, forKey: "wake")
     }
 
     // 작업 완료·APPROVE 순간에만 웃는다 (잔잔 규칙 2)
