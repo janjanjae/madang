@@ -1,6 +1,6 @@
 ---
 name: issue-refine
-description: 이슈 구체화 + 크기 판단·분할 (착수 전) / 구현 기록 + 상태 전환 (완료 후, PR 머지 트리거). 트래커 쓰기 전담, tracker-config 타입 분기. 팀장 전용.
+description: 이슈 구체화 + 크기 판단·분할 (착수 전) / 구현 기록 + 상태 전환 (완료 후, PR 머지 트리거). 트래커 쓰기 전담, tracker-config 타입 분기(jira/notion/local/github). 팀장 전용.
 argument-hint: "[done] {KEY}-{n}"
 ---
 # issue-refine
@@ -28,7 +28,7 @@ argument-hint: "[done] {KEY}-{n}"
 **실행 첫 단계: 현재 프로젝트의 `.claude/team/tracker-config.md`를 읽는다** — 도메인·Cloud ID·프로젝트 Key·보드 ID·제품 개요·MCP/acli 전제가 거기 있다.
 파일이 없으면 진행을 멈추고 사용자에게 안내한다: "이 프로젝트에는 tracker-config.md가 없습니다 — `.claude/team/tracker-config.md`를 만들어야 Jira 커맨드를 쓸 수 있어요" (템플릿: issue-cache 스킬 디렉토리의 `tracker-config.template.md` 복사).
 
-**타입 분기**: `jira`면 아래 본문대로. `notion` — 착수 전 모드: 해당 백로그 페이지 본문을 3단계 템플릿 수준으로 구체화하고, 크기 상한 초과면 항목을 새 페이지로 분할한다 / 완료 후 모드: 구현 요약을 페이지 본문에 추가하고 상태를 `완료`로 전환한다. `local` — 같은 작업을 백로그 파일 항목에 직접 한다. ADF·스프린트·이슈 링크 절차는 jira 타입 전용.
+**타입 분기**: `jira`면 아래 본문대로. `notion` — 착수 전 모드: 해당 백로그 페이지 본문을 3단계 템플릿 수준으로 구체화하고, 크기 상한 초과면 항목을 새 페이지로 분할한다 / 완료 후 모드: 구현 요약을 페이지 본문에 추가하고 상태를 `완료`로 전환한다. `local` — 같은 작업을 백로그 파일 항목에 직접 한다. `github` — 착수 전 모드: `gh issue view {번호} --json title,body,labels,milestone,url`로 읽어 3단계 템플릿 수준으로 구체화한 뒤 `gh issue edit {번호} --body-file -`로 푸시하고, 크기 상한 초과면 나머지 조각을 `gh issue create`로 새 이슈로 만들고 **원본 본문에 `- 분할: #{새번호}` 줄을 추가**한다 (GitHub엔 이슈 링크 타입이 없어 본문 참조가 `createIssueLink`의 자리다) / 완료 후 모드: 구현 요약(+커밋 SHA·PR 링크)을 `gh issue comment {번호} --body-file -`로 **코멘트**로 남긴다 — 본문 append가 아니라 코멘트이므로 기존 본문은 건드리지 않는다. 🔴 **`gh issue close`는 하지 않는다** — "닫아도 될 상태"라고 사용자에게 안내만 하고 닫는 것은 사용자 소관이다. 배분 시점에 기한을 넣는 규칙의 github 판은 `gh issue edit {번호} --milestone "{PR 묶음}"`이고, 해당 마일스톤이 없으면 **만들지 말고** 사용자에게 확인한다. 인수는 `#591`·`591` 둘 다 받는다. 쓰기 전 `gh auth status --active`가 config의 gh 계정과 다르면 스스로 전환하지 말고 멈추고 사용자에게 `gh auth switch -u {계정}`을 요청한다. ADF·스프린트·이슈 링크 절차는 jira 타입 전용.
 
 ---
 
@@ -202,6 +202,7 @@ ADF 구조 예시는 이 스킬 폴더의 `adf-example.md` 참조 (heading·bull
 **공통**
 - Jira 이슈 수정·생성은 반드시 **사용자 확인 후** 실행
 - issuetype 오류 시 `getJiraProjectIssueTypesMetadata`로 먼저 확인
+- **타입 `github`**: 이슈를 **닫지 않는다** (`gh issue close` 금지 — 완료 후 모드는 코멘트까지). ADF·이미지 경고·상태 전환(`transitionJiraIssue`) 절차는 jira 타입 전용이다
 
 > ⚠️ **[매우 중요] description에 이미지가 있을 때 업데이트 절차**
 >
