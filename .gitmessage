@@ -1,0 +1,7 @@
+
+# type(scope): 요약 — 한글, 60자 안, 마침표 없음
+# type: feat fix docs refactor chore test
+# scope: teamleader agents skills hooks shell madang copilot brand plans readme direction install (여러 개는 ·)
+#
+# 본문: 왜 바꿨나 2~5줄. 사고·근거가 있으면 한 줄로.
+# 규칙: CONTRIBUTING.md

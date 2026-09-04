@@ -1,0 +1,36 @@
+#!/bin/sh
+# commit-msg 훅 — CONTRIBUTING.md 커밋 규칙 강제 (2026-09-04)
+# 설치: git config core.hooksPath .githooks  (install.sh가 해 준다)
+# 우회가 필요하면 git commit --no-verify — 대신 왜 우회했는지 본문에 적을 것.
+msg_file="$1"
+subject=$(sed -n '1p' "$msg_file")
+
+# merge/revert/fixup 은 통과
+case "$subject" in
+  Merge*|Revert*|fixup!*|squash!*) exit 0 ;;
+esac
+
+types='feat|fix|docs|refactor|chore|test'
+scopes='teamleader|agents|skills|hooks|shell|madang|copilot|brand|plans|readme|direction|install'
+
+fail() { printf '[commit-msg] %s\n  첫 줄: %s\n  규칙: CONTRIBUTING.md (type(scope): 한글 요약, 60자 권장·72자 상한)\n' "$1" "$subject" >&2; exit 1; }
+
+# type(scope): 요약  /  type: 요약
+printf '%s' "$subject" | grep -Eq "^($types)(\([a-z·]+\))?!?: .+" || fail "형식이 아니다 — type(scope): 요약"
+
+# scope 검사 (여러 개는 · 로 연결)
+scope=$(printf '%s' "$subject" | sed -En 's/^[a-z]+\(([^)]*)\).*/\1/p')
+if [ -n "$scope" ]; then
+  for s in $(printf '%s' "$scope" | tr '·' ' '); do
+    printf '%s' "$s" | grep -Eq "^($scopes)$" || fail "모르는 scope '$s' — 허용: $scopes"
+  done
+fi
+
+# 길이 (글자 수 기준, 한글 1글자=1)
+len=$(printf '%s' "$subject" | LC_ALL=en_US.UTF-8 wc -m | tr -d ' ')
+[ "$len" -le 72 ] || fail "첫 줄이 ${len}자 — 72자 안으로 (60자 권장)"
+
+# 마침표로 끝나지 않기
+printf '%s' "$subject" | grep -Eq '\.$' && fail "첫 줄은 마침표로 끝내지 않는다"
+
+exit 0

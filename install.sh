@@ -31,3 +31,9 @@ link "$REPO/copilot/skills/sync_claude_team/manifest.md" "$HOME/.copilot/skills/
 
 echo ""
 echo "✅ 설치 완료. 이제 ~/.claude 쪽을 편집하면 곧 이 레포의 변경이 된다 (git diff로 확인, 커밋만 하면 이력화)."
+
+# 커밋 규칙 훅·템플릿 (CONTRIBUTING.md, 2026-09-04) — 이 레포에만 적용
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+git -C "$REPO_DIR" config core.hooksPath .githooks
+git -C "$REPO_DIR" config commit.template .gitmessage
+echo "hooks  : core.hooksPath=.githooks, commit.template=.gitmessage"
