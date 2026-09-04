@@ -330,6 +330,7 @@ final class PetView: NSView {
     var openTarget: URL?
     var phase: CGFloat = .random(in: 0...6)
     var smileUntil: Date?
+    var prevState: PetState = .off
     var themedDark = isDark()
     let figureBaseY: CGFloat = 18, figureH: CGFloat = 78
 
@@ -348,7 +349,7 @@ final class PetView: NSView {
             emoji.frame = NSRect(x: 0, y: figureBaseY, width: petW, height: 60)
             addSubview(emoji)
         }
-        figure.wantsLayer = true   // 상태 색은 실루엣 테두리 발광으로 (배지 없음)
+        figure.wantsLayer = true   // 상태 색은 실루엣 발광으로, 평소엔 부드러운 그림자 (테두리 없음)
 
         if !inst.suffix.isEmpty {
             num.font = .systemFont(ofSize: 9, weight: .bold); num.alignment = .center
@@ -374,7 +375,11 @@ final class PetView: NSView {
 
     var variant: String {
         if smileUntil != nil { return "-smile" }
-        switch state { case .off, .notStarted, .idle: return "-sleep"; default: return "" }
+        switch state {
+        case .off, .notStarted, .idle: return "-sleep"      // 잠
+        case .working, .replied:       return "-work"       // 집중 — 눈이 커지고 눈동자에 자기 도형
+        default:                       return ""            // 깨어 있음 — 컨펌 대기·막힘·논의
+        }
     }
     var hovered = false
     var showBubble: Bool { state.alert || alwaysBubbles() || hovered || (peekUntil.map { Date() < $0 } ?? false) }
@@ -383,6 +388,7 @@ final class PetView: NSView {
         themedDark = isDark()
         let pal = Palette.current
         figure.image = mascotImage(inst.role.id, variant: variant)
+        setGlow(state.color)
         num.textColor = pal.paper; num.layer?.backgroundColor = pal.ink.withAlphaComponent(0.85).cgColor
         refreshBubble()
     }
@@ -400,6 +406,8 @@ final class PetView: NSView {
         alphaValue = (s.state == .off) ? 0.5 : 1.0
         setGlow(s.state.color)
         if themedDark != isDark() { retheme() } else if changed || smileUntil == nil { figure.image = mascotImage(inst.role.id, variant: variant); refreshBubble() }
+        if changed, s.state == .working, [PetState.notStarted, .off].contains(prevState) { spinOnce() }
+        prevState = s.state
     }
 
     func tick() {
@@ -420,7 +428,21 @@ final class PetView: NSView {
         guard let l = figure.layer else { return }
         if let c = color {
             l.shadowColor = c.cgColor; l.shadowOpacity = 1; l.shadowRadius = 7; l.shadowOffset = .zero
-        } else { l.shadowOpacity = 0 }
+        } else {
+            // 평소: 테두리 없음(SVG는 실루엣만) — 바탕과 분리는 본체 반대색의 부드러운 그림자가 맡는다
+            l.shadowColor = Palette.current.paper.cgColor; l.shadowOpacity = 0.45; l.shadowRadius = 4; l.shadowOffset = .zero
+        }
+    }
+
+    // 시동: 브리프를 받아 일을 시작하는 순간 자기 도형으로 한 바퀴 (0.6초, 1회)
+    func spinOnce() {
+        guard let l = figure.layer else { return }
+        l.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        l.position = CGPoint(x: figure.frame.midX, y: figure.frame.midY)
+        let a = CABasicAnimation(keyPath: "transform.rotation.z")
+        a.fromValue = 0; a.toValue = -2 * Double.pi; a.duration = 0.6
+        a.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        l.add(a, forKey: "spin")
     }
 
     // 작업 완료·APPROVE 순간에만 웃는다 (잔잔 규칙 2)
