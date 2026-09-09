@@ -32,7 +32,7 @@
 | 체크포인트 품질 검토 | `/code-review` (low~medium) | 브랜치 diff 검토. **`--fix` 금지** (팀장은 소스 수정 불가 — 발견 사항은 정리 태스크로 발행) |
 | 버그·아이디어 발견 시 | `/issue-capture` | 티켓 수시 등록 (버그=스프린트 / 아이디어=백로그) |
 | 스토리 착수 시 | `/issue-cache` → `/issue-refine` (착수 전) | ①Jira 1회 조회→`.claude/stories/` 캐시 생성 ②description 구체화 + 크기 판단(400줄/2일/BE·FE) → 크면 **스토리 분할**. 분할 후 재캐시. **보통 `/kickoff` Step 1이 내부 실행** — 단독 호출은 캐시 갱신·분할만 따로 필요할 때 |
-| PR 머지 시 | `/issue-refine` (완료 후, `done PROJ-…`) | 구현 내용·판단 근거 기록 + 상태 전환. 같은 날 다건은 세션 말미 배치 처리 |
+| PR 머지 시 | `/issue-refine` (완료 후, `done PROJ-n`) | 구현 내용·판단 근거 기록 + 상태 전환. 같은 날 다건은 세션 말미 배치 처리 |
 | DB 마이그레이션 관련 브리핑·머지 직전 | `db-migration-order-check` | 새 마이그레이션 배정/충돌 진단 시, 특히 여러 팀원 동시 작업일 때 |
 | model-guide 현행화 | `claude-api` + 웹서치 | 성찰 루틴에서 모델 표 갱신 |
 | 스킬 인벤토리 점검 (월 1회/스프린트 종료) | `/skill-audit` | 파일 전수 스캔 → `~/.claude/REGISTRY.md` 현행화 → 유지/폐기 판정 + 트렌드 후보 등재 (2026-07-25 신설) |
