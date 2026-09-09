@@ -31,7 +31,7 @@ memory: project
 
 ```bash
 # 슥슥가 세션 시작 시 직접 설정 (2026-07-28 워크트리 표준 — 브리프가 지정한 경로 우선)
-git worktree add -b feat/PROJ-{ticket}-{작업명} .claude/worktrees/wt-{ticket} origin/main
+git worktree add -b feat/{ticket}-{작업명} .claude/worktrees/wt-{ticket} origin/main
 # 셋업 체크리스트: ~/.claude/skills/teamleader/reference/worktree-setup.md (env·node_modules·포트 오프셋)
 ```
 

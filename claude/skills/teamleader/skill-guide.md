@@ -82,6 +82,6 @@
 | `/progress-check` | 유지 | 읽기 전용이라 누구나 사용 가능하나 실질 사용자는 팀장 |
 | `/image` `/jira-capture` | 유지 | 팀 패턴과 독립적인 개인 유틸 |
 | `/jira-refine` | **개정됨** | 착수 전: 서브태스크 분해 → 스토리 분할 판단(스토리=PR 1:1) / 완료 후: PR 머지 트리거 + 상태 전환 (2026-07-12) |
-| `/jira-story-cache` | **신설** | Jira 읽기 전담(acli) → `.claude/stories/` 캐시. 레포 공유 `jira-story-fetch`는 개인 워크플로우에서 제외 — 팀 동료용으로 존치 (2026-07-12, 근거: `~/Desktop/agent-system-upgrade/reports/03-jira-rules.md`) |
+| `/issue-cache` (신설 당시 이름 `/jira-story-cache`) | **신설** | Jira 읽기 전담(acli) → `.claude/stories/` 캐시. 레포 공유 `jira-story-fetch`는 개인 워크플로우에서 제외 — 팀 동료용으로 존치 (2026-07-12, 근거: `~/Desktop/agent-system-upgrade/reports/03-jira-rules.md`) |
 | `/solver` `/builder` | **신설** | 워커 세션 시작 커맨드 (2026-07-03) |
 | `db-migration-order-check` | **신설** | 프로젝트 스킬(저장소 공유분, repo-root `.claude/skills/`) — 마이그레이션 타임스탬프 충돌 예방/복구 (2026-07-09) |
