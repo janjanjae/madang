@@ -1,7 +1,7 @@
 ---
 name: kickoff
 description: 새 스토리/에픽 착수 오케스트레이션 — Phase 설계 + 팀원 브리프 초안 + PROGRESS.md 초기화. 팀장 전용 (허브 문서 작성).
-argument-hint: "[PROJ-이슈번호 | 작업 설명]"
+argument-hint: "[{KEY}-{n} | 작업 설명]"
 disable-model-invocation: true
 ---
 # kickoff
@@ -16,7 +16,7 @@ disable-model-invocation: true
 **착수의 단일 진입점은 이 커맨드다** — 아래 조회·캐시는 이 단계가 내부에서 실행하므로 사용자가 다른 커맨드를 따로 칠 필요 없다.
 
 다음을 사용자에게 물어보거나 인자로 받아라:
-- **Jira 스토리 번호** (`.claude/team/tracker-config.md` 타입 `jira`): `/issue-cache PROJ-{n}`으로 캐시 생성 후 `.claude/stories/PROJ-{n}.md`를 읽는다. description·AC가 비면 `/issue-refine` 착수 전 모드를 먼저 안내.
+- **Jira 스토리 번호** (`.claude/team/tracker-config.md` 타입 `jira`): `/issue-cache {KEY}-{n}`으로 캐시 생성 후 `.claude/stories/{KEY}-{n}.md`를 읽는다. description·AC가 비면 `/issue-refine` 착수 전 모드를 먼저 안내.
 - **개인 백로그 후보** (사용자 스킬 `backlog-check`가 있으면): 이 프로젝트의 inbox·검토됨 항목을 조회해 "이번 착수에 같이 태울 후보"로 제시하고, **사용자가 고른 것만** 계획에 반영 (고른 항목은 상태 `티켓화`로). 스킬이 없는 환경이면 조용히 생략.
 - **소스 기본값** (가용성은 tracker-config의 타입이 결정, 이번 회차 포함은 실행 시 선택): 타입 `jira`는 **기본 Jira만** — 백로그 후보는 사용자가 요청할 때만 조회 (착수마다 노션 MCP 토큰 지출 방지). 타입 `notion`/`local` 또는 config 없음은 **기본 백로그**가 주 소스.
 - 둘 다 없으면: 지금 하려는 작업이 뭔지 간단히 설명 요청.
