@@ -2,8 +2,10 @@
 
 __pycache__/
 
-# madang(데스크톱 펫) 빌드 산출물 (소스만 추적)
+# madang(워커 오버레이) 빌드 산출물 (소스만 추적)
 claude/tools/madang/madang
 
 # 이 레포에서 팀을 돌릴 때의 런타임 신호 (브리프·컨펌·보고)
 .claude/team/
+.claude/stories/
+.claude/worktrees/
