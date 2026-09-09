@@ -4,9 +4,15 @@
 
 ![마당 워커 오버레이 — 번뜩·몽글·슥슥의 상태가 바뀌는 모습](claude/assets/hero.gif)
 
-터미널 탭마다 페르소나를 가진 에이전트 세션을 띄우고(팀장 1 + 팀원 N), 브리프·컨펌을 파일로 주고받는 **탭 모드** 협업 시스템이다. 각 탭이 지금 뭘 하는지는 화면 위의 워커 오버레이(마당)이 보여준다 — 컨펌을 기다리면 테두리가 호박색으로 빛나고, 막히면 적색, 놀고 있으면 눈을 감는다.
+터미널 탭마다 페르소나를 가진 에이전트 세션을 띄우고(팀장 1 + 팀원 N), 브리프·컨펌을 파일로 주고받는 **탭 모드** 협업 시스템이다. 각 탭이 지금 뭘 하는지는 화면 위의 워커 오버레이(마당)가 보여준다 — 컨펌을 기다리면 테두리가 호박색으로 빛나고, 막히면 적색, 놀고 있으면 눈을 감는다.
 
 > **기원.** 이 팀은 2026년 7월 포켓몬 이름을 붙인 네 에이전트로 시작했다. 공개(2026-09)를 준비하면서 이름·그림·인사말을 전부 자작 마스코트로 바꿨다 — 남의 캐릭터 위에 브랜드를 쌓으면 잘될수록 남의 것이 되고, 확산 라이선스도 붙일 수 없어서다. 이 프로젝트는 포켓몬컴퍼니·닌텐도와 무관하며 그 상표·그림을 쓰지 않는다. 이름 바꾼 이야기는 `plans/brand-strategy-2026-09-03.md`.
+
+## 왜
+
+혼자 Claude Code를 쓰면 두 가지가 자주 걸린다 — 긴 작업이 도는 동안 지금 뭘 하고 있는지 화면 밖에서는 안 보이고, 검증 없이 커밋이 바로 나간다. 이 시스템은 그 둘을 파일 신호로 푼다: 워커 오버레이가 각 세션의 상태를 항상 눈에 띄게 보여주고, 커밋 게이트 훅이 팀장의 APPROVE 없이는 커밋을 막는다. 역할을 나눠 병렬로 굴리는 건 그 위에 얹은 덤이다.
+
+> 초안 — 사용자가 다듬는다는 전제로 몽글이 썼다.
 
 ## 로스터
 
@@ -65,9 +71,12 @@
 **방법 1 — 심링크 (주 사용 기기, 수정하며 쓸 때)**
 
 ```bash
-git clone <this-repo> madang && cd madang
+git clone https://github.com/janjanjae/madang.git && cd madang
 ./install.sh   # ~/.claude, ~/.copilot 에 심링크 생성 (기존 파일은 .bak 백업)
+echo 'source '"$PWD"'/claude/shell/go-functions.zsh' >> ~/.zshrc && exec zsh
 ```
+
+설치 스크립트는 심링크만 만든다 — `go-solver`·`go-builder`·`go-madang` 같은 명령은 위 마지막 한 줄로 생긴다.
 
 **방법 2 — 플러그인 (다른 기기·클라우드 세션, 읽기 전용 사용)**
 
@@ -85,6 +94,7 @@ git clone <this-repo> madang && cd madang
 ```
 DIRECTION.md            # 팀 시스템의 방향 (비전·설계 원칙·로드맵·브랜드 결정) — 여기부터 읽기
 BRANDING.md             # 이름·마스코트 사용 규칙 (CC BY 4.0)
+LICENSE                 # 코드 MIT
 .claude-plugin/         # 마켓플레이스 매니페스트 (플러그인 설치용)
 claude/
   roster.json           # 스킨 표 — 이름·인사말·이모지·색의 단일 원천
@@ -98,15 +108,30 @@ plans/                  # 감사 리포트·설계 스냅샷 (결론은 DIRECTIO
 copilot/
   skills/sync_claude_team/   # Claude → Copilot 단방향 설정 동기화 (manifest 기반 의미 번역)
 install.sh              # ~/.claude, ~/.copilot 심링크
+CONTRIBUTING.md         # 커밋 규칙
+.githooks/              # commit-msg 강제
+.gitmessage             # 커밋 템플릿
 ```
 
 ## 위치 (4계층 중 "베이스")
 
 이 레포는 개인 AI 환경 4계층(내장 → 개인 → **베이스** → 오버레이) 중 **베이스**다 — 프로젝트 불문 팀 시스템. 개인 계층은 별도 비공개 레포, 프로젝트 특화는 각 프로젝트 `.claude/`(오버레이).
 
+## 라이선스
+
+코드는 **MIT**(`LICENSE`), 오리지널 마스코트(`claude/assets/**`)는 **CC BY 4.0**(`BRANDING.md`). 저작권자는 잔잔재(janjanjae).
+
 ## In English
 
-**madang** ("courtyard" in Korean) is a Claude Code setup for running a team of agents with distinct roles in parallel terminal tabs: one lead plus four teammates — solver (depth: one hard problem at a time), builder (breadth: many similar tasks, with clones), sketcher (UI prototypes in isolated worktrees) and narrator (read-only explainer). Coordination is file-based: briefs, confirm requests and replies are plain Markdown under `.claude/team/`, and a commit-gate hook enforces the review protocol. A small desktop pet renders each teammate's live state from those files and from the session transcripts, so you can tell at a glance who is waiting for you. Mascots are original and CC BY 4.0. Docs are in Korean; the roster table above maps the names.
+**madang** ("courtyard" in Korean) is a Claude Code setup for running a team of agents with distinct roles in parallel terminal tabs: one lead plus four teammates — solver (depth: one hard problem at a time), builder (breadth: many similar tasks, with clones), sketcher (UI prototypes in isolated worktrees) and narrator (read-only explainer). Coordination is file-based: briefs, confirm requests and replies are plain Markdown under `.claude/team/`, and a commit-gate hook enforces the review protocol. A small always-on-top worker overlay renders each teammate's live state from those files and from the session transcripts, so you can tell at a glance who is waiting for you. Mascots are original and CC BY 4.0. Docs are in Korean; the roster table above maps the names.
+
+```bash
+git clone https://github.com/janjanjae/madang.git && cd madang
+./install.sh
+echo 'source '"$PWD"'/claude/shell/go-functions.zsh' >> ~/.zshrc
+```
+
+Code is MIT; the original mascots are CC BY 4.0.
 
 ---
 
