@@ -12,7 +12,7 @@
 //   브리프 파일 없음                    → 휴식
 //
 // 빌드: ./build.sh   실행: madang <프로젝트>/.claude/team   (인자 없으면 $PWD/.claude/team)
-// 조작: 드래그로 이동 · 더블클릭 = request/보고 파일 열기 · 메뉴바 👾 = 위치 초기화/종료
+// 조작: 드래그로 이동 · 더블클릭 = request/보고 파일 열기 · 메뉴바 아이콘(도담) = 위치 초기화/종료
 // 환경: MADANG_SILENT=1 이면 컨펌·막힘 전환 시 효과음 없음
 
 import AppKit
@@ -242,7 +242,69 @@ func lastSessionActivity(_ inst: Instance) -> (work: Date?, error: Date?) {
     return (bestWork, bestErr)
 }
 
-struct Snapshot { let state: PetState; let tooltip: String; let openTarget: URL? }
+/// lastRealTurn과 같은 꼬리 128KB 스캔 골격으로, 판정(work/error 시각)이 아니라 "마지막 실제 산출 턴"의
+/// 내용을 뽑는다. lastRealTurn 자체는 건드리지 않는다(판정 반환 의미 불변 — 브리프 제약).
+func lastTurnSummaryText(_ url: URL) -> String? {
+    guard let h = try? FileHandle(forReadingFrom: url), let size = try? h.seekToEnd() else { return nil }
+    defer { try? h.close() }
+    let span: UInt64 = 128 * 1024
+    try? h.seek(toOffset: size > span ? size - span : 0)
+    let tail = String(decoding: h.readDataToEndOfFile(), as: UTF8.self)
+    // 요약은 "한 줄"이어야 한다 — 원문에 개행이 있으면(여러 문단 보고 등) 줄마다 목록·헤딩 기호를 벗기고
+    // 공백으로 접은 뒤 자른다. 안 그러면 잘린 지점 앞의 줄바꿈·마크다운 기호가 말풍선에 그대로 샌다.
+    // (2026-09-05 팀장 리뷰 — 링크·이모지는 그대로 둔다, 기호만 제거)
+    func oneLine(_ s: String, limit: Int) -> String {
+        let t = s.split(separator: "\n", omittingEmptySubsequences: true).map { line -> String in
+            var l = line.trimmingCharacters(in: .whitespaces)
+            for p in ["- ", "# ", "## ", "### "] where l.hasPrefix(p) { l = String(l.dropFirst(p.count)); break }
+            return l
+        }.joined(separator: " ")
+            .replacingOccurrences(of: "**", with: "")
+            .replacingOccurrences(of: "`", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return t.count > limit ? String(t.prefix(limit)) + "…" : t
+    }
+    for line in tail.split(separator: "\n").reversed() {
+        guard line.contains("\"type\":\"assistant\""), let d = line.data(using: .utf8),
+              let j = try? JSONSerialization.jsonObject(with: d) as? [String: Any],
+              let msg = j["message"] as? [String: Any] else { continue }
+        if let parts = msg["content"] as? [[String: Any]] {
+            for p in parts {
+                if p["type"] as? String == "tool_use", let name = p["name"] as? String {
+                    let input = (p["input"] as? [String: Any]).map { "\($0)" } ?? ""
+                    return "\(name): \(oneLine(input, limit: 40))"
+                }
+                if p["type"] as? String == "text", let t = p["text"] as? String, !t.hasPrefix("API Error"), !t.isEmpty {
+                    return oneLine(t, limit: 60)
+                }
+            }
+        } else if let t = msg["content"] as? String, !t.hasPrefix("API Error"), !t.isEmpty {
+            return oneLine(t, limit: 60)
+        }
+    }
+    return nil
+}
+/// 이 인스턴스의 "지금 뭐 하나" 한 줄 — lastSessionActivity와 같은 세션 매칭 방식으로 파일을 찾고,
+/// lastRealTurn(불변)이 판정한 마지막 작업 턴과 같은 파일에서 내용을 뽑는다. 매칭 실패면 nil(2번째 줄 생략).
+func lastTurnSummary(_ inst: Instance) -> String? {
+    guard let files = try? FileManager.default.contentsOfDirectory(at: sessionsDir, includingPropertiesForKeys: [.contentModificationDateKey]) else { return nil }
+    let names = ([inst.role.name, inst.role.key] + inst.role.aliases).map { $0 + inst.suffix }
+    var best: (Date, String)?
+    for f in files where f.pathExtension == "jsonl" {
+        guard let m = mtime(f), Date().timeIntervalSince(m) < 12 * 3600 else { continue }
+        let t = String(sessionTitle(f).drop(while: { !$0.isLetter && !$0.isNumber }))
+        guard names.contains(where: { n in
+            guard t.hasPrefix(n) else { return false }
+            let after = t.dropFirst(n.count).first
+            return after == nil || !(after!.isNumber)
+        }) else { continue }
+        guard let w = lastRealTurn(f).work else { continue }
+        if best == nil || w > best!.0, let s = lastTurnSummaryText(f) { best = (w, s) }
+    }
+    return best?.1
+}
+
+struct Snapshot { let state: PetState; let tooltip: String; let openTarget: URL?; let title: String; let summary: String? }
 
 func snapshot(_ inst: Instance) -> Snapshot {
     let brief  = teamDir.appendingPathComponent("briefs/\(inst.key).md")
@@ -250,18 +312,19 @@ func snapshot(_ inst: Instance) -> Snapshot {
     let req    = teamDir.appendingPathComponent("confirm/\(inst.key).request.md")
     let reply  = teamDir.appendingPathComponent("confirm/\(inst.key).reply.md")
     let fmt = DateFormatter(); fmt.dateFormat = "HH:mm"
+    let summary = lastTurnSummary(inst)   // 폴링 주기(3초)마다 한 번만 — 말풍선 hover 때는 이 캐시값만 읽는다
 
     guard let bm = mtime(brief) else {
-        return Snapshot(state: .off, tooltip: "브리프 없음", openTarget: mtime(report) != nil ? report : nil)
+        return Snapshot(state: .off, tooltip: "브리프 없음", openTarget: mtime(report) != nil ? report : nil, title: "", summary: summary)
     }
     let title = firstLine(brief)
     if let rqm = mtime(req) {
         if let rpm = mtime(reply), rpm >= rqm {
-            return Snapshot(state: .replied, tooltip: "\(title)\n답장 \(fmt.string(from: rpm))", openTarget: reply)
+            return Snapshot(state: .replied, tooltip: "\(title)\n답장 \(fmt.string(from: rpm))", openTarget: reply, title: title, summary: summary)
         }
         let head = firstLine(req).uppercased()
         let st: PetState = head.hasPrefix("BLOCKED") ? .blocked : head.hasPrefix("DISCUSS") ? .discuss : .needsConfirm
-        return Snapshot(state: st, tooltip: "\(title)\n요청 \(fmt.string(from: rqm))", openTarget: req)
+        return Snapshot(state: st, tooltip: "\(title)\n요청 \(fmt.string(from: rqm))", openTarget: req, title: title, summary: summary)
     }
     // 활동 시각 = 보고 파일과 세션 기록 중 더 최근 — 보고는 안 썼어도 탭이 움직이면 작업중
     let act = lastSessionActivity(inst)
@@ -270,12 +333,12 @@ func snapshot(_ inst: Instance) -> Snapshot {
     var sessNote = sess.map { "\n탭 활동 \(fmt.string(from: $0))" } ?? "\n탭 기록 없음"
     if let e = act.error { sessNote += "\n⚠️ API 오류 \(fmt.string(from: e)) — 탭에서 이어서 필요" }
     guard let activity = [rm, sess].compactMap({ $0 }).max(), activity > bm else {
-        return Snapshot(state: .notStarted, tooltip: "\(title)\n브리프 \(fmt.string(from: bm))\(sessNote)", openTarget: brief)
+        return Snapshot(state: .notStarted, tooltip: "\(title)\n브리프 \(fmt.string(from: bm))\(sessNote)", openTarget: brief, title: title, summary: summary)
     }
     let gap = Int(Date().timeIntervalSince(activity) / 60)
     let st: PetState = gap >= idleMinutes ? .idle(gap) : .working
     let reportNote = rm.map { "보고 \(fmt.string(from: $0))" } ?? "보고 없음"
-    return Snapshot(state: st, tooltip: "\(title)\n\(reportNote)\(sessNote)", openTarget: rm != nil ? report : brief)
+    return Snapshot(state: st, tooltip: "\(title)\n\(reportNote)\(sessNote)", openTarget: rm != nil ? report : brief, title: title, summary: summary)
 }
 
 // MARK: - 뷰
@@ -288,6 +351,25 @@ func snapshot(_ inst: Instance) -> Snapshot {
 var appController: PetController?
 var peekUntil: Date?   // 엿보기 — 모든 펫이 말풍선을 잠시 보여준다
 func alwaysBubbles() -> Bool { UserDefaults.standard.bool(forKey: "madang.bubbles") }   // 메뉴 "말풍선 항상 표시"
+
+/// 브리프 H1은 "브리프 — 이름 (key) · 날짜 · 태스크명" 꼴 — 260pt에서 앞부분(이름·날짜)에 밀려
+/// 정작 태스크명이 잘리므로, 이 패턴이면 마지막 " · " 뒤(태스크명)만 보여준다. 패턴이 안 맞으면 원문 그대로.
+/// (2026-09-05 팀장 리뷰 — 1번 캡처에서 발견)
+func displayTitle(_ raw: String) -> String {
+    guard raw.hasPrefix("브리프 — "), let r = raw.range(of: " · ", options: .backwards) else { return raw }
+    return String(raw[r.upperBound...])
+}
+
+/// 말풍선 폭 상한(260pt)에 맞춰 잘라낸다 — 한글은 라틴보다 글리프가 넓어 글자수 대신 실측 폭으로 판단.
+func truncatedToWidth(_ s: String, font: NSFont, maxWidth: CGFloat) -> String {
+    let attrs: [NSAttributedString.Key: Any] = [.font: font]
+    guard (s as NSString).size(withAttributes: attrs).width > maxWidth else { return s }
+    var t = s
+    while t.count > 1, (t as NSString).size(withAttributes: attrs).width > maxWidth {
+        t.removeLast()
+    }
+    return t + "…"
+}
 
 func mascotImage(_ id: String, variant: String = "") -> NSImage? {
     NSImage(contentsOf: mascotDir.appendingPathComponent(id + variant + (isDark() ? "@dark" : "") + ".svg"))
@@ -302,7 +384,7 @@ final class BubbleView: NSView {
         text = NSAttributedString(string: str, attributes: [
             .font: NSFont.systemFont(ofSize: 12, weight: .semibold), .foregroundColor: color, .paragraphStyle: p])
         let w = ceil(text.size().width) + 18
-        frame.size = NSSize(width: max(w, 44), height: 24 + tail)
+        frame.size = NSSize(width: max(w, 44), height: ceil(text.size().height) + 10 + tail)   // 2~3줄 대응 — 높이는 실측 텍스트 블록 기준
         needsDisplay = true
     }
     override func draw(_ rect: NSRect) {
@@ -328,6 +410,10 @@ final class PetView: NSView {
     let bubble = BubbleView()
     var state: PetState = .off
     var openTarget: URL?
+    var title = ""             // 브리프 제목 — 말풍선 1번째 추가 줄
+    var summary: String?       // lastTurnSummary 캐시 — 말풍선 2번째 추가 줄(hover 1.5초 뒤)
+    var hoverSince: Date?
+    var summaryRevealed = false
     var phase: CGFloat = .random(in: 0...6)
     var smileUntil: Date?
     var prevState: PetState = .off
@@ -370,8 +456,8 @@ final class PetView: NSView {
         trackingAreas.forEach(removeTrackingArea)
         addTrackingArea(NSTrackingArea(rect: bounds, options: [.mouseEnteredAndExited, .activeAlways], owner: self, userInfo: nil))
     }
-    override func mouseEntered(with event: NSEvent) { hovered = true; refreshBubble() }
-    override func mouseExited(with event: NSEvent) { hovered = false; refreshBubble() }
+    override func mouseEntered(with event: NSEvent) { hovered = true; hoverSince = Date(); summaryRevealed = false; refreshBubble() }
+    override func mouseExited(with event: NSEvent) { hovered = false; hoverSince = nil; summaryRevealed = false; refreshBubble() }
 
     var variant: String {
         if smileUntil != nil { return "-smile" }
@@ -393,8 +479,24 @@ final class PetView: NSView {
         refreshBubble()
     }
     func refreshBubble() {
-        bubble.set(state.label, color: state.color ?? Palette.current.ink)
-        bubble.frame.origin = NSPoint(x: (petW - bubble.frame.width) / 2, y: petH - bubble.frame.height - 2)
+        let font = NSFont.systemFont(ofSize: 12, weight: .semibold)
+        let maxW: CGFloat = 260 - 18   // 말풍선 폭 상한 260pt에서 좌우 패딩 제외
+        var lines = [state.label]
+        // 상태 텍스트가 이미 말풍선에 있을 때(showBubble) 그 아래에 브리프 제목을 붙인다 — 기존 줄 유지
+        if showBubble, !title.isEmpty { lines.append(truncatedToWidth(displayTitle(title), font: font, maxWidth: maxW)) }
+        // 2번째 줄(마지막 산출 턴 요약)은 always-표시와 무관하게 실제 hover 1.5초 뒤에만 — 세션 매칭 없으면 생략
+        if hovered, summaryRevealed, let s = summary { lines.append(truncatedToWidth(s, font: font, maxWidth: maxW)) }
+        bubble.set(lines.joined(separator: "\n"), color: state.color ?? Palette.current.ink)
+        // 여러 줄이 되면서 폭이 petW를 넘어설 수 있다 — 가장자리 펫에서 창(=container) 밖으로 잘리지 않게 클램프
+        var x = (petW - bubble.frame.width) / 2
+        if let containerW = superview?.bounds.width {
+            x = min(max(x, -frame.origin.x), containerW - bubble.frame.width - frame.origin.x)
+        }
+        // 꼬리(말풍선 아랫변)를 펫 상단의 고정 위치에 붙이고 줄이 늘면 위로 자란다 — 3줄일 때 머리를
+        // 덮어버리는 문제(2026-09-05 팀장 리뷰, 2번 캡처) 수정. 창 위로 넘칠 때만 아래로 자란다.
+        let anchorY: CGFloat = petH - 2 - (24 + bubble.tail)   // 기존 1줄 기준 정지 위치와 동일
+        let y = anchorY + bubble.frame.height > petH ? petH - bubble.frame.height : anchorY
+        bubble.frame.origin = NSPoint(x: x, y: y)
         bubble.isHidden = !showBubble
     }
 
@@ -402,6 +504,8 @@ final class PetView: NSView {
         let changed = s.state != state
         state = s.state
         openTarget = s.openTarget
+        title = s.title
+        summary = s.summary
         toolTip = "\(inst.role.name)\(inst.suffix) — \(s.state.label)\n\(s.tooltip)"
         alphaValue = (s.state == .off) ? 0.5 : 1.0
         setGlow(s.state.color)
@@ -418,6 +522,10 @@ final class PetView: NSView {
         if let until = smileUntil, Date() > until {   // 미소는 1회 전이 — 3초 뒤 복귀
             smileUntil = nil
             figure.image = mascotImage(inst.role.id, variant: variant)
+        }
+        if hovered, !summaryRevealed, let since = hoverSince, Date().timeIntervalSince(since) >= 1.5 {
+            summaryRevealed = true
+            refreshBubble()
         }
         let want = showBubble
         if bubble.isHidden == want { refreshBubble() }
@@ -462,7 +570,7 @@ final class PetView: NSView {
         window?.performDrag(with: event)
         if before == window?.frame.origin { peekUntil = Date().addingTimeInterval(2.5) }   // 엿보기 2.5초 — 세 개 훑기엔 충분, 거슬리진 않는 길이
     }
-    // 우클릭 = 메뉴 (상단바 👾가 넘쳐서 안 보일 때의 조작 경로)
+    // 우클릭 = 메뉴 (상단바 아이콘이 넘쳐서 안 보일 때의 조작 경로)
     override func rightMouseDown(with event: NSEvent) {
         guard let c = appController else { return }
         NSMenu.popUpContextMenu(c.buildMenu(), with: event, for: self)
@@ -470,6 +578,31 @@ final class PetView: NSView {
     @objc func openFile() {
         if let u = openTarget { NSWorkspace.shared.open(u) }
     }
+}
+
+// MARK: - 메뉴바 아이콘 (도담 잉크 실루엣, 템플릿 18pt)
+
+/// 도담(팀장) 원 얼굴을 18pt 템플릿 이미지로 — 라이트/다크 메뉴바에서 시스템이 자동 반전한다.
+/// 잉크 실루엣 채움 + 눈 두 개 구멍(even-odd) — 말랑(~/dev/slime)과 같은 "흰 실루엣 + 눈 구멍" 문법.
+/// 좌표는 make-mascots.py의 lead 얼굴(circle r=40 @ 120 캔버스, eye_y=62)과 같은 비율 감각을
+/// 18pt로 옮기되, 눈 크기는 소형 아이콘 가독성을 위해 비율보다 키웠다(순수 비례 축소 시 1pt 미만이라 안 보임).
+func mascotStatusIcon() -> NSImage {
+    let size = NSSize(width: 18, height: 18)
+    let image = NSImage(size: size, flipped: false) { _ in
+        let cx: CGFloat = 9, cy: CGFloat = 9.2, r: CGFloat = 7.6   // 지름 15.2pt, 가장자리 여백 1.4pt
+        let eyeR: CGFloat = 1.6, eyeDX: CGFloat = 2.7, eyeDY: CGFloat = 0.6
+        func eye(_ dx: CGFloat) -> NSBezierPath {
+            NSBezierPath(ovalIn: NSRect(x: cx + dx - eyeR, y: cy + eyeDY - eyeR, width: eyeR * 2, height: eyeR * 2))
+        }
+        let face = NSBezierPath(ovalIn: NSRect(x: cx - r, y: cy - r, width: r * 2, height: r * 2))
+        face.append(eye(-eyeDX)); face.append(eye(eyeDX))
+        face.windingRule = .evenOdd
+        NSColor.black.set()
+        face.fill()
+        return true
+    }
+    image.isTemplate = true
+    return image
 }
 
 // MARK: - 컨트롤러
@@ -586,7 +719,7 @@ final class PetController: NSObject {
     }
     func setupStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        statusItem.button?.title = "👾"
+        statusItem.button?.image = mascotStatusIcon()
         statusItem.menu = buildMenu()
     }
     @objc func setInk(_ sender: NSMenuItem) {
