@@ -1,6 +1,6 @@
 #!/bin/bash
-# make-hero-gif.sh — README 히어로 GIF 생성 (2026-09-04)
-# 가짜 팀 폴더에서 네 상태(작업중·컨펌 대기·막힘·유휴)를 순서대로 연출하고, 펫 창만 캡처해 ffmpeg로 GIF를 만든다.
+# make-hero-gif.sh — README 히어로 GIF 생성 (2026-09-04, 상태 4신호·5라벨 재캡처 2026-09-10)
+# 가짜 팀 폴더에서 네 상태(작업중·컨펌 대기·사람 필요·쉼)를 순서대로 연출하고, 워커 창만 캡처해 ffmpeg로 GIF를 만든다.
 # 사용: ./make-hero-gif.sh [출력.gif]   (ffmpeg 필요: brew install ffmpeg)
 set -e
 OUT="${1:-$(dirname "$0")/../../assets/hero.gif}"
@@ -34,32 +34,40 @@ scene() {  # $1=solver $2=builder $3=sketcher — working|confirm|blocked|idle|o
   done
 }
 
-winid() { swift - <<'EOF' 2>/dev/null
+# 이름(owner name)만으로 창을 찾으면 다른 madang 프로세스(라이브 오버레이 등)가 같은 이름으로 떠
+# 있을 때 엉뚱한 창을 집어 캡처 크기가 실행마다 널뛴다 — 이 스크립트가 띄운 PID로만 정확히 집는다.
+winid() { swift - "$1" <<'EOF' 2>/dev/null
 import CoreGraphics
+let pid = Int32(CommandLine.arguments[1])!
 let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as! [[String: Any]]
-for w in list where (w[kCGWindowOwnerName as String] as? String) == "madang" { print(w[kCGWindowNumber as String]!) ; break }
+for w in list where (w[kCGWindowOwnerPID as String] as? Int32) == pid { print(w[kCGWindowNumber as String]!) ; break }
 EOF
 }
 
-pkill -x madang 2>/dev/null || true
 scene working working working
 # 메인(레티나) 화면 왼쪽 아래에 띄운다 — 외장 1x 모니터에 뜨면 캡처가 작다
 defaults write madang "madang.origin.$T" -array 120 120
 MADANG_SILENT=1 "$DIR/madang" "$T" >/dev/null 2>&1 &
+PID=$!
 sleep 3
-ID=$(winid); [ -n "$ID" ] || { echo "madang 창을 못 찾음"; exit 1; }
+ID=$(winid "$PID"); [ -n "$ID" ] || { echo "madang 창을 못 찾음"; kill "$PID" 2>/dev/null || true; exit 1; }
 
 i=0
 snap() { for n in $(seq 1 "$1"); do i=$((i+1)); screencapture -x -l "$ID" "$(printf "$F/f%03d.png" $i)"; sleep 0.5; done; }
 scene working working working; sleep 3.5; snap 3     # 셋 다 작업중 (바운스)
 scene confirm working working; sleep 3.5; snap 3     # 번뜩 컨펌 대기 (호박 발광 + 말풍선)
-scene confirm blocked working; sleep 3.5; snap 2     # 몽글 막힘 (적 발광)
-scene working working idle;    sleep 3.5; snap 2     # 슥슥 유휴 (눈 감음)
+scene confirm blocked working; sleep 3.5; snap 2     # 몽글 사람 필요 (적 발광)
+scene working working idle;    sleep 3.5; snap 2     # 슥슥 쉼 (눈 감음)
 
-pkill -x madang 2>/dev/null || true
+kill "$PID" 2>/dev/null || true
 # 컨펌 대기·막힘 장면은 말풍선·발광이 떠 창 캡처 크기 자체가 커진다 — 프레임마다 크기가 다르면 ffmpeg
 # 이미지 시퀀스가 첫 크기 변경에서 멈춰 GIF가 1프레임으로 끊긴다(2026-09-05 발견 — 레티나 여부와 무관한
-# 기존 버그). 고정 캔버스로 맞추고 펫 하단을 기준으로 정렬(여백 24px는 그대로) — 큰 프레임엔 위쪽에만 여유가 생긴다.
+# 기존 버그). 2026-09-10에 패널 자체를 workerH+bubbleHeadroom 고정 높이로 만들었지만(결함 3) CGWindow의
+# 프레임(kCGWindowBounds)은 실측으로 확실히 상수였다 — 그런데도 screencapture -l 캡처 파일 크기는 여전히
+# 널뛴다(직접 실험 확인, 588~590 x 206~304). 창이 투명/보더리스일 때 screencapture가 창 프레임이 아니라
+# "실제로 그려진(불투명) 픽셀의 바운딩 박스"로 크롭하는 것으로 보인다 — 말풍선이 없으면 마스코트+그림자만
+# 작게 잡히고, 말풍선이 뜨면 그 위 여유 공간까지 포함돼 커진다. 패널 높이를 고정해도 이 캡처 단계의
+# 특성 자체는 그대로라 고정 캔버스 정렬은 여전히 필요 — 프레임마다 최댓값을 훑는다.
 MAXW=0; MAXH=0
 for f in "$F"/f*.png; do
   w=$(sips -g pixelWidth "$f" | awk '/pixelWidth/{print $2}')
@@ -74,7 +82,7 @@ for f in "$F"/f*.png; do
     "[0:v]format=rgba,pad=${PADW}:${PADH}:(ow-iw)/2:oh-ih-24:color=#F5F7F8@0[fg];[1:v][fg]overlay=shortest=1:format=auto,format=rgb24" \
     -frames:v 1 "$F/g$(basename "$f" | cut -c2-)"
 done
-# 원본 펫 창(296x132pt)이 README 표시 폭(~900px)엔 작아 업스케일한다. 진짜 다프레임 GIF가 되며
+# 원본 워커 창(296x132pt)이 README 표시 폭(~900px)엔 작아 업스케일한다. 진짜 다프레임 GIF가 되며
 # (위 고정 캔버스 전엔 1프레임에서 멈췄다) 용량이 커져 300KB를 넘기므로 순서대로: 팔레트는 48색
 # 이상 유지(12색은 호박·적 발광이 안 구분돼 2026-09-05 팀장 리뷰에서 기각) → 폭 1050 → 스냅 밀도
 # 6→3·3·2·2(총 10프레임). 4장면·순서·간격은 그대로.

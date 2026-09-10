@@ -16,7 +16,7 @@
       "emoji": "⚪",
       "shape": "원",
       "color": "#1E2430",
-      "pet": false,
+      "worker": false,
       "aliases": [
         "팀장",
         "teamleader"
@@ -31,7 +31,7 @@
       "emoji": "🔺",
       "shape": "세모",
       "color": "#B8563F",
-      "pet": true,
+      "worker": true,
       "aliases": [
         "파이리",
         "pairi"
@@ -46,7 +46,7 @@
       "emoji": "☁️",
       "shape": "구름",
       "color": "#7A6FA8",
-      "pet": true,
+      "worker": true,
       "aliases": [
         "메타몽",
         "metamong"
@@ -61,7 +61,7 @@
       "emoji": "🟦",
       "shape": "네모",
       "color": "#3E8E8A",
-      "pet": true,
+      "worker": true,
       "aliases": [
         "꼬부기",
         "kkobugi"
@@ -76,7 +76,7 @@
       "emoji": "💬",
       "shape": "말풍선",
       "color": "#C09A2B",
-      "pet": false,
+      "worker": false,
       "aliases": [
         "로토무도감",
         "rotomdex"
