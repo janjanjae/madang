@@ -13,6 +13,16 @@ NEW="${2:?사용법: verify-history.sh <원본 저장소> <재작성된 저장�
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPL_FILE="${3:-$SCRIPT_DIR/replacements.txt}"
 
+# 🔴 2026-09-10: replacements.txt는 프로젝트 고유 데이터라 gitignore 대상이다(공개
+# 저장소엔 없다) — 없을 때 조용히 빈 표로 진행하면 ①~④ 전부가 "검사할 게 없어서"
+# 통과한 것처럼 보인다. 그건 오늘 이 검증 3종에서 잡은 것과 같은 모양의 구멍이라
+# fail-loud로 막는다.
+if [ ! -f "$REPL_FILE" ]; then
+  echo "🔴 $REPL_FILE 이 없다 — 이 프로젝트 고유 치환표는 공개 저장소에 없다(정상)." >&2
+  echo "   $SCRIPT_DIR/replacements.example.txt 를 복사해 채운 뒤 다시 실행할 것." >&2
+  exit 2
+fi
+
 fail=0
 
 echo "=== ① 패턴 잔존 검사 — diff 기준 (git log -p --all, AC 명시 방식) ==="

@@ -35,6 +35,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPL_FILE="$SCRIPT_DIR/replacements.txt"
 SELF="$(basename "${BASH_SOURCE[0]}")"
 
+# 🔴 2026-09-10: replacements.txt는 프로젝트 고유 데이터라 gitignore 대상이다(공개
+# 저장소엔 없다). 없어도 스캔 자체는 돌아가지만 "이미 아는 패턴" 필터링이 전부 빠져
+# 결과가 왜곡된다 — 조용히 degrade시키지 않고 설정이 안 됐다는 걸 바로 알린다.
+if [ ! -f "$REPL_FILE" ]; then
+  echo "🔴 $REPL_FILE 이 없다 — 이 프로젝트 고유 치환표는 공개 저장소에 없다(정상)." >&2
+  echo "   $SCRIPT_DIR/replacements.example.txt 를 복사해 채운 뒤 다시 실행할 것." >&2
+  exit 2
+fi
+
 # 바이너리·락파일 — 의존성 무결성 해시가 base64/hex 패턴을 대량으로 오탐시켜
 # 사람이 읽을 수 없는 출력이 된다. 내용은 이미 공개 레지스트리 정보라 무해.
 EXCLUDE_PATHS=(
