@@ -1,5 +1,5 @@
 ---
-name: save-progress
+name: checkpoint
 description: 현재 세션 작업 내용으로 .claude/PROGRESS.md 현행화 (+ TASKS.md 체크박스). 팀장 전용 (허브 문서 작성).
 ---
 현재 세션에서 작업한 내용을 바탕으로 `.claude/PROGRESS.md`를 업데이트하라.

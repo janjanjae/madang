@@ -1,6 +1,6 @@
 # 트래커 Config ({프로젝트 이름})
 
-> issue-cache · issue-refine · issue-capture 스킬이 읽는 프로젝트별 트래커 설정.
+> issue-fetch · issue-refine · issue-add 스킬이 읽는 프로젝트별 트래커 설정.
 > **이 파일을 프로젝트의 `.claude/team/tracker-config.md`로 복사한 뒤, 타입을 정하고 해당 절만 채워라** (다른 타입 절은 삭제).
 > 위치가 `.claude/team/`인 이유: gitignore 영역(레포 동료 비노출) + 팀장 수정 가능 영역.
 > 다른 프로젝트로 전환 시 이 파일만 그 프로젝트에 새로 작성하면 스킬은 그대로 재사용된다.
@@ -43,7 +43,7 @@
 
 - **레포**: `{owner}/{repo}` — 모든 `gh issue` 명령에 `-R {owner}/{repo}`를 **반드시 명시**한다 (스킬은 심볼릭 링크로 다른 프로젝트에 재사용되므로, cwd의 git remote로 암묵 추론하면 엉뚱한 레포에 쓸 수 있다).
 - **gh 계정**: `{이 레포에 이슈를 쓸 GitHub 계정 로그인}`
-- 🔴 **인증 가드레일** (issue-cache·issue-capture·issue-refine 공통 — 이 절이 SSOT, 각 스킬 본문엔 한 줄 하드스톱만 둔다): 조회·쓰기 전 `gh auth status --active`를 확인한다.
+- 🔴 **인증 가드레일** (issue-fetch·issue-add·issue-refine 공통 — 이 절이 SSOT, 각 스킬 본문엔 한 줄 하드스톱만 둔다): 조회·쓰기 전 `gh auth status --active`를 확인한다.
   - **미인증**(로그인된 계정 없음) → `gh auth login` 안내
   - **계정 불일치**(다른 계정으로 로그인돼 있음) → 스스로 전환하지 말고 멈추고 사용자에게 `gh auth switch -u {계정}` 요청 (`gh auth switch`는 이미 인증된 계정 사이에서만 동작한다 — 미인증 상태엔 쓸 수 없어 `login`과 구분해야 한다)
 - **이슈 번호 표기**: 인수는 `#591`·`591` 둘 다 받고 내부적으로는 숫자만 쓴다. 캐시 파일명 `.claude/stories/{번호}.md`.
