@@ -14,7 +14,7 @@
 |---|---|
 | **명령** | `cd ~/Desktop/madang && git checkout main && git status --short && git worktree list` (원격 `origin`은 이 시점에 로컬보다 뒤처져 있는 게 정상이다 — 이 런북 자체가 로컬을 origin으로 밀어넣는 절차라 `git pull`은 필요 없다) |
 | **기대 출력** | `git status --short`가 **빈 출력**(clean). `git worktree list`에 `main`과 이 런북 브랜치(`docs/release-runbook`) 외에 **진행 중인 워커 워크트리가 없다**(`wt-sanitize`·`wt-state` 등이 남아있으면 안 됨 — 작업 끝났으면 팀장이 정리했어야 한다). |
-| **🔴 중단 조건** | ① `git status`에 미커밋 변경이 있으면 중단(누가 손댄 건지 먼저 확인) ② `.claude/TASKS.md` "현재 배분" 표를 열어 다음 4개가 전부 `main`에 머지 완료(✅)인지 확인 — **하나라도 아니면 시작 금지**: `chore/v05-sanitize-2`(sanitize 치환) · `feat/worker-state-v05`(+ 그 후속 피드백 라운드) · 스킬 리네임 2부(디렉토리 5개 이동, 브랜치명은 배분 시점 기준 미정이었음 — TASKS.md에서 확인) · `fix/github-type-hardening`의 `verify-tree.sh` 추가 커밋(`421f168`, 이 문서를 쓰는 시점엔 아직 재머지 전 — 1번 단계가 `claude/tools/sanitize/verify-tree.sh` 파일을 요구하니 이게 없으면 1번에서 바로 막힌다) ③ `git worktree list`에 미정리 워크트리가 남아 있으면 그 작업이 안 끝났다는 뜻이니 중단. |
+| **🔴 중단 조건** | ① `git status`에 미커밋 변경이 있으면 중단(누가 손댄 건지 먼저 확인) ② `.claude/TASKS.md` "현재 배분" 표를 열어 다음이 전부 `main`에 머지 완료(✅)인지 확인 — **하나라도 아니면 시작 금지**: `chore/v05-sanitize-2`(sanitize 치환) · `feat/worker-state-v05`(+ 그 후속 피드백 라운드) · 스킬 리네임 2부(디렉토리 5개 이동, 브랜치명은 배분 시점 기준 미정이었음 — TASKS.md에서 확인). (`fix/github-type-hardening`의 `verify-tree.sh` 커밋은 `9a56408`로 이미 재머지됨 — ✅ 해소) ③ `git worktree list`에 미정리 워크트리가 남아 있으면 그 작업이 안 끝났다는 뜻이니 중단 ④ **공개 ref 확인**: `git branch --no-merged main`을 돌려봐서 아직 main에 안 들어간 로컬 브랜치가 남아 있으면 안 된다(비어 있어야 정상 — ②의 항목들이 전부 머지되면 모든 작업 브랜치가 main의 조상이 된다). 아래 "5번 — force-push가 정확히 무엇을 공개하는가" 절을 **아직 안 읽었으면 여기서 먼저 읽는다**(A/B안 결정이 5번 명령을 바꾼다). |
 | **되돌리기** | 이 단계는 관찰만 한다 — 되돌릴 것이 없다. |
 
 ---
@@ -76,14 +76,70 @@ cd ~/madang-release.git && git filter-repo \
 
 ---
 
-## 5. force-push — 공개 전 마지막 관문 (🔴 진짜 되돌릴 수 없음)
+## 5. force-push — 정확히 무엇이 공개되는가 (🔴 진짜 되돌릴 수 없음)
+
+### `--mirror`가 실제로 무엇을 미는지 (문서 근거 + 실측, 2026-09-10)
+
+`git push --help`: `--mirror`는 **"refs/ 아래 전부(이는 refs/heads/·refs/remotes/·refs/tags/를 포함하되 그것만은 아니다)"** 를 원격에 강제로 맞춘다 — heads·tags만이 아니라는 게 공식 문서에 명시돼 있다.
+
+레포 밖 `/tmp`에 미러 클론을 떠서 `git for-each-ref`로 직접 세어 확인(origin 미접촉, 확인 후 클론 삭제):
+
+```
+$ git clone --mirror ~/Desktop/madang /tmp/madang-refcheck.git
+$ git -C /tmp/madang-refcheck.git for-each-ref | wc -l
+15
+```
+
+**합계 15** — `refs/heads/*` 12개(작업 브랜치 11 + `main`) · `refs/remotes/origin/HEAD`·`refs/remotes/origin/main` 2개 · `refs/tmp-mainref` 1개. 태그는 0개.
+
+**filter-repo(2번)를 거치면 어떻게 바뀌는지도 확인**: 같은 미러를 복사해 filter-repo를 돌려보니 `refs/remotes/origin/*` 2개가 **자동으로 사라졌다**(filter-repo가 기본 동작으로 `origin` 리모트 자체를 제거하면서 그 추적 ref도 함께 없어짐 — 공식 동작, "Removing 'origin' remote" 안내가 뜬다). `refs/tmp-mainref`는 **살아남는다**(다른 ref와 똑같이 새 해시로 재작성됨). `refs/replace/*`는 생기지 않았다. 즉 **2번(filter-repo)을 거치고 나면 원격추적 ref 2개는 이미 사라져 있다** — 남은 문제는 작업 브랜치 11개와 `tmp-mainref` 1개뿐이다.
+
+### `tmp-mainref`의 정체
+
+```
+$ git log -1 tmp-mainref
+commit d570b8d6e1f3f42ce09a51212c960a9d42853b0e
+    Merge fix/github-type-hardening — github 타입 보강 10건 ...
+$ git reflog show tmp-mainref   # 비어 있음 — refs/heads·refs/remotes 밖의 커스텀 ref는 git이 기본적으로 reflog를 안 남긴다
+$ git merge-base --is-ancestor tmp-mainref main && echo ancestor
+ancestor
+```
+
+`tmp-mainref`는 **main의 바로 이전 위치(d570b8d, verify-tree.sh 병합 직전의 main)를 정확히 가리킨다** — main의 조상이고, 별도 작업 내용은 없다. `.git/refs/` 아래 loose ref로 존재하고(`refs/heads/`가 아니라 최상위 `refs/`), reflog가 없어 "누가 왜"는 로그로 증명 못 하지만, **시점·내용 정황상 그 병합 직전에 팀장(또는 야간 자동화)이 "되돌릴 지점"으로 남긴 수동 체크포인트 ref로 추정**한다(추측이라고 명시 — 확신 아님). **삭제 판정: main의 순수 조상이라 삭제해도 히스토리 유실은 없다.** 단 브리프 지시대로 **삭제는 하지 않았다** — 팀장·사용자 판단.
+
+### 공개 ref 정책 — 두 가지 안
+
+| | **A. `main`만 공개** | **B. 브랜치도 공개** |
+|---|---|---|
+| **범위** | `refs/heads/main`만 | `refs/heads/*` 전부(현재 12개 — 실행 시점엔 0번 게이트를 통과했으므로 전부 main의 조상, 즉 **공개해도 새 정보가 없다**, 브랜치 이름표만 추가로 보임) |
+| **장점** | 가장 깨끗. 방문자가 보는 첫 화면에 작업용 브랜치명(`chore/v05-blockers` 등 내부 워크플로우 용어)이 노출되지 않는다 | "여러 페르소나가 브랜치로 병렬 작업한다"는 이 프로젝트의 실제 개발 방식이 그대로 드러난다 — README가 설명하는 내용의 증거가 된다 |
+| **단점** | 개발 과정(머지 전 브랜치 단위 커밋)이 안 보인다 — 다만 `main`의 머지 커밋 자체에 브랜치명이 메시지로 남아 있어 완전히 안 보이는 건 아니다 | 브랜치명에 내부 용어·오탈자·임시 이름이 그대로 박제된다. 공개 후 브랜치를 늘/줄일 때마다 매번 "정리해서 다시 push"가 필요해진다(관리 부담 지속) |
+
+**추천: A(`main`만 공개).** 0번 게이트가 "모든 작업 브랜치는 main에 머지 완료"를 전제로 하므로, 실행 시점엔 **11개 브랜치 전부가 main의 조상**이다(위 `git branch --no-merged main` 확인 — 비어 있어야 통과). 즉 B를 선택해도 **커밋 내용 기준으로는 새로 드러나는 게 없고**, 순수하게 브랜치 이름표만 더 보인다 — 이름표 노출의 이득(개발 과정 서사)보다 지속적인 관리 부담(매 릴리스마다 브랜치 정리)이 커 보인다. 다만 이건 제품 성격 판단이라 **최종 선택은 사용자 몫**이다.
+
+### 명령 (A/B 둘 다 병기 — 사용자가 고른 쪽만 실행)
+
+**A. `main`만**:
+```bash
+cd ~/madang-release.git
+git push --force https://github.com/janjanjae/madang.git refs/heads/main:refs/heads/main
+```
+
+**B. 로컬 브랜치 전부** (와일드카드 refspec — `refs/heads/*`만 매칭, `refs/remotes/*`·`refs/tmp-mainref`는 애초에 이 패턴에 안 걸려 구조적으로 제외된다):
+```bash
+cd ~/madang-release.git
+git push --force https://github.com/janjanjae/madang.git 'refs/heads/*:refs/heads/*'
+```
+
+🔴 **어느 안이든 `--mirror`를 쓰지 않는다** — 그게 `refs/remotes/*`·`refs/tmp-mainref`가 공개되는 근본 원인이다. 위 두 명령 다 `refs/heads/*` 안쪽만 건드리는 명시적 refspec이라 구조적으로 안전하다.
+
+⚠️ **알아내지 못한 것**: 지금 `origin`이 이미 어떤 브랜치를 갖고 있는지 이 세션에서 확인 못 했다(gh 계정이 회사 계정으로 원복돼 있어 개인 레포 조회 불가 — 이 태스크 자체가 `gh auth` 금지라 전환도 안 함). **위 명령은 `--mirror`가 아니므로 origin에 이미 있지만 로컬엔 없는 브랜치가 있다면 그건 안 지워진다** — 실행 직전에 `gh api repos/janjanjae/madang/branches --jq '.[].name'`(janjanjae 계정으로)로 한 번 확인해 두는 걸 권한다.
 
 | | 내용 |
 |---|---|
-| **명령** | `cd ~/madang-release.git && git push --force --mirror https://github.com/janjanjae/madang.git` |
-| **기대 출력** | 여러 갈래(`refs/heads/*`, `refs/tags/*`)에 대한 `+ ... forced-update` 줄들, 에러 없이 종료. |
-| **🔴 중단 조건** | **이 명령을 실행하기 전, 3번의 "전체 통과"를 이 눈으로 다시 한번 확인할 것 — 되돌릴 수 없다.** 인증 오류가 나면(권한 없음) gh 계정을 다시 확인(4번). 그 외 실패는 **재시도하지 말고 멈춘다** — 부분적으로 push된 상태에서 재시도하면 더 꼬인다. |
-| **되돌리기** | **원칙적으로 되돌릴 수 없다.** GitHub 캐시·포크·클론이 이미 잘못된 히스토리를 가져갔을 수 있다. 그나마 되돌리는 방법: `cd ~/madang-backup.git && git push --force --mirror https://github.com/janjanjae/madang.git` — 이건 **원격을 재작성 이전 상태로 강제로 되돌리는 것**이지, "실행 안 한 것"으로 만들지 못한다(그 사이 누가 클론했으면 그 사본엔 여전히 잘못된 히스토리가 남는다). `~/madang-backup.git`은 이 작업이 끝나고 **최소 1주** 지울 것 없이 보관한다. |
+| **기대 출력** | (A) `main` 한 줄의 `+ ... forced-update`. (B) `refs/heads/*` 전체에 대한 `+ ... forced-update` 여러 줄 — 어느 쪽이든 `refs/remotes/`나 `tmp-mainref` 언급이 **없어야** 정상. |
+| **🔴 중단 조건** | **실행 전, 3번의 "전체 통과"를 다시 확인 — 되돌릴 수 없다.** A/B 중 어느 걸 실행하는지 **실행 직전에 소리 내어 확인**(둘 다 준비돼 있으니 헷갈리기 쉽다). 인증 오류면 gh 계정 재확인(4번). 그 외 실패는 **재시도하지 말고 멈춘다** — 부분 push 상태에서 재시도하면 더 꼬인다. |
+| **되돌리기** | **원칙적으로 되돌릴 수 없다.** GitHub 캐시·포크·클론이 이미 잘못된 히스토리를 가져갔을 수 있다. 그나마 되돌리는 방법: `cd ~/madang-backup.git && git push --force --mirror https://github.com/janjanjae/madang.git`(여기서는 원본 복원이 목적이라 `--mirror`가 맞다) — 이건 **원격을 재작성 이전 상태로 강제로 되돌리는 것**이지, "실행 안 한 것"으로 만들지 못한다(그 사이 누가 클론했으면 그 사본엔 여전히 잘못된 히스토리가 남는다). `~/madang-backup.git`은 이 작업이 끝나고 **최소 1주** 지울 것 없이 보관한다. |
 
 ---
 
@@ -135,3 +191,27 @@ cd /tmp && git clone https://github.com/janjanjae/madang.git madang-fresh-check 
 - 0번 게이트의 "스킬 리네임 2부 브랜치명 미정"은 실행 시점에 TASKS.md를 다시 봐야 한다는 뜻을 명확히 했다 — 이 문서만으로 판단하려 하면 막힐 자리라 표시해 둠.
 - 6번의 description·topic 값은 의도적으로 플레이스홀더로 남겼다(그 자리는 사용자 취향 판단이라 미리 정하면 오히려 틀린다).
 - 5번(force-push)과 2번(filter-repo) 둘 다 "되돌릴 수 없다"고 쓰면 어느 쪽이 진짜 마지노선인지 흐려질 위험이 있어, 2번은 "이 미러 안에서만 되돌릴 수 없다(실 레포는 안전)"로, 5번은 "진짜 되돌릴 수 없음"으로 강도를 구분해 표시했다.
+- 5번에 A/B 두 명령을 나란히 두면 실행 직전에 **어느 쪽을 실행하는지 헷갈릴 수 있어** 중단조건에 "실행 직전 소리 내어 확인" 한 줄을 넣어뒀다 — 되돌릴 수 없는 단계에서 헷갈림은 그 자체로 사고 원인이다.
+
+---
+
+## GitHub 아이디 의존 목록 (`janjanjae` — 결정 나면 일괄 교체용)
+
+⚠️ 사용자가 `janjanjae` → `janjanjae` 변경을 검토 중. **지금은 그대로 둔다** — 결정되면 아래 줄만 찾아 바꾸면 된다(이 커밋 기준 14곳 — 문서가 그 사이 바뀌었으면 줄번호 대신 `grep -n janjanjae plans/release-runbook-v05.md`로 다시 찾을 것):
+
+| 줄 | 내용 |
+|---|---|
+| 7 | 문서 상단 레포 표기 |
+| 73 | 4번 "기대 출력" — gh 계정명 |
+| 74 | 4번 중단조건 — `gh auth switch -u janjanjae` |
+| 125 | 5번 옵션 A 명령 — push URL |
+| 131 | 5번 옵션 B 명령 — push URL |
+| 136 | 5번 "알아내지 못한 것" — `gh api repos/janjanjae/madang/branches` |
+| 142 | 5번 되돌리기 — 백업 복원 push URL |
+| 150–152 | 6번 명령 3줄 — `gh repo edit`·`gh issue list` |
+| 157 | 6번 기대출력 — `gh repo view` |
+| 159 | 6번 되돌리기 — `gh repo edit --visibility private` |
+| 161 | 스모크 이슈 #25 처리 — 이슈 URL·`gh issue delete` |
+| 171 | 7번 명령 — 클론 URL |
+
+**이 문서 밖 의존**: `git -C ~/Desktop/madang remote -v`(origin URL 자체) · GitHub 레포 설정(Settings → General → Repository name) · 레포 내 하드코딩(팀장이 별도로 센 19곳, 이 문서 범위 밖) — 아이디가 바뀌면 이 문서보다 먼저 그쪽부터 바뀌어야 5번의 push URL이 유효하다.
