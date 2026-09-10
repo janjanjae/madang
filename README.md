@@ -44,7 +44,7 @@
 
 | 스킬 | 한 줄 |
 |---|---|
-| `/teamleader` | 팀장 모드 — 배분·보고 git 교차검증·허브 문서 단일 작성. 빈 프로젝트면 `/kickoff` 안내 |
+| `/teamleader` | 팀장 모드 — 배분·보고 git 교차검증·허브 문서 단일 작성. 빈 프로젝트면 `/start` 안내 |
 | `/solver` | 번뜩 세션 시작 — 깊이(난제 하나를 끝까지 + 에스컬레이션 디버깅) |
 | `/builder` | 몽글 세션 시작 — 넓이(같은 모양 N개 병렬, 분신) |
 | `/sketcher` | 슥슥 세션 시작 — 시안(UX/UI 프로토타이핑, worktree 격리) |
@@ -54,12 +54,12 @@
 
 | 스킬 | 한 줄 |
 |---|---|
-| `/kickoff` | 새 스토리/에픽 착수 — 팀 폴더 스캐폴딩 + Phase 설계 + 브리프 초안 + PROGRESS 초기화 |
-| `/save-progress` | PROGRESS.md 현행화 (체크포인트·세션 종료) |
-| `/progress-check` | PROGRESS/TASKS 기반 상태 브리핑 (읽기 전용) |
-| `/issue-cache` | 이슈 1회 조회 → `.claude/stories/` 로컬 캐시 (읽기 전담) |
+| `/start` | 새 스토리/에픽 착수 — 팀 폴더 스캐폴딩 + Phase 설계 + 브리프 초안 + PROGRESS 초기화 |
+| `/checkpoint` | PROGRESS.md 현행화 (체크포인트·세션 종료) |
+| `/progress` | PROGRESS/TASKS 기반 상태 브리핑 (읽기 전용) |
+| `/issue-fetch` | 이슈 1회 조회 → `.claude/stories/` 로컬 캐시 (읽기 전담) |
 | `/issue-refine` | 이슈 구체화·분할(착수 전) / 구현 기록·상태 전환(PR 머지 후) |
-| `/issue-capture` | 버그(스프린트)·아이디어(백로그) 빠른 등록 |
+| `/issue-add` | 버그(스프린트)·아이디어(백로그) 빠른 등록 |
 | `/skill-audit` | 스킬 인벤토리 전수 스캔 → `~/.claude/REGISTRY.md` 현행화 (월 1회/스프린트 종료) |
 
 > 이슈 커맨드 3종은 프로젝트의 `.claude/team/tracker-config.md`(트래커 종류·도메인·Key)를 읽어 동작 — 베이스엔 회사 정보 없음. 다른 프로젝트는 그 파일만 새로 쓰면 재사용.
@@ -85,7 +85,7 @@ echo 'source '"$PWD"'/claude/shell/go-functions.zsh' >> ~/.zshrc && exec zsh
 /plugin install madang
 ```
 
-플러그인 설치 시 커맨드는 `/madang:kickoff`처럼 네임스페이스가 붙는다. 두 방법 병행 가능 — 같은 기기에선 심링크(로컬 파일)가 우선한다.
+플러그인 설치 시 커맨드는 `/madang:start`처럼 네임스페이스가 붙는다. 두 방법 병행 가능 — 같은 기기에선 심링크(로컬 파일)가 우선한다.
 
 이후 `~/.claude/...`를 편집하면 그대로 이 레포의 워킹트리 변경이 된다 — 커밋만 하면 팀 시스템이 버전 관리된다.
 
