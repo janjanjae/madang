@@ -5,7 +5,8 @@
 > 상세 배경·전문(全文) 출력·판정표는 `plans/filter-repo-rehearsal-2026-09-10.md`를 참조 — 이 문서는 **그 요약 + 실행 순서**이며 절차가 겹치는 곳은 그쪽이 원본이다.
 >
 > 레포: `janjanjae/madang` · 로컬 경로: `~/Desktop/madang` (= `/Users/{user}/Desktop/madang`).
-> GitHub 아이디는 `janjanjae` → `janjanjae`로 **확정**됐다(2026-09-10, 팀장이 `git remote`·`gh` 계정 전환 완료) — 이 문서는 전부 새 아이디로 갱신됨. 히스토리(93개 이상 커밋의 author/committer)는 아직 옛 아이디라 2번 단계에서 재작성한다.
+> GitHub 아이디가 2026-09-10에 변경 확정됐다(`git remote`·`gh` 계정 전환 완료) — 이 문서는 전부 새 아이디(`janjanjae`) 기준으로 갱신됨. 히스토리(93개 이상 커밋의 author/committer)는 아직 이전 아이디라 2번 단계에서 재작성한다.
+> 🔴 **이 문단은 의도적으로 이전 아이디를 원문으로 안 쓴다** — `replacements.txt`가 그 문자열을 치환 대상으로 들고 있어서, 원문을 쓰면 이 문서 자신도 2번 단계에서 재작성되며 "A → A"로 무너진다(이 태스크의 발단, 아래 "치환표 자기참조" 절 참조).
 
 ---
 
@@ -46,6 +47,20 @@ janjanjae <155637247+janjanjae@users.noreply.github.com> / janjanjae <155637247+
 ```
 전 커밋(98개)의 author·committer가 한 번에 바뀜을 확인. `--replace-text`·`--replace-message`·`--mailmap` **세 플래그를 한 실행에 같이 넣어도** 정상 동작(따로 돌리면 중간 상태가 생긴다는 브리프 우려대로 — 한 번에 실행).
 
+### 🔴 치환표가 자기 자신을 치환한다 (2026-09-10 발견)
+
+`replacements.txt`는 tracked 파일이라 filter-repo가 **표 자신의 내용에도** `--replace-text`를 적용한다. 그 결과 표의 각 줄이 `literal:X==>Y`에서 `literal:Y==>Y`로 뭉개진다(실측 — 미러에서 확인. 아래는 형태만 보여주는 예시이고, 실제로 뭉개진 두 줄은 각각 GitHub 아이디 규칙과 레포 프로젝트명 규칙이다 — 🔴 이 예시조차 실제 문자열을 그대로 쓰면 이 문서 자신도 같은 방식으로 뭉개지므로 일부러 다른 자리표시자를 쓴다):
+```
+지금                              재작성 후
+literal:OLD-HANDLE==>NEW-HANDLE  literal:NEW-HANDLE==>NEW-HANDLE
+literal:PROJECT-NAME==>{app-repo}  literal:{app-repo}==>{app-repo}
+```
+**유출은 아니다**(공개본에 회사 문자열은 안 남는다) — 문제는 **공개되는 sanitize 도구 자체가 무동작 규칙 목록을 달고 나간다**는 것. 같은 이유로 이 런북 문서 자신도 "이전 아이디 → 새 아이디"를 원문으로 서술한 문장 4곳이 "A → A"로 무너지는 걸 오늘 발견해 위에서 고쳤다(문단 상단 참조).
+
+**결정: `replacements.txt`는 애초에 공개될 파일이 아니다.** 이 파일은 마당(도구)의 일부가 아니라 **이 프로젝트 고유의 운영 데이터**(회사 문자열)다 — 다른 사람이 마당을 가져다 쓸 때 필요한 건 이 표가 아니라 표를 어떻게 쓰는지다. `.gitignore`에 추가하고 추적에서 뺐다(`git rm --cached`, 파일 자체는 로컬에 그대로 남아 스크립트가 계속 쓴다). 대신 `claude/tools/sanitize/replacements.example.txt`(플레이스홀더 규칙)를 공개한다. `verify-history.sh`·`verify-tree.sh`는 **`replacements.txt`가 없으면 조용히 빈 표로 통과하지 않고 fail-loud(exit 2)로 안내하고 멈추도록 이미 고쳤다**(오늘 여섯 번 잡은 것과 같은 모양의 구멍을 미리 막음).
+
+파일이 gitignore돼도 **이미 98개 커밋의 역사에 실려 있다** — 추적만 끊으면 과거 커밋들엔 여전히 남는다. 그래서 filter-repo 명령에 `--invert-paths --path`를 추가해 **전 히스토리에서 이 파일 자체를 제거**한다(내용 치환이 아니라 파일 삭제). 실측: 이 옵션을 추가해도 나머지 치환(신원·텍스트·메시지)은 동일하게 정상 동작(아래 명령이 그 결과).
+
 **명령**:
 ```bash
 cat > ~/madang-mailmap.txt << 'EOF'
@@ -58,13 +73,14 @@ cd ~/madang-release.git && git filter-repo \
   --replace-text ~/Desktop/madang/claude/tools/sanitize/replacements.txt \
   --replace-message ~/Desktop/madang/claude/tools/sanitize/replacements.txt \
   --mailmap ~/madang-mailmap.txt \
+  --invert-paths --path claude/tools/sanitize/replacements.txt \
   --force
 ```
 
 | | 내용 |
 |---|---|
 | **기대 출력** | `New history written in N seconds; now repacking/cleaning...` → `Completely finished after N seconds.` 에러 메시지 없음. |
-| **🔴 중단 조건** | ① `git filter-repo: command not found` → `brew install git-filter-repo` 먼저 ② **`--replace-text`·`--replace-message`·`--mailmap` 세 개 다 넣었는지 반드시 재확인** — 번뜩이 찾은 함정: `--replace-text`는 파일(blob) 내용만, 커밋 메시지는 `--replace-message`, **신원(author/committer)은 `--mailmap`** — 셋은 서로 다른 메커니즘이라 하나만 빠져도 에러 없이 "성공"하고 나머지만 조용히 안 바뀐다 ③ 치환표·메일맵 파일 경로에 오타가 있으면 filter-repo가 **아무 규칙도 못 찾고도 에러 없이 끝난다** — 아래 3번 검증(①②③④)이 이걸 잡아야 한다. |
+| **🔴 중단 조건** | ① `git filter-repo: command not found` → `brew install git-filter-repo` 먼저 ② **네 옵션(`--replace-text`·`--replace-message`·`--mailmap`·`--invert-paths --path`) 전부 넣었는지 재확인** — 번뜩이 찾은 함정: `--replace-text`는 파일(blob) 내용만, 커밋 메시지는 `--replace-message`, **신원(author/committer)은 `--mailmap`**, `replacements.txt` 자체의 완전 제거는 `--invert-paths --path` — 넷은 서로 다른 메커니즘이라 하나만 빠져도 에러 없이 "성공"하고 나머지만 조용히 안 바뀐다 ③ 치환표·메일맵 파일 경로에 오타가 있으면 filter-repo가 **아무 규칙도 못 찾고도 에러 없이 끝난다** — 아래 3번 검증(①②③④)이 이걸 잡아야 한다. |
 | **되돌리기** | 이 단계는 **`~/madang-release.git`(작업용 미러) 안에서만** 재작성이 일어난다 — **실 레포 `~/Desktop/madang`과 `origin`은 아직 전혀 안 건드렸다.** 잘못됐으면 `rm -rf ~/madang-release.git`하고 `cp -R ~/madang-backup.git ~/madang-release.git`으로 다시 시작(1번으로 안 돌아가도 됨, 표는 이미 확정됨). `~/madang-backup.git`은 **절대 filter-repo에 넣지 않는다** — 이게 유일한 순수 원본이다. |
 
 ---
@@ -80,7 +96,7 @@ cd ~/madang-release.git && git filter-repo \
 | **🔴 중단 조건** | **하나라도 `FAIL`이면 다음 단계(push)로 넘어가지 않는다 — 예외 없음.** `①-b`(커밋 메시지 포함 엄격 검사)에서 남으면 2번의 `--replace-message` 누락 의심. **`④`에서 남으면 `--mailmap` 누락·메일맵 이메일 오타 의심**(author/committer는 blob과 별개 메커니즘). `②`에서 FAIL이 뜨면 — 아래 "왜 커밋 수가 아니라 제목 집합인가" 참조 — **치환표로 설명 안 되는 커밋이 사라졌다는 뜻이라 진짜 유실 의심, 강행 금지.** |
 | **되돌리기** | 실패해도 `~/Desktop/madang`·`origin`은 아직 안전하다. `~/madang-release.git`을 지우고 2번부터 다시. |
 
-**왜 커밋 수가 아니라 제목 집합인가 (2026-09-10 발견·수정)**: 팀장이 오늘 오전 `janjanjae`→`janjanjae`를 트리에 수동 전파한 커밋이 2개 있다(`chore: GitHub 아이디 전파`·`docs(plans): 허브 문서 아이디 전파`, 둘 다 오직 그 문자열 치환만 하는 커밋). `replacements.txt`에 같은 규칙이 있어 filter-repo가 그 두 커밋의 부모 블롭에도 이미 같은 치환을 적용해버리면 그 커밋들의 diff가 **빈 diff**가 돼 filter-repo가 자동으로 쳐낸다(히스토리 유실이 아니라 불필요해진 중간 단계 소거) — 원본 98개가 재작성 후 96개가 된다.
+**왜 커밋 수가 아니라 제목 집합인가 (2026-09-10 발견·수정)**: 팀장이 오늘 오전 GitHub 아이디 변경을 트리에 수동 전파한 커밋이 2개 있다(`chore: GitHub 아이디 전파`·`docs(plans): 허브 문서 아이디 전파` — 제목 자체가 그대로 표시하듯, 둘 다 오직 그 문자열 치환만 하는 커밋). `replacements.txt`에 같은 규칙이 있어 filter-repo가 그 두 커밋의 부모 블롭에도 이미 같은 치환을 적용해버리면 그 커밋들의 diff가 **빈 diff**가 돼 filter-repo가 자동으로 쳐낸다(히스토리 유실이 아니라 불필요해진 중간 단계 소거) — 원본 98개가 재작성 후 96개가 된다.
 
 1차 구현은 "개수가 같아야 정상"으로 짜서 이 **정상 상황에서도 `FAIL`이 떴다** — 그리고 정상인데 FAIL이 뜨는 검사는 사람이 "저건 괜찮은 FAIL"로 암기하게 만들고, 그러다 **진짜 유실(98→95 같은)이 나도 화면이 똑같아 보여 놓치게 된다.** `verify-tree.sh`에서 자기 문서 오염(24 vs 11)을 걷어낸 것과 같은 종류의 함정이라 같은 원칙으로 고쳤다: **숫자 대신 "사라진 커밋 제목이 무엇인가"를 보고, 그 커밋의 원본 diff가 치환표(치환 전/후 문자열 둘 다)로 전부 설명되는지 확인**한다. 설명되면(=치환 후 빈 diff가 될 수밖에 없었던 게 증명되면) 자동 통과, 설명 안 되는 변경이 하나라도 있으면 FAIL. 재현 검증: 정상 경로(위 2개만 소거)는 `=== 전체 통과 ===`, 무관한 커밋을 미러에서 실제로 하나 드롭시킨 경로는 정확히 그 커밋에 `FAIL`을 띄우는 것 둘 다 확인했다.
 
@@ -91,7 +107,7 @@ cd ~/madang-release.git && git filter-repo \
 | | 내용 |
 |---|---|
 | **명령** | `gh auth status --active` |
-| **기대 출력** | `janjanjae` 계정이 active(GitHub 아이디 자체가 `janjanjae`에서 바뀌었으므로 gh가 기억하는 계정명도 `janjanjae`다). |
+| **기대 출력** | `janjanjae` 계정이 active(GitHub 아이디 자체가 바뀌었으므로 gh가 기억하는 계정명도 새 아이디를 따라간다). |
 | **🔴 중단 조건** | ① active 계정이 `{company-gh-account}`(회사 계정)면 **`gh auth switch -u janjanjae`** 먼저(사용자가 직접 — 에이전트가 대신 하지 않는다) ② `gh api user`가 403/네트워크 오류를 내면 **사내망(ZTNA)이 켜져 있는 것** — 오늘 두 번 정확히 이 이유로 개인 계정 접근이 막혔다(실측, 오전 1회·오후 1회 재발). **사내망을 끄고 재확인.** ③ 둘 다 정상인데도 이후 단계에서 API 오류가 나면 네트워크부터 의심. |
 | **되돌리기** | 계정 확인만 하는 단계라 되돌릴 것 없음. 공개 작업이 다 끝난 뒤 회사 계정으로 원복하는 것은 8번 뒤 별도(팀장 소관, TASKS.md에 이미 기록됨). |
 
@@ -185,7 +201,7 @@ cd /tmp && git clone https://github.com/janjanjae/madang.git madang-fresh-check 
 
 ---
 
-## 오늘 잡은 함정 6건 — 이 런북에 반영된 위치
+## 오늘 잡은 함정 7건 — 이 런북에 반영된 위치
 
 | 함정 | 어디서 걸림 | 중단 조건 반영 |
 |---|---|---|
@@ -195,6 +211,7 @@ cd /tmp && git clone https://github.com/janjanjae/madang.git madang-fresh-check 
 | author/committer 신원은 `--replace-text`·`--replace-message`와 **별개 메커니즘**(`--mailmap`)이라, 다른 둘을 다 맞춰도 신원만 조용히 안 바뀔 수 있다. 사람이 우연히 커밋 목록을 세다 발견했다. | filter-repo 실행 시 | **2번**에 `--mailmap` 추가 + 세 플래그 한 실행으로 통합. **3번**에 ④ 신원 검사 신설(replacements.txt의 literal 패턴을 author/committer 필드에도 적용) — 다음부터는 우연이 아니라 장치가 잡는다. |
 | **정상 경로에서도 `FAIL`이 뜨는 검사는 그 자체가 함정이다** — "커밋 수가 같아야 정상"은 치환표에 rename 규칙이 있으면 빈 커밋이 자동 쳐내져 정상인데도 FAIL을 띄운다. 사람이 "이 FAIL은 괜찮다"를 암기하게 되고, 그러다 진짜 유실도 같은 화면으로 지나간다. | `verify-history.sh` ② 설계 시 | 숫자 비교를 **제목 집합 비교 + 사라진 커밋의 원본 diff가 치환표로 설명되는지 검증**으로 교체 — 정상 경로는 예외 없이 `=== 전체 통과 ===`, 무관한 진짜 유실만 FAIL(양쪽 다 재현 확인). |
 | **그 거울상** — `git show <sha> -- .`는 머지 커밋에 기본 diff를 안 낸다(combined diff 별도 포맷). "변경 라인 없음"을 "전부 설명됨"으로 읽으면 **머지 커밋(이 레포 11개, 리뷰 요약이 본문에 든 커밋들)이 사라져도 조용히 통과**한다 — 팀장이 발견. | `verify-history.sh` ② 구현 시 | 부모 2개 이상(머지)이거나 diff를 아예 못 읽으면 **fail-closed**(설명 안 됨으로 처리) — "확인 못 함"과 "변경 없음"을 같은 칸에 넣지 않는다. 일반 커밋 유실·머지 커밋 유실 둘 다 실제로 드롭시켜 FAIL 재현 확인. |
+| **치환표가 자기 자신을 치환한다** — `replacements.txt`가 tracked 파일이라 filter-repo가 표 내용에도 적용돼 `literal:X==>Y`가 `literal:Y==>Y`로 무동작화된다. 이 런북도 "이전 아이디 → 새 아이디"를 원문으로 쓴 문장 4곳이 같은 이유로 "A → A"가 됐다 — 사람이 재작성 후 트리를 읽어본 적이 한 번도 없어서 아무도 몰랐다(팀장이 지적, 실제로 읽어서 확인). | `replacements.txt`가 공개 추적 대상이라는 점 자체 | `replacements.txt`를 gitignore + `git rm --cached`, `replacements.example.txt` 공개, filter-repo 명령에 `--invert-paths --path`로 전 히스토리에서 파일 제거 추가. `verify-history.sh`·`verify-tree.sh` 둘 다 파일 없으면 fail-loud(exit 2). 런북 자기참조 4곳은 옛 아이디를 원문으로 안 쓰는 문장으로 재작성. |
 
 ## 자기 검증 메모 (처음 보는 사람인 척 다시 읽은 결과)
 
@@ -204,9 +221,11 @@ cd /tmp && git clone https://github.com/janjanjae/madang.git madang-fresh-check 
 - 5번에 A/B 두 명령을 나란히 두면 실행 직전에 **어느 쪽을 실행하는지 헷갈릴 수 있어** 중단조건에 "실행 직전 소리 내어 확인" 한 줄을 넣어뒀다 — 되돌릴 수 없는 단계에서 헷갈림은 그 자체로 사고 원인이다. (이번 사이클에서 A안으로 확정되며 B는 삭제 — 이 항목은 이제 과거형이지만 "왜 그렇게 썼는지"는 남겨둔다.)
 - **잔디 확인을 별도 6번으로 안 만들고 5번의 하위 절로 넣었다** — 단계를 새로 끼우면 6·7번이 7·8번으로 밀려 문서 전체의 상호 참조("6번 되돌아가라" 류)를 다 다시 세야 한다. "push 직후·public 전환 직전"이라는 인과적 위치는 5번 하위에 둬도 그대로 살고, 되돌릴 수 없는 단계 번호 체계(0~7)도 안 흔들린다 — 실익보다 renumbering 리스크가 커서 이렇게 판단했다.
 - `② 커밋 수 비교`를 처음엔 "정확히 2 적어야 정상"으로 문서화했는데, 이것도 결국 사람이 숫자를 암기해야 하는 방식이라 컨펌에서 되돌아왔다 — **"정상 경로는 항상 `=== 전체 통과 ===`"** 원칙으로 검사 자체(제목 집합 비교)를 고치고 나서야 진짜로 해소됐다. 문서만 고치고 검사는 그대로 둔 채 "이 FAIL은 괜찮다"고 적는 건 예외 처리를 기계가 아니라 사람 기억에 얹는 것이었다.
+- **다른 치환 대상(`{app-repo}`·`{app-dir}`·`{project}`·`{company-gh-account}`·`BMAD-`)은 같은 자기참조를 안 일으킨다** — 실제로 재작성된 트리를 읽어 확인(레포 밖 미러, origin 미접촉). 이유: 그 규칙들의 치환 후 값(`{app-repo}`·`{app-dir}`·`{project}`·`{company-gh-account}`·`PROJ-`)은 독립적인 플레이스홀더라, 문장 안에서 원래 단어를 대체해도 "A → A" 같은 모순이 안 생기고 그냥 익명화된 문장으로 읽힌다(예: "`{app-repo}` 160건" → "`{app-repo}` 160건", 뜻이 통한다). **오직 GitHub 아이디 재작성만 "X → Y"를 서술하면서 Y(`janjanjae`)가 문장 안에 이미 독립적으로도 등장하는 값이라 충돌했다** — 자기참조 문제는 규칙 개수가 아니라 "치환 후 값이 그 자체로 의미 있는 실명사인가"에 달려 있었다.
+- **`.claude/PROGRESS.md:277`에서 같은 버그를 실물로 발견**(허브 문서라 내가 못 고침, 팀장에게 보고): "GitHub 아이디 `janjanjae` → `janjanjae`" — 이건 filter-repo가 아니라 오늘 낮에 몽글이 트리에 직접 치환을 돌리면서 **이미 지금** 무너진 것이다. 내일 일만이 아니라 이미 벌어진 사고라는 뜻이라 컨펌에 별도로 표시했다.
 
 ---
 
 ## GitHub 아이디 변경 — ✅ 완료 (2026-09-10)
 
-`janjanjae` → `janjanjae` 확정. `git remote`·`gh` 계정 전환은 팀장이 완료, 이 문서의 URL·계정명은 전부 `janjanjae`로 갱신됐다(위 각 단계 참조). 남은 건 **히스토리 재작성**(93개 이상 커밋의 author/committer + `replacements.txt`의 문자열 치환) — 2번 단계가 그 일이고, ④ 신원 검사(3번)가 그 결과를 확인한다. 워킹 트리 쪽(`README.md`·`.claude-plugin/marketplace.json`·`claude/.claude-plugin/plugin.json` 등)에 남은 `janjanjae` 문자열은 이 브랜치 밖(몽글) 소관.
+GitHub 아이디 변경 확정. `git remote`·`gh` 계정 전환은 팀장이 완료, 이 문서의 URL·계정명은 전부 새 아이디(`janjanjae`)로 갱신됐다(위 각 단계 참조). **워킹 트리는 이미 정리 완료 확인**(`README.md`·`.claude-plugin/marketplace.json`·`claude/.claude-plugin/plugin.json`·`claude/roster.json` 직접 확인, 이전 아이디 잔존 0건). 남은 건 **히스토리 재작성**(93개 이상 커밋의 author/committer + 이전 아이디의 blob·메시지 잔존) — 2번 단계가 그 일이고, ④ 신원 검사(3번)가 그 결과를 확인한다.
