@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 마당(madang) 팀 시스템 설치 — ~/.claude / ~/.copilot 에 심링크 생성
+# 마당(madang) 팀 시스템 설치 — ~/.claude 에 심링크 생성 (~/.copilot은 있을 때만 함께)
 # 기존 파일/디렉토리는 .bak 으로 백업 후 링크. 롤백 = .bak 을 원위치로 복원.
 set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

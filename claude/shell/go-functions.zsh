@@ -1,5 +1,5 @@
 # go-functions.zsh — 팀 워커/팀장 세션 기동 함수 (~/.zshrc에서 source)
-# 2026-08-20 ~/.zshrc에서 레포로 이동: 머신 간 공유 (재택 동기화 체계 — work-context/SETUP.md 참조)
+# 2026-08-20 ~/.zshrc에서 레포로 이동: 머신 간 공유 (개인 환경 애든덤(claude-home) 참조)
 # 2026-09-05 구 이름 alias 제거 — 공개(09-13) 준비로 09-11 예정을 앞당겼다.
 #            옛 이름 목록·경위는 plans/rename-night-2026-09-03.md
 # ============================================================================
@@ -48,14 +48,14 @@ go-solver()    { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji solver)번
 go-builder() { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji builder)몽글${1} $(date +%m%d)$(_go_brief_tag builder${1})" "$(_go_worker_prompt builder 몽글 "$1")"; }
 go-sketcher()  { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji sketcher)슥슥${1} $(date +%m%d)$(_go_brief_tag sketcher${1})" "$(_go_worker_prompt sketcher 슥슥 "$1")"; }
 go-teamleader() {
-  # 세션 기동 전 개인 레포 3종(베이스+컨텍스트) 최신화 — 개인 GitHub 접근 불가(ZTNA ON)면 '보류'만 뜨고 기동은 계속된다
+  # 개인 동기화 스크립트가 PATH에 있으면 기동 전 pull — 없으면 건너뜀
   command -v work-sync >/dev/null 2>&1 && work-sync pull
   claude --model "${GO_MODEL:-opus}" -n "$(_go_emoji teamleader)팀장 $(date +%m%d)" "/teamleader"
 }
 go-narrator()   { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji narrator)조잘 $(date +%m%d)" "/narrator"; }
 
 # 마당 워커 오버레이 (2026-09-02, REGISTRY E-17 · 09-04 madang으로 개명): 워커 상태를 화면 위 캐릭터로. 프로젝트 루트에서 실행.
-# 읽기 전용 — .claude/team/ 파일 신호 + 세션 기록만 읽는다. 종료는 워커 우클릭 또는 메뉴바 👾 → 종료.
+# 읽기 전용 — .claude/team/ 파일 신호 + 세션 기록만 읽는다. 종료는 워커 우클릭 또는 메뉴바 아이콘(도담) → 종료.
 go-madang() {
   local dir="${${(%):-%x}:A:h}/../tools/madang"   # 이 파일 기준 상대 경로 (레포 위치 무관)
   [ -x "$dir/madang" ] || "$dir/build.sh" || return 1

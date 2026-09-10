@@ -4,7 +4,7 @@
 
 ![마당 워커 오버레이 — 번뜩·몽글·슥슥의 상태가 바뀌는 모습](claude/assets/hero.gif)
 
-터미널 탭마다 페르소나를 가진 에이전트 세션을 띄우고(팀장 1 + 팀원 N), 브리프·컨펌을 파일로 주고받는 **탭 모드** 협업 시스템이다. 각 탭이 지금 뭘 하는지는 화면 위의 워커 오버레이(마당)가 보여준다 — 컨펌을 기다리면 테두리가 호박색으로 빛나고, 막히면 적색, 놀고 있으면 눈을 감는다.
+터미널 탭마다 페르소나를 가진 에이전트 세션을 띄우고(팀장 1 + 팀원 N), 브리프·컨펌을 파일로 주고받는 **탭 모드** 협업 시스템이다. 각 탭이 지금 뭘 하는지는 화면 위의 워커 오버레이(마당)가 보여준다 — 호박(컨펌 대기·논의)은 팀장이 처리하면 되는 상태, 적(사람 필요)은 사람이 봐야 하는 상태, 눈 반사광은 작업중, 눈 감음은 쉼이다.
 
 > **기원.** 이 팀은 2026년 7월 포켓몬 이름을 붙인 네 에이전트로 시작했다. 공개(2026-09)를 준비하면서 이름·그림·인사말을 전부 자작 마스코트로 바꿨다 — 남의 캐릭터 위에 브랜드를 쌓으면 잘될수록 남의 것이 되고, 확산 라이선스도 붙일 수 없어서다. 이 프로젝트는 포켓몬컴퍼니·닌텐도와 무관하며 그 상표·그림을 쓰지 않는다. 이름 바꾼 이야기는 `plans/brand-strategy-2026-09-03.md`.
 
@@ -72,11 +72,11 @@
 
 ```bash
 git clone https://github.com/janjanjae/madang.git && cd madang
-./install.sh   # ~/.claude, ~/.copilot 에 심링크 생성 (기존 파일은 .bak 백업)
+./install.sh   # ~/.claude에 심링크 생성 (~/.copilot은 있을 때만, 기존 파일은 .bak 백업)
 echo 'source '"$PWD"'/claude/shell/go-functions.zsh' >> ~/.zshrc && exec zsh
 ```
 
-설치 스크립트는 심링크만 만든다 — `go-solver`·`go-builder`·`go-madang` 같은 명령은 위 마지막 한 줄로 생긴다.
+설치 스크립트는 심링크만 만든다 — `go-solver`·`go-builder`·`go-madang` 같은 명령은 위 마지막 한 줄로 생긴다. Copilot을 나중에 설치했으면 `./install.sh`를 다시 실행한다(재실행 무해, `~/.copilot` 심링크만 추가로 생긴다).
 
 **방법 2 — 플러그인 (다른 기기·클라우드 세션, 읽기 전용 사용)**
 
@@ -107,7 +107,7 @@ claude/
 plans/                  # 감사 리포트·설계 스냅샷 (결론은 DIRECTION으로 승격)
 copilot/
   skills/sync_claude_team/   # Claude → Copilot 단방향 설정 동기화 (manifest 기반 의미 번역)
-install.sh              # ~/.claude, ~/.copilot 심링크
+install.sh              # ~/.claude 심링크 (~/.copilot은 있을 때만)
 CONTRIBUTING.md         # 커밋 규칙
 .githooks/              # commit-msg 강제
 .gitmessage             # 커밋 템플릿
