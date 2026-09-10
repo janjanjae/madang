@@ -28,7 +28,7 @@ argument-hint: "[done] {KEY}-{n}"
 **실행 첫 단계: 현재 프로젝트의 `.claude/team/tracker-config.md`를 읽는다** — 도메인·Cloud ID·프로젝트 Key·보드 ID·제품 개요·MCP/acli 전제가 거기 있다.
 파일이 없으면 진행을 멈추고 사용자에게 안내한다: "이 프로젝트에는 tracker-config.md가 없습니다 — `.claude/team/tracker-config.md`를 만들어야 Jira 커맨드를 쓸 수 있어요" (템플릿: issue-cache 스킬 디렉토리의 `tracker-config.template.md` 복사).
 
-**타입 분기**: `jira`면 아래 본문대로. `notion` — 착수 전 모드: 해당 백로그 페이지 본문을 3단계 템플릿 수준으로 구체화하고, 크기 상한 초과면 항목을 새 페이지로 분할한다 / 완료 후 모드: 구현 요약을 페이지 본문에 추가하고 상태를 `완료`로 전환한다. `local` — 같은 작업을 백로그 파일 항목에 직접 한다. `github` — 착수 전 모드: `gh issue view {번호} --json title,body,labels,milestone,url`로 읽어 3단계 템플릿 수준으로 구체화한 뒤 `gh issue edit {번호} --body-file -`로 푸시하고, 크기 상한 초과면 나머지 조각을 `gh issue create`로 새 이슈로 만들고 **원본 본문에 `- 분할: #{새번호}` 줄을 추가**한다 (GitHub엔 이슈 링크 타입이 없어 본문 참조가 `createIssueLink`의 자리다) / 완료 후 모드: 구현 요약(+커밋 SHA·PR 링크)을 `gh issue comment {번호} --body-file -`로 **코멘트**로 남긴다 — 본문 append가 아니라 코멘트이므로 기존 본문은 건드리지 않는다. 🔴 **`gh issue close`는 하지 않는다** — "닫아도 될 상태"라고 사용자에게 안내만 하고 닫는 것은 사용자 소관이다. 배분 시점에 기한을 넣는 규칙의 github 판은 `gh issue edit {번호} --milestone "{PR 묶음}"`이고, 해당 마일스톤이 없으면 **만들지 말고** 사용자에게 확인한다. 인수는 `#591`·`591` 둘 다 받는다. 쓰기 전 `gh auth status --active`가 config의 gh 계정과 다르면 스스로 전환하지 말고 멈추고 사용자에게 `gh auth switch -u {계정}`을 요청한다. ADF·스프린트·이슈 링크 절차는 jira 타입 전용.
+**타입 분기**: `jira`면 아래 본문대로. `notion` — 착수 전 모드: 해당 백로그 페이지 본문을 3단계 템플릿 수준으로 구체화하고, 크기 상한 초과면 항목을 새 페이지로 분할한다 / 완료 후 모드: 구현 요약을 페이지 본문에 추가하고 상태를 `완료`로 전환한다. `local` — 같은 작업을 백로그 파일 항목에 직접 한다. `github` — 아래 `## [타입: github] 착수 전 / 완료 후` 절 참조 (인증·이슈 번호 표기·라벨/milestone 매핑·`-R {owner}/{repo}` 필수·승인 가드레일은 tracker-config 템플릿 `[타입: github]` 절이 SSOT). ADF·스프린트·이슈 링크 절차는 jira 타입 전용.
 
 ---
 
@@ -197,12 +197,35 @@ ADF 구조 예시는 이 스킬 폴더의 `adf-example.md` 참조 (heading·bull
 
 ---
 
+## [타입: github] 착수 전 / 완료 후
+
+캐시 경로·인증 가드레일·라벨/milestone 매핑·`-R {owner}/{repo}` 필수·승인 가드레일은 tracker-config 템플릿 `[타입: github]` 절(SSOT) 참조. 이 절은 issue-refine 고유 절차만 다룬다.
+
+### 착수 전 모드
+
+1. **캐시 우선 조회**: `.claude/stories/{번호}.md`(Jira 캐시 `{Key}-{n}.md`와 대칭)가 있으면 먼저 읽는다. 없거나 사용자가 "이슈가 바뀌었다"고 알린 경우에만 `gh issue view -R {owner}/{repo} {번호} --json title,body,labels,milestone,url`로 재조회.
+2. 기존 본문 확인 → 유지/수정/흡수 (Jira 착수 전 3단계와 동일한 판단).
+3. Jira와 같은 3단계 템플릿(배경/구현 범위/수락 조건)으로 초안 작성 → **사용자 승인 후** `gh issue edit -R {owner}/{repo} {번호} --body-file -`로 푸시 (초안 → 승인 → 푸시 순서 예외 없음).
+4. **크기 판단 → 분할** (기준은 Jira와 동일: 400줄 초과·2일 내 불가·BE+FE 양쪽 무거움): 해당하면 나머지 조각을 `gh issue create -R {owner}/{repo} --title "..." --body-file - --label {bug|enhancement} --milestone "{원본과 같은 PR 묶음}"`로 새 이슈로 만든다 — 원본의 라벨·milestone을 상속한다(안 하면 라벨 매핑이 깨지거나 미배분 백로그로 잘못 노출된다). 원본 본문 끝에 `- 분할: #{새번호}` 줄을 추가한다 (GitHub엔 이슈 링크 타입이 없어 본문 참조가 Jira `createIssueLink`의 자리다).
+5. 완료 안내: 이슈 번호 + URL(분할 시 전체 목록 + 의존성) + `/issue-cache {번호들}` 재캐시 안내.
+
+### 완료 후 모드
+
+1. **조회는 캐시 우선**: `.claude/stories/{번호}.md`를 먼저 읽는다 (Jira C2의 `getJiraIssue`는 jira 전용 — github은 MCP 이슈 조회 도구를 쓰지 않는다). 캐시가 stale하면 `gh issue view -R {owner}/{repo} {번호} --json title,body,url`로 재조회.
+2. 구현 내용 초안은 Jira C3과 같은 형식(변경/방식, 5줄 이내).
+3. 사용자 승인 후 `gh issue comment -R {owner}/{repo} {번호} --body-file -`로 **코멘트**로 남긴다 — 본문 append가 아니라 코멘트이므로 기존 본문은 건드리지 않는다.
+4. 배분 시점에 기한을 넣는 규칙의 github 판: `gh issue edit -R {owner}/{repo} {번호} --milestone "{PR 묶음}"` (없는 milestone은 만들지 말고 사용자에게 확인).
+5. 🔴 **`gh issue close`는 하지 않는다** — "닫아도 될 상태"라고 안내만 하고 닫는 것은 사용자 소관이다.
+6. 완료 안내: 이슈 번호 + URL + (닫을지 여부는 사용자 판단이라는 안내).
+
+---
+
 ## 가드레일
 
 **공통**
-- Jira 이슈 수정·생성은 반드시 **사용자 확인 후** 실행
-- issuetype 오류 시 `getJiraProjectIssueTypesMetadata`로 먼저 확인
-- **타입 `github`**: 이슈를 **닫지 않는다** (`gh issue close` 금지 — 완료 후 모드는 코멘트까지). ADF·이미지 경고·상태 전환(`transitionJiraIssue`) 절차는 jira 타입 전용이다
+- 이슈 수정·생성은 반드시 **사용자 확인 후** 실행 (타입 불문)
+- **타입 `jira`**: issuetype 오류 시 `getJiraProjectIssueTypesMetadata`로 먼저 확인
+- **타입 `github`**: `gh issue close` 금지(완료 후 모드는 코멘트까지) · 인증 가드레일은 tracker-config 템플릿 `[타입: github]` 절(SSOT) 참조. ADF·이미지 경고·상태 전환(`transitionJiraIssue`) 절차는 jira 타입 전용이다
 
 > ⚠️ **[매우 중요] description에 이미지가 있을 때 업데이트 절차**
 >

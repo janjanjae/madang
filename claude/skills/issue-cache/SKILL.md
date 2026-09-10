@@ -93,8 +93,8 @@ mkdir -p .claude/stories/
 ### G1. 대상 확인
 
 - 인수로 이슈 번호를 받는다 — `#591`·`591` 둘 다 받고 내부적으로는 숫자만 쓴다 (쉼표 구분 복수 가능). 없으면 사용자에게 확인.
-- "스프린트 전체"에 해당하는 것은 **내 담당 열린 이슈 전체**다 (1인 레포라 스프린트가 없다 — 스프린트 조회는 하지 않는다).
-- 조회 전 `gh auth status --active`가 config의 **gh 계정**과 같은지 확인한다. 다르면 **스스로 전환하지 말고 멈추고** 사용자에게 `gh auth switch -u {계정}`을 요청한다.
+- "스프린트 전체"에 해당하는 것은 **열린 이슈 전체**다 (1인 레포라 스프린트가 없다 — 스프린트 조회는 하지 않는다).
+- 조회 전 인증 확인 — 가드레일은 tracker-config 템플릿 `[타입: github]` 절(SSOT) 참조.
 
 ### G2. gh 조회 — 필요 필드만
 
@@ -105,16 +105,14 @@ gh issue view {번호} -R {owner}/{repo} \
   --json number,title,state,labels,milestone,body,assignees,url
 ```
 
-내 담당 열린 이슈 전체 (= "스프린트 전체"의 대응물):
+열린 이슈 전체 (= "스프린트 전체"의 대응물):
 
 ```bash
-gh issue list -R {owner}/{repo} --assignee @me --state open \
-  --json number,title,state,labels,milestone,url
+gh issue list -R {owner}/{repo} --state open -L 100 \
+  --json number,title,state,labels,milestone,body,url
 ```
 
-미배분 백로그(= milestone 없음)만 볼 때는 `--search "no:milestone state:open"`을 덧붙인다.
-
-> ⚠️ `--search`는 GitHub 검색 인덱스를 탄다 — **방금 만들거나 배정한 이슈는 수 초간 결과에서 빠진다**(2026-09-05 실측). 캡처 직후 확인은 `--search` 없이 `--assignee @me --state open`으로 한다.
+미배분 백로그(= milestone 없음) 조회 쿼리는 tracker-config 템플릿 `[타입: github]` 절(SSOT) 참조 — 배정 여부와 무관하게 실시간 목록을 본다.
 
 ### G3. 캐시 파일 생성
 
@@ -150,7 +148,7 @@ Jira판의 `**Priority**`·`**Sprint**`·`**Epic/상위**`·`**링크**`는 GitH
 - 조회는 `--fields`로 필요한 필드만 (전체 JSON 덤프 금지)
 - `acli` 인증 오류 시: `acli auth` 실행 안내
 - 이슈 없음: 키 확인 요청
-- **타입 `github`**: 조회는 `--json`으로 필요한 필드만 (전체 덤프 금지 — 위 `--fields` 규율의 github 판). `gh issue edit`·`gh issue comment`·`gh issue close`는 이 스킬에서 **절대 호출하지 않는다** (쓰기는 `/issue-refine` 몫). `gh` 미인증·계정 불일치 시: 전환하지 말고 멈추고 사용자에게 `gh auth switch -u {계정}` 요청
+- **타입 `github`**: 조회는 `--json`으로 필요한 필드만 (전체 덤프 금지 — 위 `--fields` 규율의 github 판). `gh issue edit`·`gh issue comment`·`gh issue close`는 이 스킬에서 **절대 호출하지 않는다** (쓰기는 `/issue-refine` 몫). 인증 가드레일은 tracker-config 템플릿 `[타입: github]` 절(SSOT) 참조
 
 ---
 
