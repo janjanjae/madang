@@ -15,9 +15,36 @@
 | | 내용 |
 |---|---|
 | **명령** | `cd ~/Desktop/madang && git checkout main && git status --short && git worktree list` (원격 `origin`은 이 시점에 로컬보다 뒤처져 있는 게 정상이다 — 이 런북 자체가 로컬을 origin으로 밀어넣는 절차라 `git pull`은 필요 없다) |
-| **기대 출력** | `git status --short`가 **빈 출력**(clean). `git worktree list`에 `main`과 이 런북 브랜치(`docs/release-runbook`) 외에 **진행 중인 워커 워크트리가 없다**(`wt-sanitize`·`wt-state` 등이 남아있으면 안 됨 — 작업 끝났으면 팀장이 정리했어야 한다). |
+| **기대 출력** | `git status --short`가 **빈 출력**(clean). `git worktree list`에 `main` 외 **진행 중인 워커 워크트리가 없다**(작업 끝났으면 팀장이 정리했어야 한다). |
 | **🔴 중단 조건** | ① `git status`에 미커밋 변경이 있으면 중단(누가 손댄 건지 먼저 확인) ② `.claude/TASKS.md` "현재 배분" 표를 열어 **표의 모든 항목이 ✅ 완료 + `main` 머지 상태인지 확인** — 하나라도 아니면 시작 금지(브랜치 이름·개수는 이 문서에 박아두지 않는다 — 그날그날 바뀌니 TASKS.md가 SSOT) ③ `git worktree list`에 미정리 워크트리가 남아 있으면 그 작업이 안 끝났다는 뜻이니 중단 ④ **공개 ref 확인**: `git branch --no-merged main`을 돌려봐서 아직 main에 안 들어간 로컬 브랜치가 남아 있으면 안 된다(비어 있어야 정상 — ②가 통과하면 모든 작업 브랜치가 main의 조상이 된다. 공개 범위는 `main`만 확정됐으니 — 아래 5번 — 남은 브랜치는 애초에 안 민다. 단 로컬에 안 merge된 브랜치가 있으면 아직 main이 최신이 아니라는 뜻이라 여전히 막는다). |
 | **되돌리기** | 이 단계는 관찰만 한다 — 되돌릴 것이 없다. |
+
+🔑 **워크트리를 정리하기 전에 다음 단계(0-B)를 먼저 읽을 것** — 실제 `replacements.txt`(15줄+)는 지금 워크트리 몇 곳에만 있고 `main` 워킹트리엔 없다(gitignore 대상이라 `main`에서 지워짐). 0-B의 복구 명령은 워크트리에 의존하지 않으니(git 커밋에서 직접 복구) **어느 순서로 해도 안전**하지만, 헷갈리지 않으려면 0-B를 먼저 끝내고 워크트리를 지운다.
+
+---
+
+## 0-B. 부트스트랩 — 치환표·mailmap 준비 (표가 없으면 여기서 멈춘다)
+
+`replacements.txt`·`mailmap.txt`는 프로젝트 고유 데이터라 `.gitignore` 대상이다(`plans/filter-repo-rehearsal-2026-09-10.md` "치환표 자기참조" 절 참조) — **공개 레포엔 원래 없다.** 이 단계 없이 1번을 실행하면 `verify-tree.sh`가 `exit 2`로 멈춘다(설계대로 — fail-loud가 정확히 동작한 것이지 고장이 아니다).
+
+**명령**:
+```bash
+cd ~/Desktop/madang
+git show 2fa1672:claude/tools/sanitize/replacements.txt > claude/tools/sanitize/replacements.txt
+```
+
+이 커밋(`2fa1672`)은 `replacements.txt`가 **아직 tracked였던 마지막 커밋**이다(15줄 — 회사 문자열·GitHub 아이디 규칙). `main`의 현재 history에 존재하는 실제 SHA이니 그대로 쓸 수 있다(2026-09-10 기준 확인됨).
+
+**그다음 두 가지를 손으로 채운다** (아래 두 파일 다 어떤 값을 넣어야 하는지는 이 문서에 적지 않는다 — 적으면 그게 곧 유출이다. 3번(신원 재작성)에서 실제로 쓸 값이다):
+
+1. `claude/tools/sanitize/replacements.txt`에 **개인 이메일 literal 규칙 추가**(예: `literal:{당신 메일}==>{personal-email}`) — 어떤 메일이 히스토리에 있는지는 `git log --all --format='%ae%n%ce' | sort -u`로 직접 확인해라. **2026-09-10 실사고**: 이 규칙이 빠진 채로 `plans/release-runbook-v05.md`에 개인 메일 2개가 평문 커밋됐다(`2fa1672`) — `--replace-text`가 표에 없는 문자열은 못 잡고, `--mailmap`은 신원 필드만 바꾸지 파일 내용은 안 건드리기 때문. 반드시 표에 넣을 것.
+2. `claude/tools/sanitize/mailmap.txt`를 `claude/tools/sanitize/mailmap.example.txt` 형식대로 채운다(3번 단계의 `--mailmap` 인자로 그대로 쓴다).
+
+| | 내용 |
+|---|---|
+| **기대 출력** | `claude/tools/sanitize/replacements.txt`(회사 문자열·개인 이메일 규칙 전부) · `claude/tools/sanitize/mailmap.txt`(실제 신원 매핑) 둘 다 존재. `./claude/tools/sanitize/verify-tree.sh`가 `exit 2` 없이 돈다(후보 있음/없음은 몰라도 실행은 된다). |
+| **🔴 중단 조건** | `replacements.example.txt`·`mailmap.example.txt`만 보고 실제 값을 못 채우겠으면(무슨 회사 문자열·무슨 메일이 있었는지 기억 안 나면) **여기서 멈추고 `git log --all -p \| less`로 과거 커밋을 직접 훑어라** — 짐작으로 표를 채우면 1번(verify-tree.sh)·3번 검증이 전부 무의미해진다. |
+| **되돌리기** | `replacements.txt`를 잘못 채웠으면 복구 명령을 다시 실행해 `2fa1672` 스냅샷으로 리셋 후 다시 채운다(gitignore된 파일이라 `git checkout --`는 안 먹는다 — 이게 1번 되돌리기 칸이 이제 다른 이유). `mailmap.txt`는 그냥 다시 쓴다(히스토리 소스가 없다 — 애초에 이 파일 자체가 오늘 신설이라). |
 
 ---
 
@@ -26,9 +53,9 @@
 | | 내용 |
 |---|---|
 | **명령** | `cd ~/Desktop/madang && ./claude/tools/sanitize/verify-tree.sh` |
-| **기대 출력** | exit 0(후보 없음) 또는 exit 1 + 후보 목록. **2026-09-10 기준 11건, 전부 무해로 이미 판정됨**(판정표: `plans/filter-repo-rehearsal-2026-09-10.md` "verify-tree.sh" 절). 0단계 이후 새 커밋이 안 들어왔다면 같은 11건이 나와야 정상이다. |
-| **🔴 중단 조건** | 새로운 후보가 나타나고 사람이 "회사 정보다"로 판정하면 → **바로 이 단계에서** `claude/tools/sanitize/replacements.txt`에 치환 규칙을 추가한다. **이 단계 지나면 표를 바꾸지 않는다** — 뒤 단계(2·3)가 이 표를 전제로 검증하므로, 통과 후에 표를 고치면 그 검증들이 전부 무효가 된다. 판정이 애매하면(회사 정보인지 확신 없음) 실행을 멈추고 사용자에게 묻는다 — 임의 판단으로 넘기지 않는다. |
-| **되돌리기** | 표를 잘못 고쳤으면 `git diff claude/tools/sanitize/replacements.txt`로 확인 후 `git checkout -- claude/tools/sanitize/replacements.txt`로 되돌릴 수 있다. **아직 아무것도 돌이킬 수 없는 지점이 아니다.** |
+| **기대 출력** | exit 0(후보 없음) 또는 exit 1 + 후보 목록. **2026-09-10 기준 11건, 전부 무해로 이미 판정됨**(판정표: `plans/filter-repo-rehearsal-2026-09-10.md` "verify-tree.sh" 절). 0-B 이후 새 커밋이 안 들어왔다면 같은 11건이 나와야 정상이다. |
+| **🔴 중단 조건** | ① **`exit 2`가 뜨면 0-B를 안 끝낸 것**(fail-loud 설계대로 — 표가 없어 검증 자체를 못 한다는 뜻, 절대 무시하고 넘어가지 않는다) ② 새로운 후보가 나타나고 사람이 "회사 정보다"로 판정하면 → **바로 이 단계에서** `claude/tools/sanitize/replacements.txt`에 치환 규칙을 추가한다. **이 단계 지나면 표를 바꾸지 않는다** — 뒤 단계(2·3)가 이 표를 전제로 검증하므로, 통과 후에 표를 고치면 그 검증들이 전부 무효가 된다. 판정이 애매하면(회사 정보인지 확신 없음) 실행을 멈추고 사용자에게 묻는다 — 임의 판단으로 넘기지 않는다. |
+| **되돌리기** | 표를 잘못 고쳤으면 0-B의 복구 명령(`git show 2fa1672:... > replacements.txt`)으로 알려진 기준선으로 리셋한 뒤 다시 고친다 — **`git checkout --`는 안 먹는다**(gitignore된 파일이라 git이 추적을 안 해서 되돌릴 대상 자체가 없다는 오류가 난다. 2026-09-10 실사고 — 표를 untrack시킨 게 이 칸을 깨뜨렸다). **아직 아무것도 돌이킬 수 없는 지점이 아니다.** |
 
 ---
 
@@ -61,18 +88,21 @@ literal:PROJECT-NAME==>{app-repo}  literal:{app-repo}==>{app-repo}
 
 파일이 gitignore돼도 **이미 98개 커밋의 역사에 실려 있다** — 추적만 끊으면 과거 커밋들엔 여전히 남는다. 그래서 filter-repo 명령에 `--invert-paths --path`를 추가해 **전 히스토리에서 이 파일 자체를 제거**한다(내용 치환이 아니라 파일 삭제). 실측: 이 옵션을 추가해도 나머지 치환(신원·텍스트·메시지)은 동일하게 정상 동작(아래 명령이 그 결과).
 
+### 🔴 개인 메일 2건이 평문으로 커밋됐던 사고 (2026-09-10 발견·수정)
+
+이전 버전의 이 단계는 `--mailmap` 인자를 만드는 명령에 **실제 개인 이메일 2개를 heredoc으로 직접 박아뒀다.** `replacements.txt`엔 이메일이 없어 `--replace-text`가 못 잡고, `--mailmap`은 신원 필드만 바꾸지 파일 내용은 안 건드린다 — 결과: 이 런북 파일 자체(공개 문서)에 개인 메일이 평문으로 커밋됐다. `verify-tree.sh`의 이메일 축이 있었는데도 **표가 없어서 스캐너 자체가 안 돌고 있었고**(그 무렵 표를 gitignore로 뺀 직후라) 아무도 몰랐다 — 사람이 찾았다.
+
+**고침**: 이메일은 이제 **일반 텍스트 치환**으로도 다룬다(`replacements.txt`에 literal 규칙 추가, 0-B에서 채움) — `--mailmap`은 신원 필드용으로 남기고 별개 취급하지 않는다. `--mailmap` 값 자체도 이 문서엔 절대 쓰지 않고 **파일로만** 참조한다(아래). 히스토리에 이미 실린 두 줄은 `replacements.txt`의 새 규칙이 `--replace-text`로 스캔하는 모든 블롭에 적용되므로 **재작성 시 함께 제거**된다(리허설로 확인 — 재작성 후 `git log -p --all | grep`으로 잔존 0건).
+
+🔴 **`--mailmap` 인자는 `~/Desktop/madang/claude/tools/sanitize/mailmap.txt`를 가리킨다 — 0-B에서 이미 채워뒀다.** 이 런북엔 그 파일의 내용(실제 이메일)을 절대 쓰지 않는다 — 방금 위에서 설명한 사고를 반복하지 않기 위해서다.
+
 **명령**:
 ```bash
-cat > ~/madang-mailmap.txt << 'EOF'
-janjanjae <155637247+janjanjae@users.noreply.github.com> <{personal-email}>
-janjanjae <155637247+janjanjae@users.noreply.github.com> <{personal-email}>
-EOF
-
 git clone --mirror ~/Desktop/madang ~/madang-backup.git && cp -R ~/madang-backup.git ~/madang-release.git
 cd ~/madang-release.git && git filter-repo \
   --replace-text ~/Desktop/madang/claude/tools/sanitize/replacements.txt \
   --replace-message ~/Desktop/madang/claude/tools/sanitize/replacements.txt \
-  --mailmap ~/madang-mailmap.txt \
+  --mailmap ~/Desktop/madang/claude/tools/sanitize/mailmap.txt \
   --invert-paths --path claude/tools/sanitize/replacements.txt \
   --force
 ```
@@ -201,7 +231,7 @@ cd /tmp && git clone https://github.com/janjanjae/madang.git madang-fresh-check 
 
 ---
 
-## 오늘 잡은 함정 7건 — 이 런북에 반영된 위치
+## 오늘 잡은 함정 9건 — 이 런북에 반영된 위치
 
 | 함정 | 어디서 걸림 | 중단 조건 반영 |
 |---|---|---|
@@ -212,6 +242,8 @@ cd /tmp && git clone https://github.com/janjanjae/madang.git madang-fresh-check 
 | **정상 경로에서도 `FAIL`이 뜨는 검사는 그 자체가 함정이다** — "커밋 수가 같아야 정상"은 치환표에 rename 규칙이 있으면 빈 커밋이 자동 쳐내져 정상인데도 FAIL을 띄운다. 사람이 "이 FAIL은 괜찮다"를 암기하게 되고, 그러다 진짜 유실도 같은 화면으로 지나간다. | `verify-history.sh` ② 설계 시 | 숫자 비교를 **제목 집합 비교 + 사라진 커밋의 원본 diff가 치환표로 설명되는지 검증**으로 교체 — 정상 경로는 예외 없이 `=== 전체 통과 ===`, 무관한 진짜 유실만 FAIL(양쪽 다 재현 확인). |
 | **그 거울상** — `git show <sha> -- .`는 머지 커밋에 기본 diff를 안 낸다(combined diff 별도 포맷). "변경 라인 없음"을 "전부 설명됨"으로 읽으면 **머지 커밋(이 레포 11개, 리뷰 요약이 본문에 든 커밋들)이 사라져도 조용히 통과**한다 — 팀장이 발견. | `verify-history.sh` ② 구현 시 | 부모 2개 이상(머지)이거나 diff를 아예 못 읽으면 **fail-closed**(설명 안 됨으로 처리) — "확인 못 함"과 "변경 없음"을 같은 칸에 넣지 않는다. 일반 커밋 유실·머지 커밋 유실 둘 다 실제로 드롭시켜 FAIL 재현 확인. |
 | **치환표가 자기 자신을 치환한다** — `replacements.txt`가 tracked 파일이라 filter-repo가 표 내용에도 적용돼 `literal:X==>Y`가 `literal:Y==>Y`로 무동작화된다. 이 런북도 "이전 아이디 → 새 아이디"를 원문으로 쓴 문장 4곳이 같은 이유로 "A → A"가 됐다 — 사람이 재작성 후 트리를 읽어본 적이 한 번도 없어서 아무도 몰랐다(팀장이 지적, 실제로 읽어서 확인). | `replacements.txt`가 공개 추적 대상이라는 점 자체 | `replacements.txt`를 gitignore + `git rm --cached`, `replacements.example.txt` 공개, filter-repo 명령에 `--invert-paths --path`로 전 히스토리에서 파일 제거 추가. `verify-history.sh`·`verify-tree.sh` 둘 다 파일 없으면 fail-loud(exit 2). 런북 자기참조 4곳은 옛 아이디를 원문으로 안 쓰는 문장으로 재작성. |
+| **표를 gitignore로 뺀 그 수정이 개인 메일 유출을 만들었다** — `--mailmap` 값(실제 이메일 2개)을 heredoc으로 이 런북에 직접 박아뒀는데, `replacements.txt`엔 이메일이 없어 `--replace-text`가 못 잡고 `--mailmap`은 신원 필드만 바꿔 파일 내용은 안 건드린다. **`verify-tree.sh`의 이메일 축이 있는데도, 그 무렵 표를 gitignore로 막 뺀 참이라 스캐너 자체가 `exit 2`로 안 돌고 있어서 아무도 몰랐다** — 사람이 찾았다(「이것만은」 19가 도구 전체에 적용된 사례). | `replacements.txt`를 gitignore로 뺀 직후 (이 표의 바로 위 항목) | 이메일도 `replacements.txt`에 literal 규칙으로 등록(신원과 별개로 텍스트 치환 대상). `--mailmap` 값은 런북에서 완전히 제거하고 `mailmap.txt`(신규 gitignore 파일)를 파일 참조로만 쓴다. 실측: 재작성 후 전 히스토리에서 그 이메일 문자열 잔존 101건→0건(그 문자열 자체는 이 문서에 안 쓴다 — 지금 이 줄이 그 원칙을 지키는 예시다). |
+| **고치는 게 새 데드락을 만들었다** — `replacements.txt`를 untrack시키자 ① `git checkout --`로 되돌릴 수 없게 됨(1번 되돌리기 칸이 거짓이 됨) ② `main` 워킹트리에서 파일 자체가 사라져 `verify-tree.sh`가 실행 자체가 안 됨(1단계가 막힘) ③ 표가 워크트리 몇 곳에만 남아, 0단계의 "워크트리 정리" 중단조건과 1단계의 "표 필요" 조건이 서로를 막는 순환이 생김. | `replacements.txt`를 untrack시킨 결과 | **0-B(부트스트랩) 신설** — 표·mailmap이 전혀 없는 상태에서 시작해도 막히지 않게, 워크트리에 의존하지 않는 복구 경로(커밋 `2fa1672`에서 직접 추출)를 명령으로 명시. 1번 되돌리기 칸을 이 복구 명령으로 교체. 런북만 보고 처음부터 끝까지 재현해 검증. |
 
 ## 자기 검증 메모 (처음 보는 사람인 척 다시 읽은 결과)
 
@@ -222,7 +254,9 @@ cd /tmp && git clone https://github.com/janjanjae/madang.git madang-fresh-check 
 - **잔디 확인을 별도 6번으로 안 만들고 5번의 하위 절로 넣었다** — 단계를 새로 끼우면 6·7번이 7·8번으로 밀려 문서 전체의 상호 참조("6번 되돌아가라" 류)를 다 다시 세야 한다. "push 직후·public 전환 직전"이라는 인과적 위치는 5번 하위에 둬도 그대로 살고, 되돌릴 수 없는 단계 번호 체계(0~7)도 안 흔들린다 — 실익보다 renumbering 리스크가 커서 이렇게 판단했다.
 - `② 커밋 수 비교`를 처음엔 "정확히 2 적어야 정상"으로 문서화했는데, 이것도 결국 사람이 숫자를 암기해야 하는 방식이라 컨펌에서 되돌아왔다 — **"정상 경로는 항상 `=== 전체 통과 ===`"** 원칙으로 검사 자체(제목 집합 비교)를 고치고 나서야 진짜로 해소됐다. 문서만 고치고 검사는 그대로 둔 채 "이 FAIL은 괜찮다"고 적는 건 예외 처리를 기계가 아니라 사람 기억에 얹는 것이었다.
 - **다른 치환 대상(`{app-repo}`·`{app-dir}`·`{project}`·`{company-gh-account}`·`BMAD-`)은 같은 자기참조를 안 일으킨다** — 실제로 재작성된 트리를 읽어 확인(레포 밖 미러, origin 미접촉). 이유: 그 규칙들의 치환 후 값(`{app-repo}`·`{app-dir}`·`{project}`·`{company-gh-account}`·`PROJ-`)은 독립적인 플레이스홀더라, 문장 안에서 원래 단어를 대체해도 "A → A" 같은 모순이 안 생기고 그냥 익명화된 문장으로 읽힌다(예: "`{app-repo}` 160건" → "`{app-repo}` 160건", 뜻이 통한다). **오직 GitHub 아이디 재작성만 "X → Y"를 서술하면서 Y(`janjanjae`)가 문장 안에 이미 독립적으로도 등장하는 값이라 충돌했다** — 자기참조 문제는 규칙 개수가 아니라 "치환 후 값이 그 자체로 의미 있는 실명사인가"에 달려 있었다.
-- **`.claude/PROGRESS.md:277`에서 같은 버그를 실물로 발견**(허브 문서라 내가 못 고침, 팀장에게 보고): "GitHub 아이디 `janjanjae` → `janjanjae`" — 이건 filter-repo가 아니라 오늘 낮에 몽글이 트리에 직접 치환을 돌리면서 **이미 지금** 무너진 것이다. 내일 일만이 아니라 이미 벌어진 사고라는 뜻이라 컨펌에 별도로 표시했다.
+- **`.claude/PROGRESS.md:277`에서 같은 버그를 실물로 발견**(허브 문서라 내가 못 고침, 팀장에게 보고) — "GitHub 아이디 `janjanjae` → `janjanjae`"로 무너져 있었다. 원인은 filter-repo가 아니라 오늘 낮 트리 전체 치환 작업이 이 문장도 같이 휩쓴 것(팀장이 직접 확인 후 정정·수정 완료 — 최초 보고 때 몽글로 잘못 짚었던 부분도 팀장이 바로잡음). 내일 일만이 아니라 **이미 벌어진 사고**였다는 뜻이라 별도로 표시했었다.
+- **0-B를 새 번호(1번)로 만들지 않고 "0-B"로 끼워 넣었다** — 5번 하위 절(잔디 확인) 때와 같은 이유: 1~7번을 다 밀면 "3번 참조" 류 상호 참조를 전부 다시 세야 한다. "0번(선행조건)과 1번(verify-tree.sh) 사이"라는 인과적 위치만 지키면 되므로 문자 접미사로 끼웠다.
+- **복구 소스로 커밋 SHA(`2fa1672`)를 못 박기 전에 실제로 존재하고 15줄 전체가 맞는지 `git show`로 실행해 확인했다** — 브리프가 "확인하고 적으라"고 명시한 이유를 그대로 따랐다. 짐작으로 SHA를 적었으면 그 자체가 또 다른 데드락이었을 것.
 
 ---
 

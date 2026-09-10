@@ -1,4 +1,5 @@
 literal:internal-host.example-corp.co.kr==>dev.example.com
 literal:example-corp-org==>{company-gh-account}
 literal:example-test-user==>{test-user}
+literal:personal-name@example.com==>{personal-email}
 regex:TICKET-(\d+)==>PROJ-\1
