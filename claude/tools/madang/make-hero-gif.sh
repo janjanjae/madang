@@ -1,6 +1,6 @@
 #!/bin/bash
 # make-hero-gif.sh — README 히어로 GIF 생성 (2026-09-04, 상태 4신호·5라벨 재캡처 2026-09-10)
-# 가짜 팀 폴더에서 네 상태(작업중·컨펌 대기·사람 필요·쉼)를 순서대로 연출하고, 워커 창만 캡처해 ffmpeg로 GIF를 만든다.
+# 가짜 팀 폴더에서 네 상태(작업중·컨펌 대기·사용자 대기·쉼)를 순서대로 연출하고, 워커 창만 캡처해 ffmpeg로 GIF를 만든다.
 # 사용: ./make-hero-gif.sh [출력.gif]   (ffmpeg 필요: brew install ffmpeg)
 set -e
 OUT="${1:-$(dirname "$0")/../../assets/hero.gif}"
@@ -56,7 +56,7 @@ i=0
 snap() { for n in $(seq 1 "$1"); do i=$((i+1)); screencapture -x -l "$ID" "$(printf "$F/f%03d.png" $i)"; sleep 0.5; done; }
 scene working working working; sleep 3.5; snap 2     # 셋 다 작업중 (바운스)
 scene confirm working working; sleep 3.5; snap 2     # 번뜩 컨펌 대기 (호박 발광 + 말풍선)
-scene confirm blocked working; sleep 3.5; snap 2     # 몽글 사람 필요 (적 발광, 말풍선 단일화로 이 한 장만 뜬다)
+scene confirm blocked working; sleep 3.5; snap 2     # 몽글 사용자 대기 (적 발광, 말풍선 단일화로 이 한 장만 뜬다)
 scene working working idle;    sleep 3.5; snap 2     # 슥슥 쉼 (눈 감음)
 
 kill "$PID" 2>/dev/null || true

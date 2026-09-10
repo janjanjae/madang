@@ -4,16 +4,16 @@
 // `.claude/team/` 파일 신호만 읽어 상태를 말풍선으로 보여준다. 읽기 전용 — 팀 파일을 절대 쓰지 않는다.
 //
 // 상태 판정은 teamleader/reference/confirm-protocol.md 의 Monitor 스크립트와 같은 규칙을 4신호·5라벨로 압축한다:
-//   request 있음 + reply 없거나 오래됨 → 컨펌 대기(CONFIRM) / 논의(DISCUSS) = 호박 발광 · 사람 필요(BLOCKED) = 적 발광
+//   request 있음 + reply 없거나 오래됨 → 컨펌 대기(CONFIRM) / 논의(DISCUSS) = 호박 발광 · 사용자 대기(BLOCKED) = 적 발광
 //   request 있음 + reply 더 새로움      → 작업중(답장 처리중 — 미소는 APPROVE 순간의 전이 애니메이션으로만 표현)
 //   보고가 브리프보다 오래됨            → 작업중(시동 — 아직 탭이 움직이지 않은 막 받은 브리프)
 //   보고·세션 기록 모두 25분 이상 정지 → 쉼 N분 (세션 기록 = ~/.claude/projects/…/*.jsonl mtime, 2026-09-03)
 //   그 외                               → 작업중
 //   브리프 파일 없음                    → 쉼
-// 눈은 쉼일 때만 감고, 그 외(작업중·컨펌 대기·논의·사람 필요)는 항상 안광을 유지한다 — 감은 눈 vs 뜬 눈으로
+// 눈은 쉼일 때만 감고, 그 외(작업중·컨펌 대기·논의·사용자 대기)는 항상 안광을 유지한다 — 감은 눈 vs 뜬 눈으로
 // 신호 구분은 그대로, 뜬 눈에서 안광이 사라지는 것만 없앴다(2026-09-10 실사용 피드백).
 // 말풍선은 한 번에 하나만 뜬다(호박/적 발광이 항시 신호, 말풍선은 "지금 누구 하나"의 상세) — 우선순위
-// hover > 클릭(그 워커만 2.5초) > 사람 필요 > 컨펌 대기/논의. 242pt 말풍선 3개가 296pt 패널 안에서 안
+// hover > 클릭(그 워커만 2.5초) > 사용자 대기 > 컨펌 대기/논의. 242pt 말풍선 3개가 296pt 패널 안에서 안
 // 겹치는 배치가 기하적으로 없어(2026-09-10) 동시 노출 자체를 접었다.
 //
 // 빌드: ./build.sh   실행: madang <프로젝트>/.claude/team   (인자 없으면 $PWD/.claude/team)
@@ -113,7 +113,8 @@ func firstLine(_ url: URL) -> String {
 //
 // 원래 8종(off·notStarted·working·needsConfirm·blocked·discuss·replied·idle)을 시각 신호 4개로 접는다:
 //   attention(discuss:) — 호박 발광 + 말풍선(우선순위 2위). discuss=false(컨펌 대기)/true(논의)
-//   blocked             — 적 발광 + 말풍선(우선순위 1위). "사람 필요"(v1에서 권한 대기 합류 예정)
+//   blocked             — 적 발광 + 말풍선(우선순위 1위). "사용자 대기" — 도담도 못 풀고 사용자 본인만
+//                          가능한 것(권한·로그인·외부 결정)이라는 뜻이라, 권한 대기도 별도 라벨 없이 이미 여기 들어간다(2026-09-10)
 //   working             — 눈 뜸(안광 유지). 원래 working·notStarted(시동)·replied(답장 처리중) 전부 흡수
 //   resting(Int?)        — 눈 감음(안광 없음 — 4종 중 유일). nil=브리프 없음(쉼) · N=유휴 분(쉼 N분)
 // replied의 미소는 상태에서 빠지고 WorkerView.apply()의 전이 애니메이션(2~3초)으로만 남는다.
@@ -124,13 +125,13 @@ enum WorkerState: Equatable {
         switch self {
         case .working:                return "작업중"
         case .attention(let discuss): return discuss ? "논의" : "컨펌 대기"
-        case .blocked:                 return "사람 필요"
+        case .blocked:                 return "사용자 대기"
         case .resting(let m):
             guard let m else { return "쉼" }
             return m >= 60 ? "쉼 \(m / 60)시간" : "쉼 \(m)분"
         }
     }
-    // 색은 상태에만 (잔잔 규칙 3): 컨펌 대기·논의 = 호박, 사람 필요 = 적. 나머지는 종이색 알약.
+    // 색은 상태에만 (잔잔 규칙 3): 컨펌 대기·논의 = 호박, 사용자 대기 = 적. 나머지는 종이색 알약.
     var color: NSColor? {
         switch self {
         case .attention: return waitingColor
@@ -344,9 +345,9 @@ func snapshot(_ inst: Instance) -> Snapshot {
 // MARK: - 뷰
 //
 // "말 없는 워커" (2026-09-03, 안광 상시·말풍선 단일화 2026-09-10): 평소엔 글자가 없다. 상태는 마스코트로 —
-//   쉼(유휴·브리프 없음) = 눈 감음 / 그 외(작업중·컨펌 대기·논의·사람 필요) = 눈 뜸(안광 상시 유지 — 검정
+//   쉼(유휴·브리프 없음) = 눈 감음 / 그 외(작업중·컨펌 대기·논의·사용자 대기) = 눈 뜸(안광 상시 유지 — 검정
 //   점만 있는 눈이 사라져 보인다는 실사용 피드백으로 전부 안광 유지) / 컨펌 대기·논의 = 호박 테두리 발광 +
-//   말풍선 / 사람 필요 = 적 발광 + 말풍선
+//   말풍선 / 사용자 대기 = 적 발광 + 말풍선
 // 말풍선은 WorkerController가 한 번에 하나만 고른다(겹침 방지 — forcedBubble 참조). 이름은 툴팁, 분신은 숫자 배지.
 
 var appController: WorkerController?
@@ -480,7 +481,7 @@ final class WorkerView: NSView {
     override func mouseExited(with event: NSEvent) { hovered = false; hoverSince = nil; summaryRevealed = false; refreshBubble() }
 
     // 2026-09-10 실사용 피드백: 컨펌 대기 때 안광(눈동자 반사광)이 사라지는 게 무섭다 — 검정 점만
-    // 있는 눈은 전부 안광을 유지한다. 쉼(감은 눈)만 예외, 나머지(작업중·컨펌 대기·논의·사람 필요)는
+    // 있는 눈은 전부 안광을 유지한다. 쉼(감은 눈)만 예외, 나머지(작업중·컨펌 대기·논의·사용자 대기)는
     // 전부 "-work"(큰 눈 + 반사광) 변형을 쓴다. 발광·말풍선이 이미 다급함을 전달하므로 눈 모양은
     // "뜬 눈/감은 눈" 구분만 남긴다.
     var variant: String {
@@ -572,7 +573,7 @@ final class WorkerView: NSView {
         if bubble.isHidden == want { refreshBubble() }
     }
 
-    // 컨펌 대기·논의 = 호박, 사람 필요 = 적으로 실루엣 가장자리가 빛난다. 정적 — 깜빡이지 않는다.
+    // 컨펌 대기·논의 = 호박, 사용자 대기 = 적으로 실루엣 가장자리가 빛난다. 정적 — 깜빡이지 않는다.
     func setGlow(_ color: NSColor?) {
         guard let l = figure.layer else { return }
         if let c = color {
@@ -708,7 +709,7 @@ final class WorkerController: NSObject {
 
     /// 말풍선은 한 번에 하나만(2026-09-10 결함 1 — 242pt짜리 3개가 296pt 패널 안에서 안 겹치는 배치가
     /// 기하적으로 없다). 우선순위: hover(사용자가 지금 보고 있는 워커) > 엿보기(클릭한 워커, 2.5초) >
-    /// 사람 필요(적) > 컨펌 대기·논의(호박) > (말풍선 표시 토글이 켜져 있으면) 첫 워커. 그 외엔 아무도 안 뜬다.
+    /// 사용자 대기(적) > 컨펌 대기·논의(호박) > (말풍선 표시 토글이 켜져 있으면) 첫 워커. 그 외엔 아무도 안 뜬다.
     func updateBubbleVisibility() {
         let target: WorkerView?
         if let hoveredWorker = workers.first(where: { $0.hovered }) {
