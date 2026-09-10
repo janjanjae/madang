@@ -4,7 +4,7 @@
 
 ![마당 워커 오버레이 — 번뜩·몽글·슥슥의 상태가 바뀌는 모습](claude/assets/hero.gif)
 
-터미널 탭마다 페르소나를 가진 에이전트 세션을 띄우고(팀장 1 + 팀원 N), 브리프·컨펌을 파일로 주고받는 **탭 모드** 협업 시스템이다. 각 탭이 지금 뭘 하는지는 화면 위의 워커 오버레이(마당)가 보여준다 — 컨펌을 기다리면 테두리가 호박색으로 빛나고, 막히면 적색, 놀고 있으면 눈을 감는다.
+터미널 탭마다 페르소나를 가진 에이전트 세션을 띄우고(팀장 1 + 팀원 N), 브리프·컨펌을 파일로 주고받는 **탭 모드** 협업 시스템이다. 각 탭이 지금 뭘 하는지는 화면 위의 워커 오버레이(마당)가 보여준다 — 호박(컨펌 대기·논의)은 팀장이 처리하면 되는 상태, 적(사람 필요)은 사람이 봐야 하는 상태, 눈 반사광은 작업중, 눈 감음은 쉼이다.
 
 > **기원.** 이 팀은 2026년 7월 포켓몬 이름을 붙인 네 에이전트로 시작했다. 공개(2026-09)를 준비하면서 이름·그림·인사말을 전부 자작 마스코트로 바꿨다 — 남의 캐릭터 위에 브랜드를 쌓으면 잘될수록 남의 것이 되고, 확산 라이선스도 붙일 수 없어서다. 이 프로젝트는 포켓몬컴퍼니·닌텐도와 무관하며 그 상표·그림을 쓰지 않는다. 이름 바꾼 이야기는 `plans/brand-strategy-2026-09-03.md`.
 
@@ -44,7 +44,7 @@
 
 | 스킬 | 한 줄 |
 |---|---|
-| `/teamleader` | 팀장 모드 — 배분·보고 git 교차검증·허브 문서 단일 작성. 빈 프로젝트면 `/kickoff` 안내 |
+| `/teamleader` | 팀장 모드 — 배분·보고 git 교차검증·허브 문서 단일 작성. 빈 프로젝트면 `/start` 안내 |
 | `/solver` | 번뜩 세션 시작 — 깊이(난제 하나를 끝까지 + 에스컬레이션 디버깅) |
 | `/builder` | 몽글 세션 시작 — 넓이(같은 모양 N개 병렬, 분신) |
 | `/sketcher` | 슥슥 세션 시작 — 시안(UX/UI 프로토타이핑, worktree 격리) |
@@ -54,12 +54,12 @@
 
 | 스킬 | 한 줄 |
 |---|---|
-| `/kickoff` | 새 스토리/에픽 착수 — 팀 폴더 스캐폴딩 + Phase 설계 + 브리프 초안 + PROGRESS 초기화 |
-| `/save-progress` | PROGRESS.md 현행화 (체크포인트·세션 종료) |
-| `/progress-check` | PROGRESS/TASKS 기반 상태 브리핑 (읽기 전용) |
-| `/issue-cache` | 이슈 1회 조회 → `.claude/stories/` 로컬 캐시 (읽기 전담) |
+| `/start` | 새 스토리/에픽 착수 — 팀 폴더 스캐폴딩 + Phase 설계 + 브리프 초안 + PROGRESS 초기화 |
+| `/checkpoint` | PROGRESS.md 현행화 (체크포인트·세션 종료) |
+| `/progress` | PROGRESS/TASKS 기반 상태 브리핑 (읽기 전용) |
+| `/issue-fetch` | 이슈 1회 조회 → `.claude/stories/` 로컬 캐시 (읽기 전담) |
 | `/issue-refine` | 이슈 구체화·분할(착수 전) / 구현 기록·상태 전환(PR 머지 후) |
-| `/issue-capture` | 버그(스프린트)·아이디어(백로그) 빠른 등록 |
+| `/issue-add` | 버그(스프린트)·아이디어(백로그) 빠른 등록 |
 | `/skill-audit` | 스킬 인벤토리 전수 스캔 → `~/.claude/REGISTRY.md` 현행화 (월 1회/스프린트 종료) |
 
 > 이슈 커맨드 3종은 프로젝트의 `.claude/team/tracker-config.md`(트래커 종류·도메인·Key)를 읽어 동작 — 베이스엔 회사 정보 없음. 다른 프로젝트는 그 파일만 새로 쓰면 재사용.
@@ -72,11 +72,11 @@
 
 ```bash
 git clone https://github.com/janjanjae/madang.git && cd madang
-./install.sh   # ~/.claude, ~/.copilot 에 심링크 생성 (기존 파일은 .bak 백업)
+./install.sh   # ~/.claude에 심링크 생성 (~/.copilot은 있을 때만, 기존 파일은 .bak 백업)
 echo 'source '"$PWD"'/claude/shell/go-functions.zsh' >> ~/.zshrc && exec zsh
 ```
 
-설치 스크립트는 심링크만 만든다 — `go-solver`·`go-builder`·`go-madang` 같은 명령은 위 마지막 한 줄로 생긴다.
+설치 스크립트는 심링크만 만든다 — `go-solver`·`go-builder`·`go-madang` 같은 명령은 위 마지막 한 줄로 생긴다. Copilot을 나중에 설치했으면 `./install.sh`를 다시 실행한다(재실행 무해, `~/.copilot` 심링크만 추가로 생긴다).
 
 **방법 2 — 플러그인 (다른 기기·클라우드 세션, 읽기 전용 사용)**
 
@@ -85,7 +85,7 @@ echo 'source '"$PWD"'/claude/shell/go-functions.zsh' >> ~/.zshrc && exec zsh
 /plugin install madang
 ```
 
-플러그인 설치 시 커맨드는 `/madang:kickoff`처럼 네임스페이스가 붙는다. 두 방법 병행 가능 — 같은 기기에선 심링크(로컬 파일)가 우선한다.
+플러그인 설치 시 커맨드는 `/madang:start`처럼 네임스페이스가 붙는다. 두 방법 병행 가능 — 같은 기기에선 심링크(로컬 파일)가 우선한다.
 
 이후 `~/.claude/...`를 편집하면 그대로 이 레포의 워킹트리 변경이 된다 — 커밋만 하면 팀 시스템이 버전 관리된다.
 
@@ -107,7 +107,7 @@ claude/
 plans/                  # 감사 리포트·설계 스냅샷 (결론은 DIRECTION으로 승격)
 copilot/
   skills/sync_claude_team/   # Claude → Copilot 단방향 설정 동기화 (manifest 기반 의미 번역)
-install.sh              # ~/.claude, ~/.copilot 심링크
+install.sh              # ~/.claude 심링크 (~/.copilot은 있을 때만)
 CONTRIBUTING.md         # 커밋 규칙
 .githooks/              # commit-msg 강제
 .gitmessage             # 커밋 템플릿

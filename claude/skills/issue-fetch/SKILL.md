@@ -1,9 +1,9 @@
 ---
-name: issue-cache
+name: issue-fetch
 description: "착수할 이슈를 트래커에서 1회 조회해 .claude/stories/ 로컬 캐시 생성 (타입 분기: jira=acli/notion/local/github. 읽기 전담, 트래커 쓰기 금지). 팀장 전용."
 argument-hint: "{KEY}-{n}[, ...] | 스프린트"
 ---
-# issue-cache
+# issue-fetch
 
 착수할 스토리를 Jira에서 1회 조회해 프로젝트 로컬 캐시(`.claude/stories/`)에 저장한다.
 이후 팀장·팀원 세션은 Jira를 다시 읽지 않고 이 캐시만 참조한다. **읽기 전담** — Jira 쓰기는 `/issue-refine` 몫.
@@ -19,9 +19,9 @@ argument-hint: "{KEY}-{n}[, ...] | 스프린트"
 ## 프로젝트 Config
 
 **실행 첫 단계: 현재 프로젝트의 `.claude/team/tracker-config.md`를 읽는다** — 도메인·Cloud ID·프로젝트 Key·보드 ID·제품 개요·MCP/acli 전제가 거기 있다.
-파일이 없으면 진행을 멈추고 사용자에게 안내한다: "이 프로젝트에는 tracker-config.md가 없습니다 — `.claude/team/tracker-config.md`를 만들어야 Jira 커맨드를 쓸 수 있어요" (템플릿: issue-cache 스킬 디렉토리의 `tracker-config.template.md` 복사).
+파일이 없으면 진행을 멈추고 사용자에게 안내한다: "이 프로젝트에는 tracker-config.md가 없습니다 — `.claude/team/tracker-config.md`를 만들어야 Jira 커맨드를 쓸 수 있어요" (템플릿: issue-fetch 스킬 디렉토리의 `tracker-config.template.md` 복사).
 
-**타입 분기**: `jira`면 아래 본문(acli 조회→캐시)대로. `notion`이면 `backlog-check` Config의 DB에서 해당 항목(프로젝트 태그값 + 제목)을 fetch해 아래 캐시 템플릿 포맷으로 `.claude/stories/{슬러그}.md`에 저장한다 (항목 상태가 `티켓화`가 아니면 kickoff의 선택 절차를 먼저 안내). `local`이면 백로그 파일의 해당 항목을 같은 포맷으로 복사한다. `github`이면 `gh` CLI로 조회해 같은 캐시 포맷으로 `.claude/stories/{번호}.md`에 저장한다 (명령·캐시 머리말은 아래 "[타입: github] 조회 → 캐시" 절). 읽기 전담·캐시 포맷·재캐시 규칙은 타입 공통.
+**타입 분기**: `jira`면 아래 본문(acli 조회→캐시)대로. `notion`이면 `backlog-check` Config의 DB에서 해당 항목(프로젝트 태그값 + 제목)을 fetch해 아래 캐시 템플릿 포맷으로 `.claude/stories/{슬러그}.md`에 저장한다 (항목 상태가 `티켓화`가 아니면 `/start`의 선택 절차를 먼저 안내). `local`이면 백로그 파일의 해당 항목을 같은 포맷으로 복사한다. `github`이면 `gh` CLI로 조회해 같은 캐시 포맷으로 `.claude/stories/{번호}.md`에 저장한다 (명령·캐시 머리말은 아래 "[타입: github] 조회 → 캐시" 절). 읽기 전담·캐시 포맷·재캐시 규칙은 타입 공통.
 
 - **캐시 경로 규칙(프로젝트 불문)**: `{프로젝트 루트}/.claude/stories/`
 
@@ -63,7 +63,7 @@ mkdir -p .claude/stories/
 ```markdown
 # {Key}-{n}: {summary}
 
-> Jira 캐시 — 직접 수정 금지, 갱신은 `/issue-cache {Key}-{n}` 재실행
+> Jira 캐시 — 직접 수정 금지, 갱신은 `/issue-fetch {Key}-{n}` 재실행
 > 캐시 생성: {YYYY-MM-DD} · 원본: https://{config의 도메인}/browse/{프로젝트 Key}-{n}
 
 **Status**: {status} · **Priority**: {priority} · **Sprint**: {sprint}
@@ -123,7 +123,7 @@ gh issue list -R {owner}/{repo} --state open -L 100 \
 ```markdown
 # #{번호}: {title}
 
-> GitHub Issues 캐시 — 직접 수정 금지, 갱신은 `/issue-cache {번호}` 재실행
+> GitHub Issues 캐시 — 직접 수정 금지, 갱신은 `/issue-fetch {번호}` 재실행
 > 캐시 생성: {YYYY-MM-DD} · 원본: {url}
 
 **Status**: {state를 소문자로 — open/closed} · **Labels**: {labels[].name 쉼표} · **Milestone**: {milestone.title, 없으면 "-"}

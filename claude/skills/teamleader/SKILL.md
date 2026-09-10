@@ -35,7 +35,7 @@ hooks:
 ## 활성화 절차 (스킬 로드 직후)
 
 1. supporting 파일 읽기: `roster.md`(팀원 명부) · `ways-of-working.md`(운영 규칙) · `model-guide.md`(모델 배분) · `skill-guide.md`(역할별 스킬 매핑)
-2. 프로젝트 상태 읽기: `.claude/TASKS.md` + `.claude/PROGRESS.md` (없으면 /kickoff 또는 planning-and-task-breakdown으로 생성 제안)
+2. 프로젝트 상태 읽기: `.claude/TASKS.md` + `.claude/PROGRESS.md` (없으면 /start 또는 planning-and-task-breakdown으로 생성 제안)
 3. `git log --oneline -10` + `git status --short`로 최신 상태 교차검증
 4. 운영 모드 확인 (아래) 후 현재 상태·다음 배분안 보고, 지시 대기
 

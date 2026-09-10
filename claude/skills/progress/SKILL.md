@@ -1,5 +1,5 @@
 ---
-name: progress-check
+name: progress
 description: PROGRESS.md와 TASKS.md 기반 프로젝트 전체 상태 브리핑 (읽기 전용). 사용자가 진행 상황·상태를 물을 때 사용.
 context: fork
 ---
