@@ -10,6 +10,11 @@
 //   보고·세션 기록 모두 25분 이상 정지 → 쉼 N분 (세션 기록 = ~/.claude/projects/…/*.jsonl mtime, 2026-09-03)
 //   그 외                               → 작업중
 //   브리프 파일 없음                    → 쉼
+// 눈은 쉼일 때만 감고, 그 외(작업중·컨펌 대기·논의·사람 필요)는 항상 안광을 유지한다 — 감은 눈 vs 뜬 눈으로
+// 신호 구분은 그대로, 뜬 눈에서 안광이 사라지는 것만 없앴다(2026-09-10 실사용 피드백).
+// 말풍선은 한 번에 하나만 뜬다(호박/적 발광이 항시 신호, 말풍선은 "지금 누구 하나"의 상세) — 우선순위
+// hover > 클릭(그 워커만 2.5초) > 사람 필요 > 컨펌 대기/논의. 242pt 말풍선 3개가 296pt 패널 안에서 안
+// 겹치는 배치가 기하적으로 없어(2026-09-10) 동시 노출 자체를 접었다.
 //
 // 빌드: ./build.sh   실행: madang <프로젝트>/.claude/team   (인자 없으면 $PWD/.claude/team)
 // 조작: 드래그로 이동 · 더블클릭 = request/보고 파일 열기 · 메뉴바 아이콘(도담) = 위치 초기화/종료
@@ -107,10 +112,10 @@ func firstLine(_ url: URL) -> String {
 // MARK: - 상태 (4신호·5라벨, 2026-09-10 축소 — 경위는 plans/ 참조)
 //
 // 원래 8종(off·notStarted·working·needsConfirm·blocked·discuss·replied·idle)을 시각 신호 4개로 접는다:
-//   attention(discuss:) — 호박 발광 + 말풍선. discuss=false(컨펌 대기)/true(논의)
-//   blocked             — 적 발광 + 말풍선. "사람 필요"(v1에서 권한 대기 합류 예정)
-//   working             — 눈 반사광. 원래 working·notStarted(시동)·replied(답장 처리중) 전부 흡수
-//   resting(Int?)        — 눈 감음. nil=브리프 없음(쉼) · N=유휴 분(쉼 N분)
+//   attention(discuss:) — 호박 발광 + 말풍선(우선순위 2위). discuss=false(컨펌 대기)/true(논의)
+//   blocked             — 적 발광 + 말풍선(우선순위 1위). "사람 필요"(v1에서 권한 대기 합류 예정)
+//   working             — 눈 뜸(안광 유지). 원래 working·notStarted(시동)·replied(답장 처리중) 전부 흡수
+//   resting(Int?)        — 눈 감음(안광 없음 — 4종 중 유일). nil=브리프 없음(쉼) · N=유휴 분(쉼 N분)
 // replied의 미소는 상태에서 빠지고 WorkerView.apply()의 전이 애니메이션(2~3초)으로만 남는다.
 enum WorkerState: Equatable {
     case working, attention(discuss: Bool), blocked, resting(Int?)
@@ -311,7 +316,7 @@ func snapshot(_ inst: Instance) -> Snapshot {
     let act = lastSessionActivity(inst)   // work/error/summary 한 번에
     if let rqm = mtime(req) {
         if let rpm = mtime(reply), rpm >= rqm {
-            // 답장 처리중 — 원래 별도 상태였으나 지금은 "작업중"에 흡수(눈 반사광 동일). APPROVE 미소는
+            // 답장 처리중 — 원래 별도 상태였으나 지금은 "작업중"에 흡수(뜬 눈 동일). APPROVE 미소는
             // replyEvent를 본 WorkerView.apply()가 전이 애니메이션으로만 처리한다.
             return Snapshot(state: .working, tooltip: "\(title)\n답장 \(fmt.string(from: rpm))", openTarget: reply, title: title, summary: act.summary, replyEvent: rpm)
         }
@@ -327,7 +332,7 @@ func snapshot(_ inst: Instance) -> Snapshot {
     if let e = act.error { sessNote += "\n⚠️ API 오류 \(fmt.string(from: e)) — 탭에서 이어서 필요" }
     guard let activity = [rm, sess].compactMap({ $0 }).max(), activity > bm else {
         // 시동 — 브리프는 받았지만 아직 탭이 움직이지 않음. 원래 "브리프 대기"로 눈을 감았으나
-        // 지금은 "작업중"(눈 반사광)에 흡수됐다(AC A).
+        // 지금은 "작업중"(뜬 눈)에 흡수됐다(AC A).
         return Snapshot(state: .working, tooltip: "\(title)\n브리프 \(fmt.string(from: bm))\(sessNote)", openTarget: brief, title: title, summary: act.summary, replyEvent: nil)
     }
     let gap = Int(Date().timeIntervalSince(activity) / 60)
@@ -338,14 +343,16 @@ func snapshot(_ inst: Instance) -> Snapshot {
 
 // MARK: - 뷰
 //
-// "말 없는 워커" (2026-09-03): 평소엔 글자가 없다. 상태는 마스코트 자체로 —
-//   작업중(시동·답장 처리중 포함) = 눈 반사광 / 쉼(유휴·브리프 없음) = 눈 감음 /
-//   컨펌 대기·논의 = 호박 테두리 발광 + 말풍선 / 사람 필요 = 적 발광 + 말풍선
-// 글자(말풍선)는 사람이 행동해야 할 때와 엿보기(한 번 클릭, 3초)에만 뜬다. 이름은 툴팁, 분신은 숫자 배지.
+// "말 없는 워커" (2026-09-03, 안광 상시·말풍선 단일화 2026-09-10): 평소엔 글자가 없다. 상태는 마스코트로 —
+//   쉼(유휴·브리프 없음) = 눈 감음 / 그 외(작업중·컨펌 대기·논의·사람 필요) = 눈 뜸(안광 상시 유지 — 검정
+//   점만 있는 눈이 사라져 보인다는 실사용 피드백으로 전부 안광 유지) / 컨펌 대기·논의 = 호박 테두리 발광 +
+//   말풍선 / 사람 필요 = 적 발광 + 말풍선
+// 말풍선은 WorkerController가 한 번에 하나만 고른다(겹침 방지 — forcedBubble 참조). 이름은 툴팁, 분신은 숫자 배지.
 
 var appController: WorkerController?
-var peekUntil: Date?   // 엿보기 — 모든 워커가 말풍선을 잠시 보여준다
-func alwaysBubbles() -> Bool { UserDefaults.standard.bool(forKey: "madang.bubbles") }   // 메뉴 "말풍선 항상 표시"
+var peekUntil: Date?      // 클릭한 워커의 말풍선을 잠시 보여준다(엿보기)
+var peekedKey: String?    // 그 워커의 인스턴스 key — 말풍선은 한 번에 하나만이라 "누구를" 엿보는지 필요
+func alwaysBubbles() -> Bool { UserDefaults.standard.bool(forKey: "madang.bubbles") }   // 메뉴 "말풍선 표시" — 우선순위 대상이 없을 때 첫 워커를 보여준다
 
 /// 브리프 H1은 "브리프 — 이름 (key) · 날짜 · 태스크명" 꼴 — 260pt에서 앞부분(이름·날짜)에 밀려
 /// 정작 태스크명이 잘리므로, 이 패턴이면 마지막 " · " 뒤(태스크명)만 보여준다. 패턴이 안 맞으면 원문 그대로.
@@ -377,19 +384,31 @@ func mascotImage(_ id: String, variant: String = "") -> NSImage? {
 final class BubbleView: NSView {
     var text = NSAttributedString()
     let tail: CGFloat = 7
+    var tailX: CGFloat = 0   // 이 말풍선이 가리키는 워커의 x좌표(자기 로컬 좌표계) — setTail()이 실제 값으로 갱신
     func set(_ str: String, color: NSColor) {
         let p = NSMutableParagraphStyle(); p.alignment = .center
         text = NSAttributedString(string: str, attributes: [
             .font: NSFont.systemFont(ofSize: 12, weight: .semibold), .foregroundColor: color, .paragraphStyle: p])
         let w = ceil(text.size().width) + 18
         frame.size = NSSize(width: max(w, 44), height: ceil(text.size().height) + 10 + tail)   // 2~3줄 대응 — 높이는 실측 텍스트 블록 기준
+        tailX = frame.size.width / 2   // 기본값(가운데) — 실제 워커 위치는 곧이어 setTail()이 덮어씀
+        needsDisplay = true
+    }
+    /// 2026-09-10 결함 2: 말풍선은 컨테이너 밖으로 안 나가려고 옆으로 밀리는데, 꼬리가 그걸 모르고
+    /// 항상 자기 한가운데(bounds.midX)에 그려져 있었다 — 넓은 말풍선일수록 꼬리가 엉뚱한 워커를
+    /// 가리켰다. 호출자(WorkerView)가 "이 말풍선이 실제로 가리켜야 할 워커의 x좌표(자기 로컬 좌표계
+    /// 환산값)"를 넘기면, 둥근 모서리(r=8)를 침범하지 않는 범위로 클램프해 반영한다.
+    func setTail(_ x: CGFloat) {
+        let half: CGFloat = 6, corner: CGFloat = 8
+        let minX = corner + half, maxX = bounds.width - corner - half
+        tailX = maxX >= minX ? min(max(x, minX), maxX) : bounds.width / 2
         needsDisplay = true
     }
     override func draw(_ rect: NSRect) {
         let pal = Palette.current
         let body = NSRect(x: 0.5, y: tail + 0.5, width: bounds.width - 1, height: bounds.height - tail - 1)
         let path = NSBezierPath(roundedRect: body, xRadius: 8, yRadius: 8)
-        let cx = bounds.midX
+        let cx = tailX
         path.move(to: NSPoint(x: cx - 6, y: tail + 0.5))
         path.line(to: NSPoint(x: cx, y: 0.5))
         path.line(to: NSPoint(x: cx + 6, y: tail + 0.5))
@@ -460,16 +479,20 @@ final class WorkerView: NSView {
     override func mouseEntered(with event: NSEvent) { hovered = true; hoverSince = Date(); summaryRevealed = false; refreshBubble() }
     override func mouseExited(with event: NSEvent) { hovered = false; hoverSince = nil; summaryRevealed = false; refreshBubble() }
 
+    // 2026-09-10 실사용 피드백: 컨펌 대기 때 안광(눈동자 반사광)이 사라지는 게 무섭다 — 검정 점만
+    // 있는 눈은 전부 안광을 유지한다. 쉼(감은 눈)만 예외, 나머지(작업중·컨펌 대기·논의·사람 필요)는
+    // 전부 "-work"(큰 눈 + 반사광) 변형을 쓴다. 발광·말풍선이 이미 다급함을 전달하므로 눈 모양은
+    // "뜬 눈/감은 눈" 구분만 남긴다.
     var variant: String {
         if smileUntil != nil { return "-smile" }
         switch state {
-        case .resting:  return "-sleep"      // 잠
-        case .working:  return "-work"       // 집중 — 눈이 커지고 눈동자에 자기 도형
-        default:        return ""            // 깨어 있음 — 컨펌 대기·논의·사람 필요
+        case .resting: return "-sleep"   // 잠 — 4종 중 유일하게 안광 없음
+        default:       return "-work"    // 그 외 전부 — 안광 상시
         }
     }
     var hovered = false
-    var showBubble: Bool { state.alert || alwaysBubbles() || hovered || (peekUntil.map { Date() < $0 } ?? false) }
+    var forcedBubble = false   // WorkerController.updateBubbleVisibility()가 "지금 이 워커만" 지정 — 말풍선은 한 번에 하나만(2026-09-10 결함 1)
+    var showBubble: Bool { forcedBubble }
 
     func retheme() {
         themedDark = isDark()
@@ -502,6 +525,9 @@ final class WorkerView: NSView {
         // 그 분기를 삭제하고 y를 상수로 고정한다(2026-09-05 리뷰 결함 3).
         let anchorY: CGFloat = workerH - 2 - (24 + bubble.tail)   // 기존 1줄 기준 정지 위치와 동일
         bubble.frame.origin = NSPoint(x: x, y: anchorY)
+        // 꼬리는 항상 "이 워커"의 중심(workerW/2, WorkerView 로컬 좌표)을 가리켜야 한다 — 말풍선
+        // 좌표계로 환산(자기 origin.x만큼 빼기)해서 넘긴다(2026-09-10 결함 2, 팀장 진단).
+        bubble.setTail(workerW / 2 - x)
         bubble.isHidden = !showBubble
     }
 
@@ -577,13 +603,15 @@ final class WorkerView: NSView {
         figure.image = mascotImage(inst.role.id, variant: "-smile")
     }
 
-    // 워커 박스 전체가 드래그 영역. 한 번 클릭(안 움직임) = 전원 엿보기 2.5초, 더블클릭 = 파일 열기
+    // 워커 박스 전체가 드래그 영역. 한 번 클릭(안 움직임) = 이 워커만 엿보기 2.5초, 더블클릭 = 파일 열기
+    // (2026-09-10: 말풍선이 한 번에 하나뿐이라 "전원 엿보기"는 더 이상 의미가 없다 — 사용자가 원한
+    // "클릭한 워커를 앞으로"를 그대로 흡수해 클릭한 자신만 보여준다. 조용히 없앤 게 아니라 대체.)
     override func hitTest(_ point: NSPoint) -> NSView? { frame.contains(point) ? self : nil }
     override func mouseDown(with event: NSEvent) {
         if event.clickCount == 2 { openFile(); return }
         let before = window?.frame.origin
         window?.performDrag(with: event)
-        if before == window?.frame.origin { peekUntil = Date().addingTimeInterval(2.5) }   // 엿보기 2.5초 — 세 개 훑기엔 충분, 거슬리진 않는 길이
+        if before == window?.frame.origin { peekUntil = Date().addingTimeInterval(2.5); peekedKey = inst.key }   // 엿보기 2.5초
     }
     // 우클릭 = 메뉴 (상단바 아이콘이 넘쳐서 안 보일 때의 조작 경로)
     override func rightMouseDown(with event: NSEvent) {
@@ -653,7 +681,9 @@ final class WorkerController: NSObject {
                                                name: NSWindow.didMoveNotification, object: panel)
         Timer.scheduledTimer(withTimeInterval: pollSeconds, repeats: true) { [weak self] _ in self?.refresh() }
         Timer.scheduledTimer(withTimeInterval: 1.0 / 30.0, repeats: true) { [weak self] _ in
-            self?.workers.forEach { $0.tick() }
+            guard let self else { return }
+            self.workers.forEach { $0.tick() }
+            self.updateBubbleVisibility()
         }
         setupStatusItem()
     }
@@ -675,6 +705,28 @@ final class WorkerController: NSObject {
     }
 
     func refresh() { rebuild() }
+
+    /// 말풍선은 한 번에 하나만(2026-09-10 결함 1 — 242pt짜리 3개가 296pt 패널 안에서 안 겹치는 배치가
+    /// 기하적으로 없다). 우선순위: hover(사용자가 지금 보고 있는 워커) > 엿보기(클릭한 워커, 2.5초) >
+    /// 사람 필요(적) > 컨펌 대기·논의(호박) > (말풍선 표시 토글이 켜져 있으면) 첫 워커. 그 외엔 아무도 안 뜬다.
+    func updateBubbleVisibility() {
+        let target: WorkerView?
+        if let hoveredWorker = workers.first(where: { $0.hovered }) {
+            target = hoveredWorker
+        } else if let until = peekUntil, Date() < until, let key = peekedKey {
+            target = workers.first { $0.inst.key == key }
+        } else if let blocked = workers.first(where: { if case .blocked = $0.state { return true }; return false }) {
+            target = blocked
+        } else if let attention = workers.first(where: { if case .attention = $0.state { return true }; return false }) {
+            target = attention
+        } else if alwaysBubbles() {
+            target = workers.first
+        } else {
+            target = nil
+        }
+        for w in workers { w.forcedBubble = (target != nil && w === target) }
+        workers.forEach { $0.refreshBubble() }
+    }
 
     func refreshStates() {
         for p in workers {
@@ -720,7 +772,7 @@ final class WorkerController: NSObject {
         let inkItem = NSMenuItem(title: "마스코트 잉크", action: nil, keyEquivalent: "")
         inkItem.submenu = ink
         menu.addItem(inkItem)
-        let bub = NSMenuItem(title: "말풍선 항상 표시", action: #selector(toggleBubbles(_:)), keyEquivalent: "")
+        let bub = NSMenuItem(title: "말풍선 표시", action: #selector(toggleBubbles(_:)), keyEquivalent: "")
         bub.state = alwaysBubbles() ? .on : .off
         menu.addItem(bub)
         menu.addItem(NSMenuItem.separator())
@@ -740,7 +792,7 @@ final class WorkerController: NSObject {
     }
     @objc func toggleBubbles(_ sender: NSMenuItem) {
         UserDefaults.standard.set(!alwaysBubbles(), forKey: "madang.bubbles")
-        workers.forEach { $0.refreshBubble() }
+        updateBubbleVisibility()
         statusItem.menu = buildMenu()
     }
     @objc func quit() { NSApp.terminate(nil) }

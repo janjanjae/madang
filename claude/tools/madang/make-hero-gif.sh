@@ -54,9 +54,9 @@ ID=$(winid "$PID"); [ -n "$ID" ] || { echo "madang 창을 못 찾음"; kill "$PI
 
 i=0
 snap() { for n in $(seq 1 "$1"); do i=$((i+1)); screencapture -x -l "$ID" "$(printf "$F/f%03d.png" $i)"; sleep 0.5; done; }
-scene working working working; sleep 3.5; snap 3     # 셋 다 작업중 (바운스)
-scene confirm working working; sleep 3.5; snap 3     # 번뜩 컨펌 대기 (호박 발광 + 말풍선)
-scene confirm blocked working; sleep 3.5; snap 2     # 몽글 사람 필요 (적 발광)
+scene working working working; sleep 3.5; snap 2     # 셋 다 작업중 (바운스)
+scene confirm working working; sleep 3.5; snap 2     # 번뜩 컨펌 대기 (호박 발광 + 말풍선)
+scene confirm blocked working; sleep 3.5; snap 2     # 몽글 사람 필요 (적 발광, 말풍선 단일화로 이 한 장만 뜬다)
 scene working working idle;    sleep 3.5; snap 2     # 슥슥 쉼 (눈 감음)
 
 kill "$PID" 2>/dev/null || true
@@ -85,7 +85,8 @@ done
 # 원본 워커 창(296x132pt)이 README 표시 폭(~900px)엔 작아 업스케일한다. 진짜 다프레임 GIF가 되며
 # (위 고정 캔버스 전엔 1프레임에서 멈췄다) 용량이 커져 300KB를 넘기므로 순서대로: 팔레트는 48색
 # 이상 유지(12색은 호박·적 발광이 안 구분돼 2026-09-05 팀장 리뷰에서 기각) → 폭 1050 → 스냅 밀도
-# 6→3·3·2·2(총 10프레임). 4장면·순서·간격은 그대로.
+# 6→3·3·2·2(총 10프레임, 2026-09-05). 2026-09-10: 안광 상시로 프레임당 디테일(눈동자)이 늘어
+# 356KB로 다시 초과 — 스냅 밀도를 2·2·2·2(총 8프레임)로 한 단계 더 줄여 289KB로 복귀. 4장면·순서는 그대로.
 ffmpeg -y -loglevel error -framerate 2 -i "$F/g%03d.png" -vf "scale=1050:-2:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=48:stats_mode=diff[pal];[s1][pal]paletteuse=dither=none" -loop 0 "$OUT"
 defaults delete madang "madang.origin.$T" 2>/dev/null || true
 echo "built: $OUT ($(du -k "$OUT" | cut -f1)KB, $i frames)"
