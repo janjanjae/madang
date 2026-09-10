@@ -28,12 +28,12 @@ import Foundation
 let idleMinutes = 25          // Monitor 스크립트와 동일
 let pollSeconds = 3.0
 let workerW: CGFloat = 96, workerH: CGFloat = 132
-// 말풍선이 2~3줄로 자랄 때 워커 머리를 덮지 않도록 패널에 미리 얹어 두는 고정 여유 높이(결함 3, 2026-09-10).
-// 패널의 실제 프레임(kCGWindowBounds)은 이제 상태와 무관하게 상수다(직접 실측 확인) — 다만 투명/보더리스
-// 창이라 `screencapture -l`은 창 프레임이 아니라 그려진 픽셀의 바운딩 박스로 크롭하므로, 말풍선이 뜬
-// 캡처는 여전히 더 커 보인다. make-hero-gif.sh의 프레임별 최대값 정렬은 그래서 그대로 남아 있다.
+// 말풍선이 2~3줄로 자랄 때 워커 머리를 덮지 않도록 패널에 미리 얹어 두는 기본 여유 높이(결함 3, 2026-09-10).
+// 평소(라벨+제목 1줄, 잘림)엔 이 값이면 충분하고 — 이 기본값 자체는 바뀌지 않는다(이미 배포된
+// hero.gif·스크린샷이 이 폭·높이 기준으로 찍혀 있다). hover 전문 표시처럼 말풍선이 이보다 커져야 하면
+// WorkerController.updatePanelHeight()가 그때그때 필요한 만큼만 패널을 키운다(2026-09-10, 눈 hover 태스크) —
+// 투명 여백은 화면에 그려지지 않아(screencapture는 그려진 픽셀만 크롭) 평소 렌더 픽셀엔 영향이 없다.
 let bubbleHeadroom: CGFloat = 80
-let panelH: CGFloat = workerH + bubbleHeadroom
 
 // 스킨 표(claude/roster.json)가 이름·이모지·그림의 단일 원천. key = 파일 신호 경로 식별자(briefs/{key}.md).
 struct Role { let id: String; let key: String; let name: String; let emoji: String; let color: NSColor; let aliases: [String] }
@@ -377,6 +377,29 @@ func truncatedToWidth(_ s: String, font: NSFont, maxWidth: CGFloat) -> String {
     return t + "…"
 }
 
+/// hover 1.5초 뒤 제목을 말줄임 없이 여러 줄로 보여준다(2026-09-10, 실사용 피드백 — 3번째 줄도 같은 폭
+/// 상한에 잘려 정보가 안 늘었다). 글자 단위로 폭을 재 접는다(한글은 띄어쓰기 없이도 줄바꿈이 자연스럽다).
+/// maxLines를 넘으면 그 이후 전부를 합쳐 마지막 줄에서만 말줄임 — 극단적으로 긴 제목의 높이를 막는 안전판.
+func wrapped(_ s: String, font: NSFont, maxWidth: CGFloat, maxLines: Int) -> [String] {
+    let attrs: [NSAttributedString.Key: Any] = [.font: font]
+    var lines: [String] = []
+    var current = ""
+    for ch in s {
+        let candidate = current + String(ch)
+        if !current.isEmpty, (candidate as NSString).size(withAttributes: attrs).width > maxWidth {
+            lines.append(current)
+            current = String(ch)
+        } else {
+            current = candidate
+        }
+    }
+    if !current.isEmpty { lines.append(current) }
+    guard lines.count > maxLines else { return lines }
+    let head = Array(lines.prefix(maxLines - 1))
+    let rest = lines[(maxLines - 1)...].joined()
+    return head + [truncatedToWidth(rest, font: font, maxWidth: maxWidth)]
+}
+
 func mascotImage(_ id: String, variant: String = "") -> NSImage? {
     NSImage(contentsOf: mascotDir.appendingPathComponent(id + variant + (isDark() ? "@dark" : "") + ".svg"))
 }
@@ -510,18 +533,29 @@ final class WorkerView: NSView {
         let cap: CGFloat = 260 - 18
         let maxW: CGFloat = superview.map { min(cap, $0.bounds.width - 8) } ?? cap
         var lines = [state.label]
-        // 상태 텍스트가 이미 말풍선에 있을 때(showBubble) 그 아래에 브리프 제목을 붙인다 — 기존 줄 유지
-        if showBubble, !title.isEmpty { lines.append(truncatedToWidth(displayTitle(title), font: font, maxWidth: maxW)) }
-        // 2번째 줄(마지막 산출 턴 요약)은 always-표시와 무관하게 실제 hover 1.5초 뒤에만 — 세션 매칭 없으면 생략
-        if hovered, summaryRevealed, let s = summary { lines.append(truncatedToWidth(s, font: font, maxWidth: maxW)) }
+        // 상태 텍스트가 이미 말풍선에 있을 때(showBubble) 그 아래에 브리프 제목을 붙인다 — 기존 줄 유지.
+        // hover 1.5초 뒤(fullReveal)엔 제목을 말줄임 없이 여러 줄로 — 실사용 피드백 "3번째 줄도 잘려서
+        // 의미없다"에 대한 답. 비hover(fullReveal=false)는 이전과 완전히 같은 한 줄 잘림이라 렌더 불변.
+        let fullReveal = hovered && summaryRevealed
+        if showBubble, !title.isEmpty {
+            if fullReveal {
+                lines.append(contentsOf: wrapped(displayTitle(title), font: font, maxWidth: maxW, maxLines: 4))
+            } else {
+                lines.append(truncatedToWidth(displayTitle(title), font: font, maxWidth: maxW))
+            }
+        }
+        // 3번째 줄(마지막 산출 턴 요약)은 뺐다(2026-09-10) — 전문 제목이 이미 "지금 뭘 하나"의 핵심(브리프
+        // 태스크명)을 답하고, 요약은 3초 폴링마다 갱신되는 휘발성 정보라 전문으로 키워도 가치가 낮다.
+        // summary 필드·계산(scanTail)은 재도입 대비 그대로 둔다 — 같은 스캔에서 이미 나오는 값이라 비용 0.
         bubble.set(lines.joined(separator: "\n"), color: state.color ?? Palette.current.ink)
         // 여러 줄이 되면서 폭이 workerW를 넘어설 수 있다 — 가장자리 워커에서 창(=container) 밖으로 잘리지 않게 클램프
         var x = (workerW - bubble.frame.width) / 2
         if let containerW = superview?.bounds.width {
             x = min(max(x, -frame.origin.x), containerW - bubble.frame.width - frame.origin.x)
         }
-        // 꼬리(말풍선 아랫변)를 워커 상단의 고정 위치에 붙이고 줄이 늘면 위로 자란다 — 패널에 이미
-        // bubbleHeadroom만큼 여유 높이가 있어(전역 상수) workerH 위로 넘어가도 잘리지 않는다.
+        // 꼬리(말풍선 아랫변)를 워커 상단의 고정 위치에 붙이고 줄이 늘면 위로 자란다 — 패널은 최소
+        // bubbleHeadroom만큼 여유가 있고, hover 전문처럼 그보다 커지면 WorkerController.updatePanelHeight()가
+        // 실제 필요한 만큼 더 키운다(2026-09-10) — 어느 쪽이든 workerH 위로 넘어가도 잘리지 않는다.
         // 예전엔 "workerH를 넘으면 아래로 다시 밀어내는" 오버플로 분기가 있어 3줄일 때 머리를 덮었다 —
         // 그 분기를 삭제하고 y를 상수로 고정한다(2026-09-05 리뷰 결함 3).
         let anchorY: CGFloat = workerH - 2 - (24 + bubble.tail)   // 기존 1줄 기준 정지 위치와 동일
@@ -660,7 +694,7 @@ final class WorkerController: NSObject {
     let silent = ProcessInfo.processInfo.environment["MADANG_SILENT"] != nil
 
     override init() {
-        panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: workerW, height: panelH),
+        panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: workerW, height: workerH + bubbleHeadroom),
                         styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         super.init()
         panel.level = .floating
@@ -685,6 +719,7 @@ final class WorkerController: NSObject {
             guard let self else { return }
             self.workers.forEach { $0.tick() }
             self.updateBubbleVisibility()
+            self.updatePanelHeight()
         }
         setupStatusItem()
     }
@@ -696,7 +731,7 @@ final class WorkerController: NSObject {
         workers = insts.map(WorkerView.init)
         let w = CGFloat(workers.count) * workerW + 8
         let origin = panel.frame.origin
-        panel.setContentSize(NSSize(width: w, height: panelH))
+        panel.setContentSize(NSSize(width: w, height: workerH + bubbleHeadroom))
         panel.setFrameOrigin(origin)
         for (i, p) in workers.enumerated() {
             p.frame.origin = NSPoint(x: 4 + CGFloat(i) * workerW, y: 0)   // 바닥에 고정 — 위쪽 bubbleHeadroom이 말풍선 여유
@@ -727,6 +762,23 @@ final class WorkerController: NSObject {
         }
         for w in workers { w.forcedBubble = (target != nil && w === target) }
         workers.forEach { $0.refreshBubble() }
+    }
+
+    /// hover 전문 표시(WorkerView.refreshBubble의 fullReveal)처럼 말풍선이 기본 여유(bubbleHeadroom)보다
+    /// 커지면 그만큼만 패널을 키운다. 바닥(워커 슬롯)은 y=0에 고정돼 있어 origin을 그대로 두고 height만
+    /// 바꿔야 마스코트가 화면상 제자리에 남고 위로만 여유가 생긴다(setContentSize는 코너를 보존하려 들어
+    /// 대신 frame을 직접 만든다 — 2026-09-05 결함 3에서 확인한 패턴 그대로). 평소(비hover)엔 모든
+    /// 말풍선의 필요 높이가 bubbleHeadroom보다 작아 이 함수가 개입하지 않는다 — 배포된 자산 무변경.
+    func updatePanelHeight() {
+        let overflow = workers.map { w -> CGFloat in
+            guard !w.bubble.isHidden else { return 0 }
+            return max(0, w.bubble.frame.maxY - workerH)
+        }.max() ?? 0
+        let needed = workerH + max(bubbleHeadroom, overflow)
+        guard abs(panel.frame.height - needed) > 0.5 else { return }
+        var f = panel.frame
+        f.size.height = needed
+        panel.setFrame(f, display: true)
     }
 
     func refreshStates() {
