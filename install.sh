@@ -42,6 +42,13 @@ else
   echo "skip   : ~/.copilot 없음 — Copilot 동기화 스킬 건너뜀"
 fi
 
+# go-madang 레포 위치 힌트 (2026-09-10) — Claude Code 세션은 셸 함수를 스냅샷으로
+# 재정의해 소싱하므로, 그 안에서는 go-functions.zsh 내부의 "%x 기준 상대경로"가 이 레포가
+# 아니라 스냅샷 파일을 가리킨다. 재실행마다 갱신 — 레포를 옮기면 이 파일도 새 경로로 바뀐다.
+mkdir -p "$HOME/.claude"
+echo "$REPO" > "$HOME/.claude/madang-repo"
+echo "hint   : $HOME/.claude/madang-repo -> $REPO"
+
 echo ""
 echo "✅ 설치 완료. 이제 ~/.claude 쪽을 편집하면 곧 이 레포의 변경이 된다 (git diff로 확인, 커밋만 하면 이력화)."
 

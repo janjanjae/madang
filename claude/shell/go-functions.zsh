@@ -58,6 +58,18 @@ go-narrator()   { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji narrator)
 # 읽기 전용 — .claude/team/ 파일 신호 + 세션 기록만 읽는다. 종료는 워커 우클릭 또는 메뉴바 아이콘(도담) → 종료.
 go-madang() {
   local dir="${${(%):-%x}:A:h}/../tools/madang"   # 이 파일 기준 상대 경로 (레포 위치 무관)
+  if [ ! -d "$dir" ]; then
+    # Claude Code 세션은 함수를 스냅샷으로 재정의해 소싱한다 — 그 안에서는 위 %x가
+    # go-functions.zsh가 아니라 스냅샷 파일을 가리켜 경로가 깨진다. install.sh가 남긴
+    # 힌트로 재시도 (2026-09-10 실사고).
+    local hint="$HOME/.claude/madang-repo"
+    if [ -f "$hint" ] && [ -d "$(cat "$hint")/claude/tools/madang" ]; then
+      dir="$(cat "$hint")/claude/tools/madang"
+    else
+      echo "go-madang: 오버레이 위치를 못 찾았다 — 레포 루트에서 ./install.sh 를 실행했는지 확인하거나, 위치를 알면 ./claude/tools/madang/build.sh 를 직접 돌려라." >&2
+      return 1
+    fi
+  fi
   [ -x "$dir/madang" ] || "$dir/build.sh" || return 1
   pkill -x madang 2>/dev/null
   "$dir/madang" "${1:-$PWD/.claude/team}" >/dev/null 2>&1 &!
