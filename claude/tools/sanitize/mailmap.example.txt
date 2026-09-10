@@ -1,0 +1,2 @@
+New Name <newhandle@users.noreply.github.com> <old-personal@example.com>
+New Name <newhandle@users.noreply.github.com> <old-work@example-corp.com>
