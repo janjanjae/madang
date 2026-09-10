@@ -40,12 +40,11 @@ argument-hint: "[bug|idea] {한 줄 설명}"
 
 `github`이면 **이 레포의 GitHub Issues가 팀 트래커 자리**다 — `local`처럼 개인 백로그로 흘려보내지 않는다. 위 "팀 티켓 vs 개인 백로그 분기"는 그대로 적용하되 팀 티켓 쪽 목적지가 `gh issue create`이고, B1/I1 내용 파악과 B2/I2 초안 형식(5줄 이내)·사용자 승인 가드레일도 그대로다. 달라지는 것만:
 
-- **생성**: `gh issue create -R {owner}/{repo} --title "{제목}" --body-file - --label {bug|enhancement} --assignee @me` (본문은 초안을 stdin으로)
-  - `--assignee @me`를 붙이는 이유: 배정이 없으면 미배분 백로그 조회(`--assignee @me`)가 방금 만든 이슈를 못 본다 (2026-09-05 실측)
-- **라벨**: bug 모드 → `--label bug` / idea 모드 → `--label enhancement` + 제목 앞에 `[개선] `
+- **생성**: `gh issue create -R {owner}/{repo} --title "{제목}" --body-file - --label {bug|enhancement}` (본문은 초안을 stdin으로)
+- **라벨**: bug 모드 → `--label bug` / idea 모드 → `--label enhancement` + 제목 앞에 `[개선] ` — 라벨이 레포에 없으면 tracker-config 템플릿 `[타입: github]` 절의 "라벨 없음 시" 참조
 - **milestone은 붙이지 않는다** — 아래 "기한은 배분 시점에"의 github 판이다
 - **건너뛰는 것**: 스프린트 조회(B3)·issuetype·priority·ADF 절차 (GitHub에 대응물이 없다)
-- **생성 전** `gh auth status --active`가 config의 gh 계정과 다르면 **스스로 전환하지 말고 멈추고** 사용자에게 `gh auth switch -u {계정}`을 요청한다
+- **생성 전 인증 확인**: 가드레일은 tracker-config 템플릿 `[타입: github]` 절(SSOT) 참조
 - **완료 안내**: 이슈 번호(`#{번호}`) + URL
 
 ---
@@ -151,7 +150,7 @@ project = {Key} AND sprint in openSprints() ORDER BY created DESC
 - 캡처 시점에 비우는 이유: 스모크 중 개선 건이 여러 개 쏟아지는데 그때마다 기한을 고민하면 **흐름이 끊기고**, 그 순간엔 크기·우선순위·담당 정보가 아직 없다. 캡처는 빠른 게 미덕이다.
 - 이 규칙 하에서 **"기한 없음 = 아직 배분 안 된 것"**이 된다 → `assignee = currentUser() AND duedate IS EMPTY AND status != 완료`가 곧 미배분 백로그.
 - ⚠️ **사용자가 캡처 시점에 기한을 명시하면 그대로 넣는다** — 위는 기본값이지 금지가 아니다.
-- **타입 `github`**: `duedate` 자리를 **milestone**이 대신한다 (GitHub 이슈엔 마감일 필드가 없다). 캡처 때는 비우고, 배분 시점에 `gh issue edit {번호} --milestone "{PR 묶음}"`. 따라서 "milestone 없음 = 미배분 백로그"가 되어 `gh issue list --assignee @me --search "no:milestone state:open"`가 곧 미배분 백로그 조회다.
+- **타입 `github`**: `duedate` 자리를 **milestone**이 대신한다 (GitHub 이슈엔 마감일 필드가 없다). 캡처 때는 비우고, 배분 시점에 `gh issue edit -R {owner}/{repo} {번호} --milestone "{PR 묶음}"`. 따라서 "milestone 없음 = 미배분 백로그"가 된다 — 조회 쿼리는 tracker-config 템플릿 `[타입: github]` 절(SSOT) 참조.
 - 계기: 2026-08-20 — PROJ-1085가 코드는 이미 커밋돼 PR에 실려 있었는데 **배분 시점에 Jira를 안 갱신**해서 사용자 현황판에서 사라져 있었다. 문제는 캡처가 아니라 배분 시점 누락이었다.
 
 ---

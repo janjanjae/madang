@@ -41,23 +41,28 @@
 
 ## [타입: github] 연결 정보
 
-- **레포**: `{owner}/{repo}`
+- **레포**: `{owner}/{repo}` — 모든 `gh issue` 명령에 `-R {owner}/{repo}`를 **반드시 명시**한다 (스킬은 심볼릭 링크로 다른 프로젝트에 재사용되므로, cwd의 git remote로 암묵 추론하면 엉뚱한 레포에 쓸 수 있다).
 - **gh 계정**: `{이 레포에 이슈를 쓸 GitHub 계정 로그인}`
-  - 🔴 스킬은 `gh auth status --active`가 위 계정과 다르면 **스스로 전환하지 말고 멈추고**
-    사용자에게 `gh auth switch -u {계정}`을 요청한다 (전역 인증을 에이전트가 말없이 바꾸면 이후 다른 레포 작업이 잘못된 계정으로 나간다).
+- 🔴 **인증 가드레일** (issue-cache·issue-capture·issue-refine 공통 — 이 절이 SSOT, 각 스킬 본문엔 한 줄 하드스톱만 둔다): 조회·쓰기 전 `gh auth status --active`를 확인한다.
+  - **미인증**(로그인된 계정 없음) → `gh auth login` 안내
+  - **계정 불일치**(다른 계정으로 로그인돼 있음) → 스스로 전환하지 말고 멈추고 사용자에게 `gh auth switch -u {계정}` 요청 (`gh auth switch`는 이미 인증된 계정 사이에서만 동작한다 — 미인증 상태엔 쓸 수 없어 `login`과 구분해야 한다)
+- **이슈 번호 표기**: 인수는 `#591`·`591` 둘 다 받고 내부적으로는 숫자만 쓴다. 캐시 파일명 `.claude/stories/{번호}.md`.
+- **목록 조회 시**: `-L 100`을 붙인다(gh 기본 상한 30건) + 용도에 필요한 필드(캐시용이면 `body` 포함)를 `--json`에 명시.
+- **승인 가드레일**: 이슈 수정·생성은 **타입 불문 공통 규칙**으로 사용자 확인 후 실행한다 — `gh issue edit --body-file -`(본문 전체 치환)도 예외 없이 초안 제시 → 승인 → 푸시 순서를 지킨다.
+- **라벨 없음 시**: 레포에 `bug`/`enhancement` 라벨이 없으면(삭제·개명) `gh label create`로 임의 생성하거나 라벨 없이 재시도하지 말고 멈추고 사용자에게 확인한다.
 - **개념 매핑** (Jira 기준 규약을 GitHub으로 옮긴 것 — 세 스킬이 공통으로 따른다):
   | Jira | GitHub | 비고 |
   |---|---|---|
-  | 이슈 키 `{KEY}-{n}` | `#{번호}` | 인수는 `#591`·`591` 둘 다 받는다. 캐시 파일명 `.claude/stories/{번호}.md` |
-  | issuetype 버그 / 스토리 | label `bug` / `enhancement` | |
+  | 이슈 키 `{KEY}-{n}` | `#{번호}` | |
+  | issuetype 버그 / 스토리 | label `bug` / `enhancement` | 없으면 위 "라벨 없음 시" 참조 |
   | sprint | (없음) | milestone이 그 역할까지 겸한다 |
-  | `duedate` = PR 묶음 식별자 | **milestone** | GitHub 이슈엔 마감일 필드가 없다. 미배분 백로그 = milestone 없음 |
-  | 미배분 백로그 JQL | `--assignee @me --search "no:milestone state:open"` | |
-  | status 전환 | open / closed | 🔴 닫는 것은 사용자 소관 (Jira 상태 전환 규칙과 동일) |
-  | `assignee = currentUser()` | `--assignee @me` | |
+  | `duedate` = PR 묶음 식별자 | **milestone** | GitHub 이슈엔 마감일 필드가 없다. 없는 milestone은 만들지 말고 사용자에게 확인 |
+  | 미배분 백로그 쿼리 | `gh issue list -R {owner}/{repo} --state open -L 100 --json number,title,labels,milestone,body,url --jq '[.[] \| select(.milestone == null)]'` | milestone 없음 = 미배분. 배정 여부 무관·실시간 목록(검색 인덱스 지연 없음) — `--assignee @me`도 `--search`도 불필요 |
+  | status 전환 | open / closed | 🔴 닫는 것은 사용자 소관(Jira 상태 전환 규칙과 동일) — 세 스킬 모두 `gh issue close`를 호출하지 않는다 |
+  | `assignee = currentUser()` | `--assignee @me` | 1인 레포에서는 배정을 쓰지 않는다(모든 열린 이슈가 내 것) — 협업 레포로 재사용할 때만 필요 |
 
 > ⚠️ **전제**: `gh` CLI 설치 + `gh auth status`에 위 계정이 로그인돼 있을 것.
-> 미설치/미인증이면: `brew install gh` → `gh auth login`.
+> 미설치: `brew install gh`.
 > 사내망·프록시 때문에 GitHub API가 403이면 우회하지 말고 네트워크 사유로 보고하고 멈춘다.
 
 ## 제품 개요 (타입 공통 — 이슈 구체화 시 컨텍스트)
