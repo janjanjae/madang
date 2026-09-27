@@ -220,7 +220,7 @@ gh issue list -R janjanjae/madang --state all -L 100 --json number,state --jq 'l
 
 **명령**:
 ```bash
-cd /tmp && git clone https://github.com/janjanjae/madang.git madang-fresh-check && cd madang-fresh-check && ./install.sh
+cd /tmp && git clone https://github.com/janjanjae/madang.git madang-fresh-check && cd madang-fresh-check && HOME=$(mktemp -d) ./install.sh
 ```
 
 | | 내용 |
@@ -228,6 +228,32 @@ cd /tmp && git clone https://github.com/janjanjae/madang.git madang-fresh-check 
 | **기대 출력** | 클론 성공, `install.sh`가 에러 없이 종료하고 셸 함수 배선 안내가 뜬다. 새 셸에서 `/start`(구 `/kickoff`)가 인식된다. |
 | **🔴 중단 조건** | ① clone이 실패하면(private 남아있음) 6번으로 돌아가 visibility 재확인 ② `install.sh`가 회사 전용 문구(Copilot 조건부 처리 실패 등)를 무조건 출력하면 몽글의 sanitize가 이 파일을 안 건드린 것 — 중단하고 보고 ③ 새 명령 이름이 인식 안 되면 스킬 리네임 2부가 실제로는 안 끝난 것(0단계 게이트를 잘못 통과시킨 것). |
 | **되돌리기** | `rm -rf /tmp/madang-fresh-check` — 이 단계는 사이드이펙트가 없다(로컬 클론 확인용). |
+
+🔴 **`HOME=$(mktemp -d)`를 빼지 말 것 (2026-09-28 드라이런에서 발견).** 맨 `./install.sh`는 실제 `~/.claude`의 심링크 16개를 `/tmp/madang-fresh-check`로 갈아끼우고(기존 링크는 `.bak`), `~/.claude/madang-repo` 힌트도 `/tmp`로 바꾼다 — 확인용 클론을 지우는 순간 실사용 팀 시스템이 끊긴다. 임시 HOME이면 심링크 16개 생성·재실행 무해(`keep` 16건)까지 똑같이 확인되고 실환경은 안 건드린다.
+
+---
+
+## 8. 로컬 레포를 공개본으로 교체 (🔴 재유출 방지)
+
+5번 이후 `~/Desktop/madang`의 히스토리는 **원본(치환 전) 그대로**이고, origin은 재작성본이다. 둘은 공통 조상이 없다.
+
+- `work-sync push`는 이 레포도 대상이다(`REPOS`에 `madang` 포함). force는 안 쓰니 push 자체는 non-fast-forward로 실패하지만, 🔴 **실패 메시지의 안내(`pull --rebase` 후 재시도)를 따르면 치환 전 커밋이 공개 레포에 올라간다.**
+- 로컬의 작업 브랜치 16개도 치환 전 히스토리다. 한 번이라도 push하면 그대로 공개된다.
+
+**명령**:
+```bash
+mv ~/Desktop/madang ~/Desktop/madang-pre-release
+git clone https://github.com/janjanjae/madang.git ~/Desktop/madang
+cp ~/Desktop/madang-pre-release/claude/tools/sanitize/{replacements,mailmap}.txt ~/Desktop/madang/claude/tools/sanitize/
+cp -R ~/Desktop/madang-pre-release/.claude/team ~/Desktop/madang/.claude/ 2>/dev/null || true
+cd ~/Desktop/madang && ./install.sh   # 경로가 같아서 심링크는 keep, 훅 설정(core.hooksPath)만 새 클론에 다시 건다
+```
+
+| | 내용 |
+|---|---|
+| **기대 출력** | `git -C ~/Desktop/madang log --format='%ae' \| sort -u`가 noreply 1종. `work-sync status`에서 madang ahead 0. |
+| **🔴 중단 조건** | 공개 전에 stash해 둔 미커밋 변경을 새 클론으로 옮길 때는 **커밋 전에 `verify-tree.sh`를 반드시 돌린다.** 공개 뒤에는 filter-repo가 없다. 앞으로 커밋은 그대로 공개된다. |
+| **되돌리기** | `~/Desktop/madang-pre-release`는 원본이다. `~/madang-backup.git`과 함께 최소 1주 보관한다. |
 
 ---
 
