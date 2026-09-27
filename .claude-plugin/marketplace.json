@@ -6,7 +6,7 @@
       "name": "madang",
       "source": "./claude",
       "description": "마당(madang) — 역할이 다른 여러 에이전트가 동시에 뛰고 파일 신호로 조율되는 Claude Code 팀. 팀장 1 + 팀원 4(번뜩·몽글·슥슥·조잘), 팀장 커맨드(start, checkpoint, issue-*, skill-audit), 세션 시작 스킬",
-      "version": "1.0.0"
+      "version": "0.5.0"
     }
   ]
 }
