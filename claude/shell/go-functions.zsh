@@ -47,9 +47,19 @@ _go_emoji() {
 go-solver()    { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji solver)번뜩${1} $(date +%m%d)$(_go_brief_tag solver${1})" "$(_go_worker_prompt solver 번뜩 "$1")"; }
 go-builder() { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji builder)몽글${1} $(date +%m%d)$(_go_brief_tag builder${1})" "$(_go_worker_prompt builder 몽글 "$1")"; }
 go-sketcher()  { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji sketcher)슥슥${1} $(date +%m%d)$(_go_brief_tag sketcher${1})" "$(_go_worker_prompt sketcher 슥슥 "$1")"; }
+# 오버레이 자동 기동 (#26): 팀장 세션을 열 때 오버레이가 안 떠 있으면 띄운다 — 안내가 아니라 기본 동작.
+#   - 이미 떠 있으면 건너뛴다: go-madang은 pkill 후 재기동이라, 다른 프로젝트를 보던 오버레이를 죽이게 된다.
+#   - 실패해도(briefs/ 없음·빌드 실패 등) 팀장 세션 기동은 막지 않는다. 사유는 go-madang이 이미 출력했다.
+_go_overlay_autostart() {
+  pgrep -x madang >/dev/null 2>&1 && return 0
+  go-madang || echo "go-teamleader: 오버레이는 못 띄웠다(위 사유 참고) — 팀장 세션은 그대로 연다. 나중에 직접: go-madang" >&2
+  return 0
+}
+
 go-teamleader() {
   # 개인 동기화 스크립트가 PATH에 있으면 기동 전 pull — 없으면 건너뜀
   command -v work-sync >/dev/null 2>&1 && work-sync pull
+  _go_overlay_autostart
   claude --model "${GO_MODEL:-opus}" -n "$(_go_emoji teamleader)팀장 $(date +%m%d)" "/teamleader"
 }
 go-narrator()   { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji narrator)조잘 $(date +%m%d)" "/narrator"; }
@@ -70,9 +80,47 @@ go-madang() {
       return 1
     fi
   fi
+  local watch="${1:-$PWD/.claude/team}"
+  # #27: 예전엔 stderr를 /dev/null로 버려 briefs/ 가 없으면 아무 말 없이 종료했다.
+  # 오버레이 바이너리의 같은 검사를 여기서 먼저 하고, 기동 중이던 오버레이는 건드리지 않는다.
+  if [ ! -d "$watch/briefs" ]; then
+    echo "go-madang: $watch/briefs 가 없다 — 이 프로젝트는 아직 팀 스캐폴딩 전이다." >&2
+    echo "           Claude 세션에서 /start 로 스캐폴딩한 뒤 다시 실행하세요." >&2
+    return 1
+  fi
   [ -x "$dir/madang" ] || "$dir/build.sh" || return 1
   pkill -x madang 2>/dev/null
-  "$dir/madang" "${1:-$PWD/.claude/team}" >/dev/null 2>&1 &!
+  # 출력은 잠깐 파일로 받아 두고, 1초 안에 죽으면 그 내용을 터미널에 보인다(살아 있으면 버린다).
+  local log; log="$(mktemp -t go-madang.XXXXXX)"
+  "$dir/madang" "$watch" >"$log" 2>&1 &!
+  local pid=$!
+  sleep 1
+  if ! kill -0 "$pid" 2>/dev/null; then
+    echo "go-madang: 오버레이가 시작 직후 종료됐다. 출력:" >&2
+    sed 's/^/  | /' "$log" >&2
+    rm -f "$log"
+    return 1
+  fi
+  rm -f "$log"
+}
+
+# 이 레포의 루트를 찾는다 (이 파일 = <루트>/claude/shell/go-functions.zsh).
+# Claude Code 세션 안에서는 %x가 스냅샷 파일을 가리켜 깨지므로(go-madang 주석 참고) install.sh의 힌트로 재시도.
+_go_repo_root() {
+  local root="${${(%):-%x}:A:h}/../.."
+  if [ ! -f "$root/install.sh" ]; then
+    local hint="$HOME/.claude/madang-repo"
+    [ -f "$hint" ] && root="$(cat "$hint")"
+  fi
+  [ -f "$root/install.sh" ] && ( cd "$root" && pwd -P )
+}
+
+# madang 클론을 origin과 비교해 안전하게 최신으로 맞춘다 (#29).
+#   update-madang            점검 → behind면 fast-forward / 갈라졌으면 보존 백업 후 교체(확인 필수) → 심링크 재확인
+#   update-madang --check    판정만. 종료 코드: 0 최신 · 10 뒤처짐 · 11 갈라짐 · 12 미push만 · 20 판정 불가
+update-madang() {
+  local root; root="$(_go_repo_root)" || { echo "update-madang: madang 클론을 못 찾았다 — 클론 루트에서 ./install.sh 를 실행했는지 확인." >&2; return 1; }
+  bash "$root/claude/tools/update/update-madang.sh" --repo "$root" "$@"
 }
 
 # 코파일럿 워커용 (2026-08-31 전면 수정 — CLI 1.0.82 기준으로 두 전제가 낡아 있었다)
