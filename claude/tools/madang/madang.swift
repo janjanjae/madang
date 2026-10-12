@@ -193,19 +193,40 @@ let projectRoot = teamDir.deletingLastPathComponent().deletingLastPathComponent(
 let asciiAlnum = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 let sessionsDir: URL = {
     let enc = projectRoot.path.unicodeScalars.map { asciiAlnum.contains($0) ? String($0) : "-" }.joined()
-    return URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".claude/projects/\(enc)")
+    // MADANG_PROJECTS_DIR: 세션 기록 루트 재지정(회귀 픽스처용 — NSHomeDirectory()는 HOME 환경변수를 무시한다)
+    let root = ProcessInfo.processInfo.environment["MADANG_PROJECTS_DIR"]
+        ?? NSHomeDirectory() + "/.claude/projects"
+    return URL(fileURLWithPath: root).appendingPathComponent(enc)
 }()
-var titleCache: [String: String] = [:]   // jsonl 경로 → 세션명
+// 세션명은 이름을 바꾸거나 `-r … -n`으로 재개할 때마다 새 customTitle 레코드로 **덧붙는다** — 처음 값이
+// 아니라 **마지막 값**이 현재 이름이다(리뷰 2번: 처음 값을 캐시하면 탭을 재사용했을 때 옛 주인으로 계속 집계).
+// 기록은 append-only라 처음 한 번만 끝에서 최대 8MB를 훑고, 이후엔 새로 늘어난 부분만 본다.
+var titleCache: [String: (title: String, scanned: UInt64)] = [:]
+let titleKey = "\"customTitle\":\""
+func lastTitle(in data: Data) -> String? {
+    let s = String(decoding: data, as: UTF8.self)
+    guard let r = s.range(of: titleKey, options: .backwards) else { return nil }
+    let t = String(s[r.upperBound...].prefix(while: { $0 != "\"" }))
+    return t.isEmpty ? nil : t
+}
 func sessionTitle(_ url: URL) -> String {
-    if let t = titleCache[url.path] { return t }
-    guard let h = try? FileHandle(forReadingFrom: url) else { return "" }
+    guard let h = try? FileHandle(forReadingFrom: url), let size = try? h.seekToEnd() else { return titleCache[url.path]?.title ?? "" }
     defer { try? h.close() }
-    let head = String(decoding: h.readData(ofLength: 256 * 1024), as: UTF8.self)
     var title = ""
-    if let r = head.range(of: "\"customTitle\":\"") {
-        title = String(head[r.upperBound...].prefix(while: { $0 != "\"" }))
+    var from: UInt64 = 0
+    if let c = titleCache[url.path], size >= c.scanned {
+        if size == c.scanned { return c.title }
+        title = c.title
+        from = c.scanned > 1024 ? c.scanned - 1024 : 0     // 레코드가 경계에 걸린 경우를 위한 겹침
+    } else {
+        // 첫 스캔(또는 파일이 줄었다): 맨 앞 256KB로 시작 제목을 잡고, 끝쪽 최대 8MB의 마지막 값으로 덮는다
+        try? h.seek(toOffset: 0)
+        title = lastTitle(in: h.readData(ofLength: 256 * 1024)) ?? ""
+        from = size > 8 << 20 ? size - (8 << 20) : 0
     }
-    if !title.isEmpty { titleCache[url.path] = title }
+    try? h.seek(toOffset: from)
+    if let t = lastTitle(in: h.readDataToEndOfFile()) { title = t }
+    titleCache[url.path] = (title, size)
     return title
 }
 let isoFmt: ISO8601DateFormatter = { let f = ISO8601DateFormatter(); f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]; return f }()
@@ -234,16 +255,34 @@ func toolInputSummary(_ input: [String: Any]?) -> String {
 
 struct TailScan { let work: Date?; let error: Date?; let summary: String? }
 
-/// 세션 기록 끝부분 128KB에서 "모델이 실제로 산출한 마지막 턴"(텍스트·도구 호출, API 오류 제외)과
+/// 세션 기록 끝부분에서 "모델이 실제로 산출한 마지막 턴"(텍스트·도구 호출, API 오류 제외)과
 /// "마지막 API 오류" 시각, 그리고 그 마지막 턴의 요약을 **한 번의 스캔**으로 함께 뽑는다.
 /// (2026-09-05엔 판정(work/error)과 요약을 별도 함수 2개가 각자 훑어 같은 파일을 최대 3번 읽었다 — 결함 7)
 /// 사용자가 "이어서"를 친 것, 529 Overloaded 같은 오류 턴은 활동이 아니다 (2026-09-03 밤, 번뜩 오판 사례).
+///
+/// 🔴 창이 128KB 고정이면 마지막 줄 하나가 128KB보다 클 때(큰 도구 결과·Write 입력 — 실측 최대 690KB) 창 전체가 그
+/// 줄의 일부라 완결된 assistant 줄이 하나도 없어 work=nil → 방금 일한 워커가 「쉼」으로 보인다(리뷰 1번).
+/// 그래서 **작업 턴을 찾을 때까지 창을 넓히고**(128KB→1MB→4MB→16MB 상한) 상한까지 못 찾으면 없는 것으로 본다.
+/// 같은 크기의 파일은 다시 읽지 않는다(기록은 append-only).
+let tailWindows: [UInt64] = [128 << 10, 1 << 20, 4 << 20, 16 << 20]
+var scanCache: [String: (size: UInt64, scan: TailScan)] = [:]
 func scanTail(_ url: URL) -> TailScan {
     guard let h = try? FileHandle(forReadingFrom: url), let size = try? h.seekToEnd() else { return TailScan(work: nil, error: nil, summary: nil) }
     defer { try? h.close() }
-    let span: UInt64 = 128 * 1024
-    try? h.seek(toOffset: size > span ? size - span : 0)
-    let tail = String(decoding: h.readDataToEndOfFile(), as: UTF8.self)
+    if let c = scanCache[url.path], c.size == size { return c.scan }
+    var result = TailScan(work: nil, error: nil, summary: nil)
+    for span in tailWindows {
+        let start = size > span ? size - span : 0
+        try? h.seek(toOffset: start)
+        result = scanWindow(h.readDataToEndOfFile())
+        if result.work != nil || start == 0 { break }
+    }
+    scanCache[url.path] = (size, result)
+    return result
+}
+/// 한 창(창 첫 줄은 잘려 있을 수 있어 JSON 파싱에 실패하면 건너뛴다) 안에서 마지막 작업 턴·오류·요약을 뽑는다.
+func scanWindow(_ data: Data) -> TailScan {
+    let tail = String(decoding: data, as: UTF8.self)
     var work: Date?, err: Date?, summary: String?
     for line in tail.split(separator: "\n").reversed() {
         guard line.contains("\"type\":\"assistant\""), let d = line.data(using: .utf8),
@@ -852,6 +891,19 @@ final class WorkerController: NSObject {
 }
 
 // MARK: - 실행
+
+// `madang <팀 디렉토리> --probe` — GUI 없이 인스턴스별 상태·마지막 작업 턴·요약을 탭 구분 한 줄씩 출력하고 끝낸다.
+// 큰 줄·이름 변경 같은 세션 기록 판정을 픽스처로 검증하기 위한 진단 모드(실제 오버레이는 건드리지 않는다).
+if CommandLine.arguments.dropFirst(2).contains("--probe") {
+    let f = ISO8601DateFormatter()
+    print("# sessionsDir=\(sessionsDir.path) exists=\(FileManager.default.fileExists(atPath: sessionsDir.path))")
+    for inst in discoverInstances() {
+        let a = lastSessionActivity(inst), s = snapshot(inst)
+        print([inst.key, "state=\(s.state)", "work=\(a.work.map { f.string(from: $0) } ?? "-")",
+               "error=\(a.error.map { f.string(from: $0) } ?? "-")", "summary=\(a.summary ?? "-")"].joined(separator: "\t"))
+    }
+    exit(0)
+}
 
 let app = NSApplication.shared
 app.setActivationPolicy(.accessory)
