@@ -68,7 +68,9 @@ mkdir -p .claude/team/briefs .claude/team/confirm .claude/team/reports
 - `confirm/` — 컨펌 신호(request/reply) 교환
 - `reports/` — 팀원별 보고 파일 (팀원 세션이 기력회복 시 읽는 자리)
 
-> 애든덤(`.claude/team/agents/`)·프로젝트 트래커 설정(`.claude/team/tracker-config.md`)은 필요 시점에 생성 — 부트스트랩 단계에서 강제하지 않는다.
+> 애든덤(`.claude/team/agents/`)은 필요 시점에 생성 — 부트스트랩 단계에서 강제하지 않는다.
+
+**트래커 설정(`.claude/team/tracker-config.md`)은 없으면 여기서 한 번 묻고 만든다** (#28 — 「필요 시점에 생성」으로 두었더니 그 시점을 감지하는 주체가 없어 프로젝트 끝까지 안 만들어졌다). 타입(`github`/`notion`/`local`/`jira`)을 1회 질문하고, **`git remote`에 GitHub URL이 있으면 기본값은 `github`**. 템플릿은 `issue-fetch/tracker-config.template.md` — 고른 타입 절만 남기고 채운다. 이미 있으면 건드리지 않는다. (팀장 활성화 절차 5-3과 같은 규칙 — `teamleader/SKILL.md`.)
 
 **허브 문서 아카이빙 (초기화 전에)**: 기존 TASKS.md/PROGRESS.md에 "대체됨"·"이력 보존" 표시 블록이나 지난 스토리/스프린트 블록이 있으면 `.claude/archive/TASKS-archive.md`·`PROGRESS-archive.md`로 원문 그대로 이동한다 (없으면 생성. 이동분 앞에 `## [YYYY-MM-DD 이동분]` 헤더, 원본 상단에 `> 과거 이력은 .claude/archive/ 참조` 포인터 유지). 요약·재작성 금지 — 순수 이동만. 애매하면 유지. 새 착수 시점이 구 블록이 "지난 것"이 되는 경계라 여기서 정리한다 (세션 중 롤링은 `/checkpoint` 소관).
 

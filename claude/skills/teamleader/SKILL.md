@@ -35,9 +35,15 @@ hooks:
 ## 활성화 절차 (스킬 로드 직후)
 
 1. supporting 파일 읽기: `roster.md`(팀원 명부) · `ways-of-working.md`(운영 규칙) · `model-guide.md`(모델 배분) · `skill-guide.md`(역할별 스킬 매핑)
-2. 프로젝트 상태 읽기: `.claude/TASKS.md` + `.claude/PROGRESS.md` (없으면 /start 또는 planning-and-task-breakdown으로 생성 제안)
+2. 프로젝트 상태 읽기: `.claude/TASKS.md` + `.claude/PROGRESS.md` (없으면 아래 5번 「첫 프로젝트」로)
 3. `git log --oneline -10` + `git status --short`로 최신 상태 교차검증
-4. 운영 모드 확인 (아래) 후 현재 상태·다음 배분안 보고, 지시 대기
+4. 🔑 **옛 브리프 점검 (워커 기동 안내보다 먼저)** — `.claude/team/briefs/*.md`(`.seen` 제외)를 TASKS.md의 현재 배분과 대조한다. 가리키는 태스크가 현재 배분에 없거나, mtime이 TASKS/PROGRESS의 마지막 갱신보다 오래됐으면 **옛 브리프다** — 워커는 기동 즉시 브리프를 읽고 수행하므로 그대로 두면 취소된 일을 한다(2026-10-12 실사고: 취소된 09-15 브리프로 워커 2인이 기동 즉시 엉뚱한 일을 했다). 지우지 말고 `briefs/done-{날짜}-{이름}.md`로 개명해 치우고, 사용자에게 한 줄 보고한다(어느 파일을 왜). 애매하면 사용자에게 묻는다.
+5. **첫 프로젝트·환경 온보딩 — 순서 고정: `/start` → 언어 → tracker-config → 오버레이** (#28·#26). 해당 신호가 없으면 통과(이미 갖춘 환경에서는 한 줄도 말하지 않는다).
+   1. **첫 프로젝트 신호** = 커밋 0개(`git rev-list -n1 HEAD` 실패) 또는 `.claude/`(TASKS·PROGRESS·`team/`) 없음 → **브레인스토밍·배분으로 넘어가지 말고 `/start` 실행을 먼저 안내**한다(스캐폴딩이 없으면 오버레이·브리프·컨펌 경로가 연쇄로 깨진다 — #27).
+   2. **언어**: `~/.claude/settings.json`에 `language`가 없으면 **한 번만** 묻는다(한국어/English 등) → 답을 `language`에 기록하도록 안내한다(`/config` 또는 settings.json 직접 편집 — 사용자 전역 설정이라 팀장이 임의로 쓰지 않는다). 이미 있으면 묻지 않고 그 언어로 응답한다.
+   3. **tracker-config**: `.claude/team/tracker-config.md`가 없으면 타입(`github`/`notion`/`local`/`jira`)을 **한 번 묻고 생성**한다. `git remote`에 GitHub URL이 있으면 기본값 `github`(start SKILL.md와 같은 규칙). 생성 방법·절 구성은 `issue-fetch/tracker-config.template.md` — 고른 타입 절만 남긴다. config가 없으면 issue-add·issue-fetch가 멈추고 백로그가 TASKS.md에 줄줄이 쌓인다.
+   4. **오버레이**: `pgrep -x madang`이 비면 꺼져 있다 → 사용자에게 `! go-madang` 실행을 안내한다(`go-madang`은 사용자 셸 함수라 팀장 세션이 직접 못 띄운다). 떠 있어도 **다른 프로젝트 것일 수 있다** — 오버레이는 한 번에 하나이고 `go-madang`은 현재 프로젝트 기준으로 교체해 띄운다.
+6. 운영 모드 확인 (아래) 후 현재 상태·다음 배분안 보고, 지시 대기
 
 ## 운영 모드 (사용자에게 확인, 기본 = 탭 모드)
 
