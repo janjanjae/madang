@@ -108,10 +108,14 @@ _go_cop_launch() {
   p="$(_go_worker_prompt "$skill" "$kname" "$n")"
   p="${p#/$skill }"                      # 코파일럿은 --agent로 붙이므로 앞의 "/solver " 제거
   printf '%s' "$p" | pbcopy              # -i가 안 먹을 때를 위한 보험
+  # 🔴 --add-dir "$HOME/.copilot" (2026-09-21): 경로 검증이 기본 ON이라 이게 없으면
+  #    세션이 ~/.copilot/**(메모리·세션 스킬)를 못 읽는다 — 실측 확인(Permission denied ↔ 23 lines read).
+  #    --allow-all-paths는 쓰지 않는다(작업트리 제약을 살려야 한다).
   copilot --agent "$skill" --model "${GO_MODEL:-claude-sonnet-5}" \
+          --add-dir "$HOME/.copilot" \
           "${autoflags[@]}" -n "$(_go_emoji "$skill")${kname}${n} $(date +%m%d)" -i "$p"
 }
 go-solver-cop()      { _go_cop_launch solver 번뜩 "$1"; }
 go-builder-cop()   { _go_cop_launch builder 몽글 "$1"; }
 go-sketcher-cop()    { _go_cop_launch sketcher 슥슥 "$1"; }
-go-narrator-cop()   { copilot --agent narrator --model "${GO_MODEL:-claude-sonnet-5}" -n "$(_go_emoji narrator)조잘 $(date +%m%d)"; }
+go-narrator-cop()   { copilot --agent narrator --model "${GO_MODEL:-claude-sonnet-5}" --add-dir "$HOME/.copilot" -n "$(_go_emoji narrator)조잘 $(date +%m%d)"; }

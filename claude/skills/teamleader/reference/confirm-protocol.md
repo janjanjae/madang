@@ -28,8 +28,10 @@ f=".claude/team/confirm/{인스턴스명}.reply.md"; for i in $(seq 1 120); do [
 
 - `APPROVE` → 커밋 → 보고 파일 갱신 → 신호 파일 2개 삭제 → **reply에 `NEXT:` 브리프가 있으면 바로 착수**(새 사이클), 없으면 **아래 브리프 폴 루프를 지금 이 자리에서 다시 `run_in_background: true`로 실행**(⚠️ "브리프 대기"는 상태가 아니라 이 커맨드를 실행하는 행동이다 — 리스너 없이 그냥 멈추지 마라):
   ```bash
-  b=".claude/team/briefs/{인스턴스명}.md"; h=$(md5 -q "$b" 2>/dev/null||md5sum "$b"|cut -d' ' -f1); for i in $(seq 1 240); do n=$(md5 -q "$b" 2>/dev/null||md5sum "$b"|cut -d' ' -f1); [ "$n" != "$h" ] && exit 0; sleep 15; done; exit 1
+  b=".claude/team/briefs/{인스턴스명}.md"; s=".claude/team/briefs/.{인스턴스명}.seen"; for i in $(seq 1 240); do n=$(md5 -q "$b" 2>/dev/null||md5sum "$b"|cut -d' ' -f1); [ "$n" != "$(cat "$s" 2>/dev/null)" ] && exit 0; sleep 15; done; exit 1
   ```
+  - 🔴 **기준 해시 = 루프 시작 시점이 아니라 「마지막으로 읽은 브리프」 (2026-09-15 교체).** 워커는 브리프를 **읽는 순간** `md5 -q "$b" > "$s"`로 `.{인스턴스명}.seen`을 갱신한다. 루프는 현재 md5가 seen과 다르면 **즉시** exit 0 — 워커가 reply 처리·커밋 중에 새 브리프가 써져도 루프를 거는 순간 깨어난다. seen 파일이 없으면 곧바로 깨어나 브리프를 읽는다(끝난 태스크면 seen만 쓰고 다시 대기).
+  - **실사고(2026-09-15)**: 옛 명령은 루프 시작 시점 md5를 기준으로 삼아, APPROVE 뒤 워커가 커밋하는 사이 팀장이 쓴 브리프를 **세 번**(31분·41분·17분) 놓쳤다. 팀장 규칙(「NEXT 없는 APPROVE 뒤 브리프는 재무장 후에」)은 매번 사람이 타이밍을 맞춰야 해서 지켜지지 않았다 — 경합은 규칙이 아니라 명령으로 없앤다.
 - `FIX` → 신호 파일 2개 삭제 → 보완 → 재검증 → 새 request로 재요청
 - exit 1(30분 타임아웃) → 채팅에 "컨펌 대기 중" 상태를 알리고 감시 재시작하되, **연속 타임아웃마다 감시 시간을 2배로**(30분→1시간→2시간, 최대 4시간 — `seq` 상한을 240/480/960으로) 늘려 자리 비움 시 공회전을 막는다. 사용자가 채팅으로 직접 컨펌을 줘도 동일하게 처리(수동 fallback 호환).
 
@@ -43,7 +45,7 @@ f=".claude/team/confirm/{인스턴스명}.reply.md"; for i in $(seq 1 120); do [
 ```bash
 # ⚠️ zsh는 매칭 없는 글롭이 fatal("no matches found") — 반드시 find 기반으로 (bash 글롭 금지)
 # ⚠️ 감지 결과를 변수로 받아 바깥에서 판단한다 — while 안에서 exit 하면 서브셸만 죽는다(아래 참조)
-for i in $(seq 1 240); do f=$(find .claude/team/confirm -name "*.request.md" 2>/dev/null | while read -r x; do [ ! -f "${x%.request.md}.reply.md" ] && echo "$x"; done | head -1); if [ -n "$f" ]; then echo "$f"; exit 0; fi; sleep 15; done; exit 1
+for i in $(seq 1 240); do f=$(find .claude/team/confirm -maxdepth 1 -name "*.request.md" 2>/dev/null | while read -r x; do [ ! -f "${x%.request.md}.reply.md" ] && echo "$x"; done | head -1); if [ -n "$f" ]; then echo "$f"; exit 0; fi; sleep 15; done; exit 1
 ```
 
 🔴 **감시 판정을 `[ ! -f reply ]`(reply 파일 없음)로만 쓰지 마라 — 두 번째 사이클을 통째로 놓친다 (2026-09-03 실사고).**
@@ -68,7 +70,7 @@ if [ ! -f "$r" ] || [ "$x" -nt "$r" ]; then ...
 🔴 「이것만은」 10의 점검 명령도 같은 버그가 있었다 → **아래 형태로 쓴다**:
 
 ```bash
-find .claude/team/confirm -name "*.request.md" | while read -r x; do
+find .claude/team/confirm -maxdepth 1 -name "*.request.md" | while read -r x; do
   r="${x%.request.md}.reply.md"
   { [ ! -f "$r" ] || [ "$x" -nt "$r" ]; } && echo "🔴 미처리: $x"
 done
@@ -201,7 +203,7 @@ done
 탭당 1회, 사람이 입력한다. 그 뒤 브리프 전달은 파일 폴링으로 자동.
 
 ```
-너는 {몽글}이다(인스턴스: {builder}). /builder 기력회복 후: ① .claude/team/briefs/{builder}.md 읽고 그 브리프만 수행 ② 완료 후, 브리프 파일 md5가 바뀌면 exit하는 폴 루프를 반드시 run_in_background(백그라운드)로 실행 — 절대 포그라운드로 read하며 기다리지 말 것. harness가 파일 변경 시에만 너를 깨운다. 깨어나면 브리프 다시 읽고 수행. 반복.
+너는 {몽글}이다(인스턴스: {builder}). /builder 기력회복 후: ① .claude/team/briefs/{builder}.md 읽고(읽는 순간 `md5 -q` 결과를 .claude/team/briefs/.{builder}.seen에 기록) 그 브리프만 수행 ② 완료 후, 브리프 md5가 seen과 다르면 exit하는 폴 루프(confirm-protocol의 명령)를 반드시 run_in_background(백그라운드)로 실행 — 절대 포그라운드로 read하며 기다리지 말 것. harness가 파일 변경 시에만 너를 깨운다. 깨어나면 브리프 다시 읽고 수행. 반복.
 ```
 
 - 포그라운드 read 루프 금지 이유: 매 사이클 LLM이 재engage돼 토큰을 태운다(2026-07-14 실측). 백그라운드면 sleep 중 토큰 0.

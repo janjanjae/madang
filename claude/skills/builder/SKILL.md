@@ -48,8 +48,9 @@ hooks:
 - 깨어나면 브리프 다시 읽고 수행. 반복. → **사람 개입은 탭 시작 프롬프트(`/builder`) 1회뿐.**
 - 폴 루프 예시(`run_in_background: true`로 실행, 인스턴스명 치환):
   ```bash
-  b=".claude/team/briefs/builder.md"; h=$(md5 -q "$b" 2>/dev/null||md5sum "$b"|cut -d' ' -f1); for i in $(seq 1 240); do n=$(md5 -q "$b" 2>/dev/null||md5sum "$b"|cut -d' ' -f1); [ "$n" != "$h" ] && exit 0; sleep 15; done; exit 1
+  b=".claude/team/briefs/builder.md"; s=".claude/team/briefs/.builder.seen"; for i in $(seq 1 240); do n=$(md5 -q "$b" 2>/dev/null||md5sum "$b"|cut -d' ' -f1); [ "$n" != "$(cat "$s" 2>/dev/null)" ] && exit 0; sleep 15; done; exit 1
   ```
+  - 브리프를 **읽는 순간** `md5 -q "$b" > "$s"`로 seen을 갱신한다(병렬 인스턴스는 인스턴스명으로 경로 치환). seen이 없으면 루프가 곧바로 깨어나 브리프를 읽는다 — 끝난 태스크면 seen만 쓰고 다시 대기. 근거: 루프 시작 시점 md5를 기준으로 삼으면 워커가 커밋하는 사이 쓰인 브리프를 영원히 못 본다.
 - ⚠️ 코파일럿 워커는 윈도우 25분 이하(`seq 1 100`)로, 타임아웃 시 백오프 없이 즉시 재무장(세션 idle 정리 방지). 멈추면 "이어서"로 재개.
 
 ## 세션 수명주기 (참고)

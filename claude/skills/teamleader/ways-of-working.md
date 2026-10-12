@@ -35,7 +35,7 @@
    rebase를 지시할 때 이 확인을 함께 지시. **`DB Migration Guard`를 믿지 마라**(낡은 base로 돈다) → 머지 제안 시 `git merge-base --is-ancestor origin/main {브랜치}`가 false면 **"Update branch 누르세요"** 안내 + 재대조. 적용된 마이그레이션 파일명 변경 금지(재실행됨) → `up`/`down` 멱등성 확인. 상세는 `db-migration-order-check` 스킬 — **팀장 사전 대조 → 워커 수정** 순서.
 10. 🔴 **사용자와의 대화 턴을 시작할 때마다 `confirm/*.request.md`부터 확인한다.** 감시 루프는 보조 수단(세션 교체·압축·몰입으로 끊긴다). 워커 유휴는 토큰이 아니라 팀장이 만든다.
     ```bash
-    find .claude/team/confirm -name "*.request.md" | while read -r x; do [ ! -f "${x%.request.md}.reply.md" ] && echo "🔴 미처리: $x"; done
+    find .claude/team/confirm -maxdepth 1 -name "*.request.md" | while read -r x; do [ ! -f "${x%.request.md}.reply.md" ] && echo "🔴 미처리: $x"; done
     ```
 11. 🔴 **머지·cherry-pick 리허설은 `typecheck`까지 돌려야 끝난다.** "충돌 0"은 텍스트 결과일 뿐 동작 보장이 아니다.
     ```bash
@@ -92,6 +92,7 @@
 - 브리프는 **자기완결**: "PROGRESS.md+TASKS.md 읽고 Task N만 하고 멈춰" + 범위·AC·검증 방법·권장 모델(프로바이더 포함).
 - 🔴 **브리프·reply·허브 문서는 절대경로로 써라** (2026-09-05). 팀장 Bash의 cwd는 턴 사이에 유지된다 — 스크린샷 폴더로 `cd`한 뒤 상대경로로 쓰면 조용히 실패하거나 엉뚱한 곳에 생긴다 → `/{repo}/.claude/team/briefs/{인스턴스}.md` 전체 경로.
 - 🔴 **NEXT 없이 APPROVE만 보냈다면, 다음 브리프는 워커가 브리프 폴링을 재무장한 뒤(보고 갱신·신호 삭제 확인 후)에 써라** (2026-09-05). 재무장 전에 쓰면 워커의 md5 기준선이 이미 새 내용이라 **영원히 감지되지 않는다** — 「이것만은」 2의 일반형.
+  - ↪ **2026-09-15부터 폴 명령 자체가 이 경합을 없앤다** — 기준 = 마지막으로 읽은 브리프 md5(`briefs/.{인스턴스}.seen`, `reference/confirm-protocol.md`). 새 명령으로 기동한 세션에는 이 타이밍 규칙이 필요 없고, **옛 명령으로 떠 있는 세션에만** 계속 지킨다.
 - **머리 = 작업 지시 5요소 고정 헤더** (2026-08-27). 모르는 값은 지어내지 말고 **`TBD`**(워커가 확인 후 채움) — 환각 차단의 가장 싼 장치. 기존 규격(AC 실제값·스모크·재사용 후보·모델)은 헤더 아래에.
   ```
   [목표] 바뀐 뒤의 상태 한 문장 ("X를 구현"이 아니라 "…일 때 …가 …이다")
@@ -129,7 +130,7 @@
 - **DB 마이그레이션 파일 생성 시 `db-migration-order-check` 스킬 필수**(pull 직후·PR 전·merge 직전). **이미 적용된 마이그레이션은 절대 리네임 금지.**
 - **자기 파일 경로만 `git add`**(`git add -A` 금지). 커밋 전 테스트/빌드/린트 필수, 실패 상태 커밋 금지.
 - **도구 출력은 읽기 전에 줄여라**: `pnpm nx test`·`build`·`lint`를 날것으로 싣지 마라 → 실패·요약 파이프(`2>&1 | grep -E 'FAIL|✕|●|Tests:|error TS' | head -60`, 완성 명령은 `_local-runtime.md` "출력 축소" 절), 통과 시 `Tests: N passed` 한 줄. 파일은 함수·범위 지정 읽기. `[기계]` 증거도 **발췌**(로그 전문 금지).
-- **커밋 전 컨펌 필수**: 간략 테스트 플랜을 담은 컨펌 요청 → APPROVE 후 커밋. 예외는 브리프에 **"컨펌 생략"** 명시(순수 리팩터·테스트 코드·문서)뿐.
+- **커밋 전 컨펌 필수**: 간략 테스트 플랜을 담은 컨펌 요청 → APPROVE 후 커밋. 예외는 브리프에 **"컨펌 생략"** 명시(순수 리팩터·테스트 코드·문서)뿐. 🔴 단 커밋 게이트 훅(`gate-commit.sh`)은 `confirm/{인스턴스}.reply.md`(APPROVE) 또는 `confirm/commit-waiver-{인스턴스}`가 없으면 커밋을 막는다 — "컨펌 생략" 브리프를 쓸 땐 **팀장이 waiver(또는 APPROVE reply)를 같은 턴에 같이 놓는다**(2026-10-01 S57: 키만 받아 커밋하는 브리프에서 워커가 BLOCKED).
 - **백엔드 수정 시 서버 재시작은 팀원이**: `lsof -nP -iTCP:8080 -sTCP:LISTEN`으로 PID 찾아 그것만 kill. `pkill node` 류 광범위 킬 금지. 기존 프로젝트로 테스트 불가한 변경은 테스트 플랜에 제약 명시.
 - **커밋 메시지: 한글, Conventional Commits + Jira 티켓 번호.** `Co-Authored-By` 금지 · PR body Claude Code 태그 금지 · 머지 커밋에도 워커 이름 금지(무엇을 합쳤는지 + 티켓만) · `.claude/**` 경로 금지(스크린샷은 GitHub 직접 첨부 또는 텍스트). **프로젝트 첫 투입 시 `git config user.email` 확인** — squash 머지는 author가 다르면 `Co-authored-by`를 자동 생성해 개인 이메일이 회사 main에 박힌다.
 - **PR 본문 `## Test Plan` = "Preview에서 리뷰어가 밟을 액션 → 기대 결과" 전용.** 제외: CI가 하는 검증 · 로컬 전용 데이터 · UI 액션이 아닌 것. 체크박스는 빈 채로. 팀장은 브리프에 이 목적과 배제 기준을 반드시 싣는다("체크리스트 필수"만 쓰면 자동검증 결과가 들어온다).
