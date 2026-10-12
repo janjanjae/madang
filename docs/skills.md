@@ -9,12 +9,12 @@
 
 | 스킬 | 역할 | 호출 주체 | 호출 시점 | 읽기 | 쓰기 |
 |---|---|---|---|---|---|
-| `/teamleader` | 팀장 모드 활성화 — 배분·검증·허브 문서 단일 작성자 | 사용자 (`go-teamleader`가 대신 침) | 세션 시작 | `TASKS.md` `PROGRESS.md` `git log` `.claude/team/{briefs,reports,confirm}/` | 활성화 자체는 없음. 이후 `briefs/*.md` `confirm/*.reply.md` 허브 문서 |
+| `/teamleader` | 팀장 모드 활성화 — 배분·검증·허브 문서 단일 작성자 | 사용자 (`go-teamleader`가 대신 침) | 세션 시작 | `TASKS.md` `PROGRESS.md` `git log` `.claude/team/{briefs,reports,confirm}/` `team-context status --check`(팀 문서 동기화 점검) | 활성화 자체는 없음. 이후 `briefs/*.md` `confirm/*.reply.md` 허브 문서 |
 | `/start` | 착수 오케스트레이션 — Phase 설계·브리프 초안·PROGRESS 초기화·**프로젝트 스캐폴딩** | 사용자 | 새 프로젝트 첫 투입, 새 스토리/에픽 착수마다 | 트래커(타입별), `tracker-config.md` | `.claude/team/{briefs,confirm,reports}/` `tracker-config.md`(없을 때) `PROGRESS.md` `TASKS.md` |
 | `/issue-fetch` | 이슈를 트래커에서 **1회 조회**해 로컬 캐시 생성(읽기 전용) | 스킬 내부(`/start` Step 1) · 단독 호출은 캐시 갱신 때만 | 착수 직전 | 트래커 | `.claude/stories/{번호}.md` |
 | `/issue-refine` | **착수 전**: 이슈 구체화·크기 판단·분할 / **완료 후**: 구현 기록 | 팀장 | 착수 전 · PR 머지 뒤 | `.claude/stories/` 캐시, 트래커 | 트래커(본문·코멘트). github 타입은 이슈를 **닫지 않는다** |
 | `/issue-add` | 개발 중 발견한 버그·아이디어를 즉시 등록 | 팀장 (사용자도 가능) | 작업 중 발견한 순간 | `tracker-config.md` | 트래커 이슈 1건 (또는 개인 인박스 — 아래 「백로그 규칙」) |
-| `/checkpoint` | `PROGRESS.md` 현행화 + 롤링(최신+직전 1개만 유지) | 팀장 | 컨텍스트가 찰 때 · 세션 종료 | 이번 세션 작업, `TASKS.md` | `PROGRESS.md` `TASKS.md` 체크박스 `.claude/archive/` |
+| `/checkpoint` | `PROGRESS.md` 현행화 + 롤링(최신+직전 1개만 유지) + 기기 이동 시 팀 문서 push | 팀장 | 컨텍스트가 찰 때 · 세션 종료 · 다른 기기로 이어갈 때 | 이번 세션 작업, `TASKS.md`, `team-context status` | `PROGRESS.md` `TASKS.md` 체크박스 `.claude/archive/` · (이어갈 때) 비공개 팀 문서 레포 |
 | `/progress` | 전체 상태 브리핑 (읽기 전용) | 사용자가 상태를 물을 때 | 수시 | `PROGRESS.md` `TASKS.md` | 없음 |
 | `/skill-audit` | 스킬·에이전트 인벤토리 점검 → 유지/폐기 판정 | 사용자 | 월 1회 · 스프린트 종료 성찰 | 스킬 디렉토리 전수, 사용자 홈의 레지스트리 | 사용자 홈의 레지스트리 (레포 커밋 대상 아님) |
 
@@ -26,6 +26,8 @@
 | `/solver` | 번뜩 — 어려운 문제 하나를 끝까지(깊이) | 사용자 (워커 탭에서 1회) | 위와 동일 | 위와 동일 |
 | `/sketcher` | 슥슥 — UX/UI 프로토타입, 격리 브랜치 | 사용자 (워커 탭에서 1회) | 위와 동일 | 프로토타입 브랜치 코드·문서 |
 | `/narrator` | 조잘 — 비개발자용 쉬운 설명. **읽기 전용** | 사용자 | `.claude/team/` 문서, 코드 변경 | 없음 |
+
+> **기기를 옮길 때**: 팀장 활성화가 `team-context status --check`로 팀 문서가 원격보다 낡았는지 보고("pull 먼저"), `/checkpoint`가 이어갈 때 코드 wip push와 함께 팀 문서를 비공개 레포로 올린다. 비공개 레포는 사용자 설정값이다.
 
 워커는 기동 뒤 사람이 다시 개입하지 않는다 — 팀장이 `briefs/{이름}.md`를 쓰면 파일 변경으로 깨어나 수행하고, 끝나면 `confirm/{이름}.request.md`로 컨펌을 요청한다. 허브 문서(`TASKS.md` `PROGRESS.md`)는 워커가 수정하지 않는다.
 
