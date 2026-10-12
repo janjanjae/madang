@@ -237,12 +237,22 @@ cmd_init() {
   return 0
 }
 
+# 분기(12)로 push·pull을 거부할 때 붙이는 출구 안내 — 안내만 한다, 아무것도 자동 실행하지 않는다.
+diverged_exit_help() {
+  if [ "$DIRTY" -gt 0 ]; then
+    err "  ↳ 미커밋 ${DIRTY}건: $CLONE 의 해당 파일을 다른 곳에 복사해 두고(git stash 대신 파일 복사 권장) 되돌린 뒤 team-context pull → 복사해 둔 내용을 다시 반영한다"
+  fi
+  if [ "$AHEAD" -gt 0 ]; then
+    err "  ↳ 로컬 커밋 ${AHEAD}건: 어느 쪽을 살릴지 사람이 정한다 — 자동 병합 안 함"
+  fi
+}
+
 cmd_push() {
   judge
   case "$STATE" in noconfig|unlinked|offline|error) err "$MSG"; return "$CODE" ;; esac
   case "$STATE" in
     behind)   err "원격이 앞선다 — 먼저 team-context pull"; return 10 ;;
-    diverged) err "$MSG"; return 12 ;;
+    diverged) err "$MSG"; diverged_exit_help; return 12 ;;
     current)  say "변경 없음 — push할 것이 없다"; return 0 ;;
   esac
   if [ "$DIRTY" -gt 0 ]; then
@@ -260,7 +270,7 @@ cmd_pull() {
   judge
   case "$STATE" in noconfig|unlinked|offline|error) err "$MSG"; return "$CODE" ;; esac
   case "$STATE" in
-    diverged) err "$MSG"; return 12 ;;
+    diverged) err "$MSG"; diverged_exit_help; return 12 ;;
     ahead)    say "로컬이 앞선다 — pull할 것이 없다 (team-context push)"; return 0 ;;
     current)  say "이미 최신"; return 0 ;;
   esac

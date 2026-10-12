@@ -162,7 +162,18 @@ echo "local edit" > "$APP/.claude/team/local-2.md"
 eq "status --check exit" "$(TCRC "$APP" status --check)" 12
 eq "push 거부" "$(TCRC "$APP" push)" 12
 eq "pull 거부" "$(TCRC "$APP" pull)" 12
+OUT="$(TCR "$APP" push)"; has "push 거부 메시지에 출구 안내(미커밋)" "$OUT" "파일 복사 권장"
+OUT="$(TCR "$APP" pull)"; has "pull 거부 메시지에 출구 안내(미커밋)" "$OUT" "복사해 둔 내용을 다시 반영"
+hasnt "미커밋만이면 로컬 커밋 안내는 없다" "$OUT" "어느 쪽을 살릴지"
 eq "거부 후 로컬 변경 보존" "$(cat "$APP/.claude/team/local-2.md")" "local edit"
+
+echo "== 5b. 분기 — 로컬 커밋이 있는 경우 안내 =="
+CG() { git -C "$BASE/projx" "$@"; }
+rm -f "$APP/.claude/team/local-2.md"; echo "committed local" > "$APP/.claude/team/local-3.md"
+CG add -A && rec "$BASE/projx" -qm "local commit"
+OUT="$(TCR "$APP" push)"; eq "분기 push exit" "$(TCRC "$APP" push)" 12
+has "로컬 커밋 안내" "$OUT" "어느 쪽을 살릴지 사람이 정한다 — 자동 병합 안 함"
+hasnt "미커밋 없으면 파일 복사 안내 없음" "$OUT" "파일 복사 권장"
 
 # ── 6. 미연결 21 / 판정 불가 22 ──────────────────────────────────────────
 echo "== 6. 이 프로젝트 미연결 → 21 / 원격 접근 불가 → 22 =="
