@@ -47,9 +47,19 @@ _go_emoji() {
 go-solver()    { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji solver)번뜩${1} $(date +%m%d)$(_go_brief_tag solver${1})" "$(_go_worker_prompt solver 번뜩 "$1")"; }
 go-builder() { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji builder)몽글${1} $(date +%m%d)$(_go_brief_tag builder${1})" "$(_go_worker_prompt builder 몽글 "$1")"; }
 go-sketcher()  { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji sketcher)슥슥${1} $(date +%m%d)$(_go_brief_tag sketcher${1})" "$(_go_worker_prompt sketcher 슥슥 "$1")"; }
+# 오버레이 자동 기동 (#26): 팀장 세션을 열 때 오버레이가 안 떠 있으면 띄운다 — 안내가 아니라 기본 동작.
+#   - 이미 떠 있으면 건너뛴다: go-madang은 pkill 후 재기동이라, 다른 프로젝트를 보던 오버레이를 죽이게 된다.
+#   - 실패해도(briefs/ 없음·빌드 실패 등) 팀장 세션 기동은 막지 않는다. 사유는 go-madang이 이미 출력했다.
+_go_overlay_autostart() {
+  pgrep -x madang >/dev/null 2>&1 && return 0
+  go-madang || echo "go-teamleader: 오버레이는 못 띄웠다(위 사유 참고) — 팀장 세션은 그대로 연다. 나중에 직접: go-madang" >&2
+  return 0
+}
+
 go-teamleader() {
   # 개인 동기화 스크립트가 PATH에 있으면 기동 전 pull — 없으면 건너뜀
   command -v work-sync >/dev/null 2>&1 && work-sync pull
+  _go_overlay_autostart
   claude --model "${GO_MODEL:-opus}" -n "$(_go_emoji teamleader)팀장 $(date +%m%d)" "/teamleader"
 }
 go-narrator()   { claude --model "${GO_MODEL:-sonnet}" -n "$(_go_emoji narrator)조잘 $(date +%m%d)" "/narrator"; }
