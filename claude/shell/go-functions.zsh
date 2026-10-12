@@ -123,6 +123,16 @@ update-madang() {
   bash "$root/claude/tools/update/update-madang.sh" --repo "$root" "$@"
 }
 
+# 프로젝트의 팀 문서(.claude/ 의 TASKS·PROGRESS·team/·archive/)를 비공개 레포의 프로젝트별 브랜치로 기기 간 동기화 (#30).
+# 앱 레포 안에서 실행한다(스킬이 `command -v team-context`로 존재를 확인한다).
+#   team-context status [--check]   판정 + 바뀐 파일 목록. 종료 코드: 0 동기화 · 10 원격 앞섬 · 11 로컬 앞섬 · 12 분기 · 20 설정 없음 · 21 미연결 · 22 판정 불가
+#   team-context init [--yes]       연결(원격 브랜치가 있으면 clone, 없으면 현재 문서로 생성) — 실파일은 .claude/.pre-link-<시각>/ 로 이동
+#   team-context push | pull        올리기 / 내려받기(ff-only)
+team-context() {
+  local root; root="$(_go_repo_root)" || { echo "team-context: madang 클론을 못 찾았다 — 클론 루트에서 ./install.sh 를 실행했는지 확인." >&2; return 1; }
+  bash "$root/claude/tools/team-context/team-context.sh" "$@"
+}
+
 # 코파일럿 워커용 (2026-08-31 전면 수정 — CLI 1.0.82 기준으로 두 전제가 낡아 있었다)
 #
 #   ① 프롬프트: 예전 주석은 "인터랙티브 모드에 초기 프롬프트 인자가 없다"였으나 지금은 `-i <prompt>`가
