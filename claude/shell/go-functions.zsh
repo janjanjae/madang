@@ -70,9 +70,28 @@ go-madang() {
       return 1
     fi
   fi
+  local watch="${1:-$PWD/.claude/team}"
+  # #27: 예전엔 stderr를 /dev/null로 버려 briefs/ 가 없으면 아무 말 없이 종료했다.
+  # 오버레이 바이너리의 같은 검사를 여기서 먼저 하고, 기동 중이던 오버레이는 건드리지 않는다.
+  if [ ! -d "$watch/briefs" ]; then
+    echo "go-madang: $watch/briefs 가 없다 — 이 프로젝트는 아직 팀 스캐폴딩 전이다." >&2
+    echo "           Claude 세션에서 /start 로 스캐폴딩한 뒤 다시 실행하세요." >&2
+    return 1
+  fi
   [ -x "$dir/madang" ] || "$dir/build.sh" || return 1
   pkill -x madang 2>/dev/null
-  "$dir/madang" "${1:-$PWD/.claude/team}" >/dev/null 2>&1 &!
+  # 출력은 잠깐 파일로 받아 두고, 1초 안에 죽으면 그 내용을 터미널에 보인다(살아 있으면 버린다).
+  local log; log="$(mktemp -t go-madang.XXXXXX)"
+  "$dir/madang" "$watch" >"$log" 2>&1 &!
+  local pid=$!
+  sleep 1
+  if ! kill -0 "$pid" 2>/dev/null; then
+    echo "go-madang: 오버레이가 시작 직후 종료됐다. 출력:" >&2
+    sed 's/^/  | /' "$log" >&2
+    rm -f "$log"
+    return 1
+  fi
+  rm -f "$log"
 }
 
 # 이 레포의 루트를 찾는다 (이 파일 = <루트>/claude/shell/go-functions.zsh).

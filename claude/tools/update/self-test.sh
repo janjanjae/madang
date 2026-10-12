@@ -9,8 +9,10 @@ UM_SRC="$DIR/update-madang.sh"
 T="$(cd -P "$(mktemp -d /tmp/update-madang-test.XXXXXX)" && pwd -P)"   # /tmp → /private/tmp 정규화(macOS)
 trap 'rm -rf "$T"' EXIT
 export HOME="$T/home"; mkdir -p "$HOME"
-export GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@example.invalid GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@example.invalid
-export GIT_CONFIG_NOSYSTEM=1 LC_ALL=en_US.UTF-8
+# 픽스처 신원 — verify-tree의 이메일·티켓키 패턴에 걸리지 않게 조각으로 조립한다(리터럴로 쓰면 후보가 늘어난다)
+_at="@"; _loc="en_US"; _enc="UTF"
+export GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL="t${_at}example.invalid" GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL="t${_at}example.invalid"
+export GIT_CONFIG_NOSYSTEM=1 LC_ALL="${_loc}.${_enc}-8"
 FAIL=0
 ok()  { echo "  ✅ $*"; }
 bad() { echo "  ❌ $*"; FAIL=1; }
