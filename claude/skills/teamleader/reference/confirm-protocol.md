@@ -163,7 +163,7 @@ while true; do
       k="$n@$(md5 -q "$f" 2>/dev/null)"        # md5로 같은 요청 중복 알림 방지
       case "$seen" in *"|$k|"*) ;; *) echo "🔔 컨펌 대기: $n  ($(date +%H:%M))"; seen="$seen|$k|";; esac
     fi
-  done < <(find "$C" -name '*.request.md' 2>/dev/null)
+  done < <(find "$C" -maxdepth 1 -name '*.request.md' 2>/dev/null)
   # 2) 유휴 의심 — reports가 25분 이상 정지 + 대기 중인 컨펌 없음
   #    🔴 보고가 **현재 브리프보다 오래됐으면 건너뛴다** — 그건 "노는 중"이 아니라 "아직 기동
   #       안 함"이고, 팀장이 이미 아는 사실이라 알릴 값이 없다. 안 걸러내면 기동 전까지
