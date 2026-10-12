@@ -75,6 +75,25 @@ go-madang() {
   "$dir/madang" "${1:-$PWD/.claude/team}" >/dev/null 2>&1 &!
 }
 
+# 이 레포의 루트를 찾는다 (이 파일 = <루트>/claude/shell/go-functions.zsh).
+# Claude Code 세션 안에서는 %x가 스냅샷 파일을 가리켜 깨지므로(go-madang 주석 참고) install.sh의 힌트로 재시도.
+_go_repo_root() {
+  local root="${${(%):-%x}:A:h}/../.."
+  if [ ! -f "$root/install.sh" ]; then
+    local hint="$HOME/.claude/madang-repo"
+    [ -f "$hint" ] && root="$(cat "$hint")"
+  fi
+  [ -f "$root/install.sh" ] && ( cd "$root" && pwd -P )
+}
+
+# madang 클론을 origin과 비교해 안전하게 최신으로 맞춘다 (#29).
+#   update-madang            점검 → behind면 fast-forward / 갈라졌으면 보존 백업 후 교체(확인 필수) → 심링크 재확인
+#   update-madang --check    판정만. 종료 코드: 0 최신 · 10 뒤처짐 · 11 갈라짐 · 12 미push만 · 20 판정 불가
+update-madang() {
+  local root; root="$(_go_repo_root)" || { echo "update-madang: madang 클론을 못 찾았다 — 클론 루트에서 ./install.sh 를 실행했는지 확인." >&2; return 1; }
+  bash "$root/claude/tools/update/update-madang.sh" --repo "$root" "$@"
+}
+
 # 코파일럿 워커용 (2026-08-31 전면 수정 — CLI 1.0.82 기준으로 두 전제가 낡아 있었다)
 #
 #   ① 프롬프트: 예전 주석은 "인터랙티브 모드에 초기 프롬프트 인자가 없다"였으나 지금은 `-i <prompt>`가

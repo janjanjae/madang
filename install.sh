@@ -4,9 +4,17 @@
 set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# --dry-run: 아무것도 바꾸지 않고 "무엇이 바뀔지"만 출력한다 (update-madang이 확인을 받기 전에 쓴다).
+DRY=0
+case "${1:-}" in
+  --dry-run) DRY=1 ;;
+  "") ;;
+  *) echo "사용: ./install.sh [--dry-run]" >&2; exit 2 ;;
+esac
+
 link() {
   local src="$1" dst="$2"
-  mkdir -p "$(dirname "$dst")"
+  [ "$DRY" = 1 ] || mkdir -p "$(dirname "$dst")"   # --dry-run은 디렉토리도 만들지 않는다
   # 심링크도 백업한다 (2026-09-05) — 자기 dotfiles를 여기에 링크해 둔 사람이
   # 경고 없이 링크를 잃던 결함. 단 이미 이 레포를 가리키면 그대로 둔다(재실행 무해).
   if [ -L "$dst" ]; then
@@ -14,11 +22,24 @@ link() {
       echo "keep   : $dst (이미 이 레포를 가리킨다)"
       return 0
     fi
+    if [ "$DRY" = 1 ]; then
+      echo "would-backup: $dst -> $dst.bak (기존 링크 대상: $(readlink "$dst"))"
+      echo "would-link  : $dst -> $src"
+      return 0
+    fi
     mv "$dst" "$dst.bak"
     echo "backup: $dst -> $dst.bak (기존 링크 대상: $(readlink "$dst.bak"))"
   elif [ -e "$dst" ]; then
+    if [ "$DRY" = 1 ]; then
+      echo "would-backup: $dst -> $dst.bak"
+      echo "would-link  : $dst -> $src"
+      return 0
+    fi
     mv "$dst" "$dst.bak"
     echo "backup: $dst -> $dst.bak"
+  elif [ "$DRY" = 1 ]; then
+    echo "would-link  : $dst -> $src"
+    return 0
   fi
   ln -sfn "$src" "$dst"
   echo "linked : $dst -> $src"
@@ -45,6 +66,16 @@ fi
 # go-madang 레포 위치 힌트 (2026-09-10) — Claude Code 세션은 셸 함수를 스냅샷으로
 # 재정의해 소싱하므로, 그 안에서는 go-functions.zsh 내부의 "%x 기준 상대경로"가 이 레포가
 # 아니라 스냅샷 파일을 가리킨다. 재실행마다 갱신 — 레포를 옮기면 이 파일도 새 경로로 바뀐다.
+if [ "$DRY" = 1 ]; then
+  if [ "$(cat "$HOME/.claude/madang-repo" 2>/dev/null)" = "$REPO" ]; then
+    echo "keep   : $HOME/.claude/madang-repo (이미 이 레포를 가리킨다)"
+  else
+    echo "would-write : $HOME/.claude/madang-repo -> $REPO (현재: $(cat "$HOME/.claude/madang-repo" 2>/dev/null || echo 없음))"
+  fi
+  echo ""
+  echo "(--dry-run: 변경 없음)"
+  exit 0
+fi
 mkdir -p "$HOME/.claude"
 echo "$REPO" > "$HOME/.claude/madang-repo"
 echo "hint   : $HOME/.claude/madang-repo -> $REPO"
