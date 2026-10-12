@@ -45,6 +45,18 @@ argument-hint: "[bug|idea] {한 줄 설명}"
 - **milestone은 붙이지 않는다** — 아래 "기한은 배분 시점에"의 github 판이다
 - **건너뛰는 것**: 스프린트 조회(B3)·issuetype·priority·ADF 절차 (GitHub에 대응물이 없다)
 - **생성 전 인증 확인**: 가드레일은 tracker-config 템플릿 `[타입: github]` 절(SSOT) 참조
+- 🔴 **공개 레포면 생성 전 sanitize 검사** (#6 — 이 스킬은 madang이 아닌 다른 프로젝트에서 돌고, 이슈 본문은 공개된다). 초안(**제목+본문 합쳐서**)을 `check-draft.sh`에 넣는다. 도구 위치는 `~/.claude/madang-repo` 힌트(install.sh가 씀) → 없으면 스킬 심볼릭 링크 원본 순으로 찾는다:
+  ```bash
+  R="$(cat "$HOME/.claude/madang-repo" 2>/dev/null)"
+  [ -x "$R/claude/tools/sanitize/check-draft.sh" ] || R="$(cd "$(dirname "$(readlink "$HOME/.claude/skills/issue-add")")/../.." 2>/dev/null && pwd)"
+  C="$R/claude/tools/sanitize/check-draft.sh"
+  if [ -x "$C" ]; then printf '%s\n\n%s\n' "$TITLE" "$BODY" | "$C" --repo {owner}/{repo}; echo "exit=$?"; else echo "exit=2 (check-draft.sh 위치를 못 찾음)"; fi
+  ```
+  - `exit 0` — 걸린 것 없음(또는 PRIVATE이라 건너뜀): 초안만 제시하고 기존 승인 한 번으로 진행한다.
+  - `exit 1` — 걸린 줄이 있다: **초안 제시와 같은 메시지에** 걸린 줄·축·치환안을 붙이고 **승인 질문은 한 번만** 한다("치환안으로 올릴까요? 원문 그대로 올리려면 말해 주세요"). 원문 그대로 생성은 사용자가 명시했을 때만. 치환안을 쓰면 생성 직전 같은 검사를 한 번 더 돌려 확인한다(질문은 늘리지 않는다).
+  - `exit 2` 또는 도구를 못 찾음 — **"검사 못 함: {사유}"를 초안 제시 메시지에 명시**하고 사용자가 직접 확인하게 한다. **조용히 통과시키지 않는다.**
+  - 공개 여부(`gh repo view {owner}/{repo} --json visibility`)는 스크립트가 읽는다 — PRIVATE이면 검사를 건너뛰고, 판정 실패(네트워크·권한)면 PUBLIC으로 간주한다. 개인 치환표(`replacements.txt`)는 gitignore된 개인 파일이라 없는 환경이 정상이다 — 없으면 일반형 축(도메인·티켓키·메일·토큰·실명·로컬 경로·로컬 계정명)만으로 검사한다.
+- **역할 분리 (공개 이슈에 뭘 쓰나)**: public 이슈에는 **도구 결함과 수정 명세만** 쓴다. 관찰 맥락·증거(어느 프로젝트에서, 무슨 작업 중이었는지)는 private 쪽(마찰 기록·팀 문서)에 두고 이슈에는 "비공개 기록 참조" 정도로만 남긴다 — 검사는 마지막 그물이지 첫 번째 방어선이 아니다.
 - **완료 안내**: 이슈 번호(`#{번호}`) + URL
 
 ---

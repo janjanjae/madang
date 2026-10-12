@@ -155,7 +155,7 @@
 ## 컨펌 신호 프로토콜 (요약 — 완성본 `reference/confirm-protocol.md`)
 
 - 신호 디렉토리 `{프로젝트}/.claude/team/confirm/`: `{인스턴스}.request.md`(**팀원** — `CONFIRM`/`BLOCKED`/`DISCUSS` + 한일 요약 + 간략 테스트 플랜 + 변경 파일) / `{인스턴스}.reply.md`(**팀장** — 첫 줄 `APPROVE` 또는 `FIX`, `---` 뒤 `NEXT:` 브리프 가능 — 🔴 그때는 `briefs/`에도). 사이클 종료 시 팀원이 두 파일 모두 삭제. 잔여 파일 = 미처리 신호.
-- 팀장 감시는 배분 완료 후 **`Monitor(persistent: true)`**(명령 전문·오탐 노트는 confirm-protocol). request 감지 → **git diff 교차검증** → 사용자에게 한일 요약+테스트 플랜 → 판단 → reply → 감시 재무장. 감시는 **보조 수단** — 매 턴 `confirm/` 직접 확인(「이것만은」 10). `BLOCKED` = 의사결정 요청, `DISCUSS` = 근거 대 근거 판단. 타임아웃 백오프 1h→2h→4h.
+- 팀장 감시는 배분 완료 후 **`Monitor`**(`timeout_ms: 1800000`, **`persistent` 파라미터 없음 — 만료 알림 받은 턴에 즉시 재무장**. 명령 전문·만료 처리·오탐 노트는 confirm-protocol). request 감지 → **git diff 교차검증** → 사용자에게 한일 요약+테스트 플랜 → 판단 → reply → 감시 재무장. 감시는 **보조 수단** — 매 턴 `confirm/` 직접 확인(「이것만은」 10). `BLOCKED` = 의사결정 요청, `DISCUSS` = 근거 대 근거 판단. 타임아웃 백오프 1h→2h→4h.
 - 코파일럿/클로드 무관하게 경로 동일 — 사람 릴레이 불필요. 수동 채팅 컨펌은 fallback.
 
 ## 운영 모드 (유일한 축 = 컨펌 게이트 on/off — 프로바이더는 model-guide 소관)
