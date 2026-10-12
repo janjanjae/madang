@@ -55,6 +55,10 @@
 
 `/start` → 언어 설정(`settings.json`의 `language`) → 트래커 타입 선택(`tracker-config.md` — GitHub remote가 있으면 기본 `github`) → 오버레이(`! go-madang`). 팀장이 활성화 때 빠진 단계를 안내한다.
 
+## 공개할 때
+
+private로 쓰다가 공개할 때의 경로 선택·단계·도구는 [`going-public.md`](going-public.md)에 있다(기본은 새 public 레포에 스냅샷 1커밋).
+
 ## 백로그는 어디에
 
 **레포가 없는 아이디어 단계는 개인 인박스에 두고, 레포가 생기면 그 레포의 GitHub Issues로 졸업시킨다.** 문서의 SSOT는 이 레포이고, 외부(노션 등)에는 링크만 둔다 — 두 곳에 같은 내용을 쓰지 않는다.
