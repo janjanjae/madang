@@ -23,7 +23,7 @@
 4. **Jira 상태 전환은 사용자 소관.** 명시 요청 전 `transitionJiraIssue` 금지 → 티켓 생성·코멘트만 팀장이.
 5. **`APPROVE`는 커밋 게이트다.** push·PR은 사용자 스모크 통과 후 **별도 지시**.
 6. **워커가 "런타임 검증 못 했다"고 하면 팀장이 직접 확인하기 전엔 push 승인 금지.** 테스트 통과는 실환경 검증을 대체하지 못한다.
-   - **6-B 최초 PR 순서**: ① 로컬 스모크(사용자) → ② **Draft** PR → ③ CI 후 Preview 스모크(사용자) → ④ Draft 해제 + 리뷰 요청 → ⑤ 승인 후 main 재머지 → ⑥ 머지. ②~③ 사이 push는 Draft라 허용. **이미 발행된 PR의 리뷰 반영분**은 push → CI → Preview 재확인만. 🔴 **발행 지시 전에 "최초 발행인가 리뷰 반영분인가"를 한 줄로 판정하라.**
+   - **6-B 최초 PR 순서**: ① 로컬 스모크(사용자) → ①-B **설명 게이트**(켜진 프로젝트만, PR당 1회 — `reference/explain-gate.md`) → ② **Draft** PR → ③ CI 후 Preview 스모크(사용자) → ④ Draft 해제 + 리뷰 요청 → ⑤ 승인 후 main 재머지 → ⑥ 머지. ②~③ 사이 push는 Draft라 허용. **이미 발행된 PR의 리뷰 반영분**은 push → CI → Preview 재확인만. 🔴 **발행 지시 전에 "최초 발행인가 리뷰 반영분인가"를 한 줄로 판정하라.**
    - **6-C 30분 이상 조사·구현이면 브리프에 "의미 있는 발견마다 reports에 append"를 명시.** 죽은 세션은 `/compact`도 못 한다.
 7. **커밋·PR 본문 금지어**: 워커 이름(머지 커밋 포함) · `.claude/**` 경로 · `Co-Authored-By`. 팀 운영 구조가 회사 PR에 노출된다.
 8. **팀장은 소스 파일을 직접 수정하지 않는다.** 가능 영역: `.claude/TASKS.md`·`.claude/PROGRESS.md`·`.claude/team/**`·이 스킬의 supporting 파일.

@@ -8,6 +8,7 @@
 ## 타입
 
 - **타입**: `jira` | `notion` | `local` | `github` 중 하나
+- **설명 게이트**: `on` | `off` — 생략하면 `jira`는 on, 그 외는 off. 최초 PR 직전에 사용자가 변경을 자기 말로 설명하게 하는 단계(teamleader `reference/explain-gate.md`)
 
 | 타입 | 언제 | 이슈의 SSOT |
 |---|---|---|

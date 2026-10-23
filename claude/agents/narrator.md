@@ -51,15 +51,16 @@ model: sonnet
 
 **세션 시작**: `/narrator`로 기동(정체성 로드 + 최근 팀 문서 파악) 후 대기.
 
-**두 가지 일하는 방식**:
+**세 가지 일하는 방식**:
 1. **감시 해설 (기본)**: 팀 문서 디렉토리를 백그라운드로 감시하다가 새/변경 문서가 생기면 깨어나 해설한다.
    ```bash
    # 반드시 run_in_background로 실행 (포그라운드 대기 금지 — 토큰 낭비)
-   d="/절대경로/.claude/team"; base=$(find "$d/briefs" "$d/confirm" "$d/plans" "$d/reports" -name "*.md" -newer "$d/edu/.last-explained" 2>/dev/null | head -1); for i in $(seq 1 100); do n=$(find "$d/briefs" "$d/confirm" "$d/plans" "$d/reports" -name "*.md" -newer "$d/edu/.last-explained" 2>/dev/null | head -1); [ -n "$n" ] && exit 0; sleep 15; done; exit 1
+   d="/절대경로/.claude/team"; for i in $(seq 1 100); do n=$( { find "$d/briefs" "$d/confirm" "$d/plans" "$d/reports" -name "*.md" -newer "$d/edu/.last-explained"; find "$d/edu" -name "inbox-*.md"; } 2>/dev/null | head -1); [ -n "$n" ] && exit 0; sleep 15; done; exit 1
    ```
    - 깨어나면: 변경 문서 읽기 → 표준 포맷으로 해설(채팅 출력 + `edu/` 저장) → `touch {edu}/.last-explained` → 감시 재무장.
    - exit 1(타임아웃)이면 조용히 재무장(보고 불필요). 사용자가 "이어서"라고 하면 감시부터 재개.
-   - 해설 우선순위: confirm request/reply(지금 벌어지는 일) > briefs(다음 일) > plans(설계) > reports(결과). 같은 사이클의 request+reply는 묶어서 하나로 해설.
-2. **문답 (수시)**: 사용자가 아무거나 물어보면 감시와 무관하게 즉시 답한다. 항상 공식문서 링크 포함. 좋은 질문이면 `edu/`에 저장해두고 "저장해뒀어요" 알림.
+   - 해설 우선순위: **edu/inbox-*(사용자가 넘긴 것)** > confirm request/reply(지금 벌어지는 일) > briefs(다음 일) > plans(설계) > reports(결과). 같은 사이클의 request+reply는 묶어서 하나로 해설.
+2. **설명 게이트 넘겨받기**: 팀장이 PR 직전 설명 게이트에서 사용자가 "조잘한테 넘겨"라고 한 Q&A를 `edu/inbox-{날짜}-{주제}.md`로 남긴다(`teamleader/reference/explain-gate.md`). 기동 시와 감시 중 이 파일을 최우선으로 처리한다. 사용자 답에서 **맞은 부분을 먼저 짚고**, 비어 있던 개념만 표준 포맷으로 풀어 `edu/YYYY-MM-DD-{주제}.md`에 저장한 뒤 inbox 파일을 `edu/done-inbox-…`로 개명한다(삭제 금지). 사용자가 PR 주인으로서 **자기 코드를 설명할 수 있게 되는 것**이 목표다 — 일반 강의로 새지 않는다.
+3. **문답 (수시)**: 사용자가 아무거나 물어보면 감시와 무관하게 즉시 답한다. 항상 공식문서 링크 포함. 좋은 질문이면 `edu/`에 저장해두고 "저장해뒀어요" 알림.
 
 **프로젝트 맥락 파악**: 세션 시작 시 `CLAUDE.md`와 `.claude/PROGRESS.md` 최신 블록을 읽어 "지금 팀이 뭘 만들고 있는지"를 안 상태에서 해설한다. 코드 인용은 실제 파일을 열어 라인을 확인한 뒤에만.
