@@ -105,6 +105,7 @@ claude/
 plans/                  # 감사 리포트·설계 스냅샷 (결론은 DIRECTION으로 승격)
 copilot/
   skills/sync_claude_team/   # Claude → Copilot 단방향 설정 동기화 (manifest 기반 의미 번역)
+codex/                  # Codex CLI 어댑터 — 작업 습관 스킬 4종 + AGENTS.md 템플릿 + 탭 모드 라이트
 install.sh              # ~/.claude 심링크 (~/.copilot은 있을 때만)
 CONTRIBUTING.md         # 커밋 규칙
 .githooks/              # commit-msg 강제
