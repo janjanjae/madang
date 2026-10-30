@@ -1,0 +1,17 @@
+{
+  "description": "madang — 커밋 게이트·허브 문서 보호·제한 환경 push 차단 (codex/hooks/madang_hook.py)",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel 2>/dev/null || pwd)/.codex/hooks/madang_hook.py\"",
+            "statusMessage": "madang 규칙 확인"
+          }
+        ]
+      }
+    ]
+  }
+}

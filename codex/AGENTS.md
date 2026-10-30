@@ -30,6 +30,20 @@
 - 방향을 바꾼 결정은 `plan.md` 하단 "결정 로그"에 시각과 이유 한 줄.
 - 알려진 한계가 있는 지름길은 `shortcut: <한계>, <언제 업그레이드>` 주석.
 
+## 스킬 호출 규칙
+- 계획을 세울 때 → `$planning-and-task-breakdown`
+- 여러 파일에 걸친 구현 → `$incremental-implementation`
+- 같은 에러에 두 번 실패하면 → `$debugging-and-error-recovery` (그래도 안 되면 solver 에이전트)
+- "완료·통과·수정됨"이라고 말하기 직전 → `$verification-before-completion`
+- 팀으로 나눌 때 → `$teamleader` (팀장 탭에서만)
+
+## 팀 (마당)
+- 기본은 탭 하나(단일 모드). 계획 후 서로 다른 파일 영역의 독립 태스크가 2개 이상이면 `$teamleader`로 나눈다.
+- 팀원: 번뜩(solver, 깊이) · 몽글(builder, 넓이) · 슥슥(sketcher, 시안) · 조잘(narrator, 해설·읽기 전용) — `.codex/agents/*.toml`
+- 신호 파일: `.team/briefs/<인스턴스>.md` → `.team/confirm/<인스턴스>.request.md` → `reply.md`(APPROVE/FIX). 대기는 사람이 탭을 돌며 깨운다.
+- 허브 문서 `.team/TASKS.md`·`.team/PROGRESS.md`는 팀장만 고친다.
+
 ## 효율
 - 같은 요청을 반복하지 않는다. 두 번 실패하면 멈추고 가설을 다시 세운다.
 - 필요한 파일만 읽는다. 큰 출력은 요약해서 본다.
+- sleep·폴링 루프로 기다리지 않는다(백그라운드 확인 반복이 토큰을 태운다).

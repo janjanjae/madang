@@ -2,6 +2,13 @@
 
 **역할이 다른 여러 에이전트가 동시에 뛰고, 파일 신호로 조율되고, 그 상태가 눈에 보이는 Claude Code 팀.**
 
+> **Codex로 쓰기** — 작업 공간 루트에서 두 줄:
+> ```bash
+> git clone https://github.com/janjanjae/madang /tmp/madang
+> bash /tmp/madang/codex/install.sh --restricted   # 감독·폐쇄 환경용. 기본판은 옵션 없이
+> ```
+> `/tmp`는 작업 공간 밖이라 IDE 파일 트리에 안 보일 수 있다 — 문서는 `cat /tmp/madang/codex/README.md`로 보거나 Codex에게 "/tmp/madang/codex/README.md 읽고 설치해줘"라고 시킨다. 상세: [`codex/README.md`](codex/README.md)
+
 ![마당 워커 오버레이 — 번뜩·몽글·슥슥의 상태가 바뀌는 모습](claude/assets/hero.gif)
 
 터미널 탭마다 페르소나를 가진 에이전트 세션을 띄우고(팀장 1 + 팀원 N), 브리프·컨펌을 파일로 주고받는 **탭 모드** 협업 시스템이다. 각 탭이 지금 뭘 하는지는 화면 위의 워커 오버레이(마당)가 보여준다 — 호박(컨펌 대기·논의)은 팀장이 처리하면 되는 상태, 적(사용자 대기)은 사용자 본인만 풀 수 있는 상태, 눈을 뜨고 있으면(안광 유지) 깨어서 활동 중, 눈 감음은 쉼이다.
@@ -105,7 +112,7 @@ claude/
 plans/                  # 감사 리포트·설계 스냅샷 (결론은 DIRECTION으로 승격)
 copilot/
   skills/sync_claude_team/   # Claude → Copilot 단방향 설정 동기화 (manifest 기반 의미 번역)
-codex/                  # Codex CLI 어댑터 — 작업 습관 스킬 4종 + AGENTS.md 템플릿 + 탭 모드 라이트
+codex/                  # Codex판 마당 — 팀장 스킬·팀원 4종(TOML)·훅·작업 습관 스킬·install.sh
 install.sh              # ~/.claude 심링크 (~/.copilot은 있을 때만)
 CONTRIBUTING.md         # 커밋 규칙
 .githooks/              # commit-msg 강제
