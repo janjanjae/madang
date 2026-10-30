@@ -1,7 +1,7 @@
 # 마당 Codex판 — 처음부터 끝까지
 
 설치 직후 이 파일 하나만 보고 따라간다. 명령은 전부 **작업 공간 루트**에서 친다.
-다시 보기: `cat /tmp/madang/codex/START.md` · 앞부분만: `head -60 /tmp/madang/codex/START.md`
+설치 후 작업 공간의 `.codex/START.md`에 복사된다 — 에디터로 열거나 `cat .codex/START.md` · 앞부분만: `head -60 .codex/START.md`
 
 ---
 
@@ -133,6 +133,7 @@ ls -la                      # 필수 파일 경로·이름 확인
 | `.agents/skills/` 스킬 9개 (teamleader · solver · builder · sketcher · narrator · planning · incremental · debugging · verification) | 파일 단위로 건너뜀 |
 | `.codex/agents/` solver · builder · sketcher · narrator `.toml` | 건너뜀 |
 | `.codex/hooks.json` · `.codex/hooks/madang_hook.py` | 건너뜀 |
+| `.codex/START.md` (이 문서) | 건너뜀 |
 | `.codex/madang-restricted` (`--restricted` 때만, push 차단 표식) | 건너뜀 |
 | `.team/TASKS.md` · `.team/PROGRESS.md` | 건너뜀 |
 | `.team/briefs/` `confirm/` `reports/` `plans/` 빈 폴더 | 그대로 둠 (`mkdir -p`) |

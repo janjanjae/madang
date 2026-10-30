@@ -7,7 +7,7 @@ bash /tmp/madang/codex/install.sh --restricted   # 감독·폐쇄 환경용. 기
 
 작업 공간 **루트**에서 실행한다. `/tmp`는 작업 공간 밖이라 IDE 파일 트리에 안 보일 수 있다 — 이 문서는 `cat /tmp/madang/codex/README.md`로 보거나, Codex에게 "/tmp/madang/codex/README.md 읽고 설치해줘"라고 시킨다.
 설치 후 **codex를 다시 켠다**(`exit` → `codex`). 스킬·에이전트·AGENTS.md는 세션 시작 때 읽힌다.
-**설치 후 순서·명령 모음: [`START.md`](START.md)** (`cat /tmp/madang/codex/START.md`)
+**설치 후 순서·명령 모음: [`START.md`](START.md)** (`cat .codex/START.md` (설치가 작업 공간에 복사))
 
 Claude Code판 마당과 **같은 팀(도담·번뜩·몽글·슥슥·조잘), 같은 파일 신호, 같은 작업 규율**을 Codex CLI 기능으로 옮긴 판이다.
 
