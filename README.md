@@ -7,7 +7,7 @@
 > git clone https://github.com/janjanjae/madang /tmp/madang
 > bash /tmp/madang/codex/install.sh --restricted   # 감독·폐쇄 환경용. 기본판은 옵션 없이
 > ```
-> `/tmp`는 작업 공간 밖이라 IDE 파일 트리에 안 보일 수 있다 — 문서는 `cat /tmp/madang/codex/README.md`로 보거나 Codex에게 "/tmp/madang/codex/README.md 읽고 설치해줘"라고 시킨다. 상세: [`codex/README.md`](codex/README.md)
+> `/tmp`는 작업 공간 밖이라 IDE 파일 트리에 안 보일 수 있다 — 문서는 `cat /tmp/madang/codex/README.md`로 보거나 Codex에게 "/tmp/madang/codex/README.md 읽고 설치해줘"라고 시킨다. 설치 후 순서·명령 모음: `cat /tmp/madang/codex/START.md` · 상세: [`codex/README.md`](codex/README.md)
 
 ![마당 워커 오버레이 — 번뜩·몽글·슥슥의 상태가 바뀌는 모습](claude/assets/hero.gif)
 

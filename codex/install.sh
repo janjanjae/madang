@@ -49,13 +49,26 @@ for f in "$SRC"/agents/*.toml; do put "$f" ".codex/agents/$(basename "$f")"; don
 put "$SRC/hooks/hooks.json" ".codex/hooks.json"
 put "$SRC/hooks/madang_hook.py" ".codex/hooks/madang_hook.py"
 
-# 4) AGENTS.md
-if [ -e AGENTS.md ]; then
-  echo "  건너뜀  AGENTS.md (이미 있음 — $SRC/AGENTS.md 에서 필요한 절만 옮기세요)"; skipped=$((skipped + 1))
-else
+# 4) AGENTS.md — 없으면 새로 만들고, 있으면 원본은 그대로 두고 맨 아래에 마당 블록만 덧붙인다
+madang_block() {
+  echo "<!-- madang:start -->"
+  echo "# 마당 규칙 (이 위의 과제 규칙·안내와 충돌하면 위가 우선)"
+  echo
+  sed '1{/^# AGENTS.md/d;}' "$SRC/AGENTS.md"
+  if [ "$RESTRICTED" = 1 ]; then echo; cat "$SRC/AGENTS.restricted.md"; fi
+  echo "<!-- madang:end -->"
+}
+if [ ! -e AGENTS.md ]; then
   cp "$SRC/AGENTS.md" AGENTS.md
-  [ "$RESTRICTED" = 1 ] && cat "$SRC/AGENTS.restricted.md" >> AGENTS.md
-  echo "  추가    AGENTS.md"; added=$((added + 1))
+  [ "$RESTRICTED" = 1 ] && { echo; cat "$SRC/AGENTS.restricted.md"; } >> AGENTS.md
+  echo "  추가    AGENTS.md (새로 만듦)"; added=$((added + 1))
+elif grep -q '<!-- madang:start -->' AGENTS.md || grep -q '^## 팀 (마당)' AGENTS.md; then
+  echo "  건너뜀  AGENTS.md (마당 규칙이 이미 들어 있음)"; skipped=$((skipped + 1))
+else
+  mkdir -p .codex
+  [ -e .codex/AGENTS.md.orig ] || cp AGENTS.md .codex/AGENTS.md.orig
+  { echo; madang_block; } >> AGENTS.md
+  echo "  덧붙임  AGENTS.md (기존 내용 유지, 맨 아래 madang 블록 추가 · 원본 백업 .codex/AGENTS.md.orig)"; added=$((added + 1))
 fi
 
 # 5) 팀 신호 폴더 + 허브 문서
@@ -71,8 +84,8 @@ if [ "$RESTRICTED" = 1 ]; then
     mkdir -p .codex; echo "madang --restricted: git push 차단" > .codex/madang-restricted
     echo "  추가    .codex/madang-restricted"; added=$((added + 1))
   fi
-  if [ -e AGENTS.md ] && ! grep -q '제한 환경 규칙' AGENTS.md; then
-    echo "  ⚠️  기존 AGENTS.md 에 제한 환경 규칙이 없습니다 — $SRC/AGENTS.restricted.md 를 붙이세요"
+  if ! grep -q '제한 환경 규칙' AGENTS.md; then
+    echo "  ⚠️  AGENTS.md 에 제한 환경 규칙이 없습니다 (이전 설치분) — Codex에게 $SRC/AGENTS.restricted.md 를 마당 블록에 붙여 달라고 하세요"
   fi
 fi
 
@@ -86,5 +99,6 @@ cat <<EOF
   3. /hooks 에서 madang 훅을 검토·신뢰한다 (신뢰 전에는 훅이 돌지 않는다 — 규칙은 AGENTS.md 로도 걸려 있다).
   4. AGENTS.md 의 과제별 칸(실행·테스트 명령, 포트)을 채운다.
   5. 혼자 진행하면 그대로, 팀으로 나눌 땐 \$teamleader. 팀원 탭은: codex → \$solver / \$builder / \$sketcher / \$narrator
-문서: cat $SRC/README.md
+
+▶ 처음부터 끝까지 순서·명령 모음:  cat $SRC/START.md
 EOF

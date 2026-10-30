@@ -17,7 +17,6 @@
    codex
    $builder
    ```
-   (훅으로 커밋 게이트까지 강제하려면 `MADANG_INSTANCE=builder codex` 로 띄운 뒤 `$builder` — 선택)
 
    | 팀원 | 인스턴스 | TOML |
    |---|---|---|
