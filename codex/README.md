@@ -43,7 +43,7 @@ Claude Code판 마당과 **같은 팀(도담·번뜩·몽글·슥슥·조잘), �
 
 **팀으로** — 계획을 세운 **뒤**, 서로 다른 파일 영역의 독립 태스크가 2개 이상일 때. 빠른 시작은 [`team-lite.md`](team-lite.md).
 - 팀장 탭: `$teamleader` → 브리프를 `.team/briefs/<인스턴스>.md`에 쓴다
-- 팀원 탭: `MADANG_INSTANCE=builder codex` → 첫 입력 `너는 몽글이다. .codex/agents/builder.toml 의 developer_instructions 를 따르고 .team/briefs/builder.md 브리프를 읽어라.`
+- 팀원 탭: `+` 새 터미널 → `codex` → `$builder` (번뜩 `$solver` · 슥슥 `$sketcher` · 조잘 `$narrator`). 훅으로 커밋 게이트까지 강제하려면 `MADANG_INSTANCE=builder codex`로 띄운 뒤 `$builder`.
 - 대기는 **사람이 깨운다**: 팀원 탭에 "브리프 확인해" / 팀장 탭에 "컨펌 왔나 봐" / 팀원 탭에 "reply 확인해"
 
 **서브에이전트로** — 탭을 열 만큼은 아닌 일회성 일. "solver 에이전트로 이 버그 근본 원인 찾아줘", "narrator 에이전트로 지금까지 만든 구조 설명해줘". `/subagents`로 스레드를 오간다. 서브에이전트마다 토큰이 따로 든다.

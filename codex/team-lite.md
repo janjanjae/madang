@@ -13,10 +13,11 @@
 1. **팀장 탭** (지금 탭): `$teamleader` → 태스크·파일 영역을 `.team/TASKS.md`에, 브리프를 `.team/briefs/<인스턴스>.md`에 쓰게 한다.
    예: 몽글 = `api/`, 슥슥 = `web/`. 공통 파일(설정·스키마·의존성 목록)은 한 명에게만.
 2. **팀원 탭** (`+`로 새 터미널, 탭 이름을 팀원 이름으로):
-   ```bash
-   MADANG_INSTANCE=builder codex
    ```
-   첫 입력: `너는 몽글이다. .codex/agents/builder.toml 의 developer_instructions 를 따르고 .team/briefs/builder.md 브리프를 읽어라.`
+   codex
+   $builder
+   ```
+   (훅으로 커밋 게이트까지 강제하려면 `MADANG_INSTANCE=builder codex` 로 띄운 뒤 `$builder` — 선택)
 
    | 팀원 | 인스턴스 | TOML |
    |---|---|---|

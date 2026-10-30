@@ -40,11 +40,8 @@ Claude판 마당과 같은 팀·같은 파일 신호를 쓴다. 다른 점은 �
 - 팀원은 최대 2~3명. 사람이 따라잡을 수 있는 수가 상한이다.
 - 🔑 **파일 영역을 겹치지 않게 나눈다** (예: 몽글 `api/`·`tests/api/`, 슥슥 `web/`). 같은 작업 폴더를 공유하므로 겹치면 서로 덮어쓴다. 공통 파일(설정·스키마·의존성 목록)은 한 명에게만 준다.
 - 팀원 탭 띄우기 (사람이 한다):
-  ```bash
-  MADANG_INSTANCE=builder codex
-  ```
-  첫 입력: `너는 몽글이다. .codex/agents/builder.toml 의 developer_instructions 를 따르고 .team/briefs/builder.md 브리프를 읽어라.`
-  (`MADANG_INSTANCE`가 있어야 커밋 게이트·허브 보호 훅이 그 탭을 팀원으로 알아본다.)
+  `+` 새 터미널 → `codex` → 첫 입력 `$builder` (번뜩 `$solver` · 슥슥 `$sketcher` · 조잘 `$narrator`).
+  커밋 게이트·허브 보호를 훅으로 강제하려면 `MADANG_INSTANCE=builder codex`로 띄운 뒤 `$builder` (선택 — 없으면 컨펌 규칙은 지시로만 지켜진다).
 
 **서브에이전트 호출** — 탭을 열 만큼은 아닌 일회성 일:
 - 두 번 실패한 버그 → "solver 에이전트로 이 버그 근본 원인 찾아줘" (번뜩)

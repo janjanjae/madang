@@ -85,6 +85,6 @@ cat <<EOF
   2. /skills 에 teamleader·planning-and-task-breakdown 등이 보이는지 확인한다.
   3. /hooks 에서 madang 훅을 검토·신뢰한다 (신뢰 전에는 훅이 돌지 않는다 — 규칙은 AGENTS.md 로도 걸려 있다).
   4. AGENTS.md 의 과제별 칸(실행·테스트 명령, 포트)을 채운다.
-  5. 혼자 진행하면 그대로, 팀으로 나눌 땐 \$teamleader. 팀원 탭은: MADANG_INSTANCE=builder codex
+  5. 혼자 진행하면 그대로, 팀으로 나눌 땐 \$teamleader. 팀원 탭은: codex → \$solver / \$builder / \$sketcher / \$narrator
 문서: cat $SRC/README.md
 EOF
