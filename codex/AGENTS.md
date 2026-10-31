@@ -38,7 +38,8 @@
 - 팀으로 나눌 때 → `$teamleader` (팀장 탭에서만)
 
 ## 팀 (마당)
-- 기본은 탭 하나(단일 모드). 계획 후 서로 다른 파일 영역의 독립 태스크가 2개 이상이면 `$teamleader`로 나눈다.
+- 기본은 팀장 탭(`$teamleader`)에서 plan.md를 쓰고 팀원 탭으로 나누는 탭 모드. 아주 작은 과제만 탭 하나(단일 모드).
+- 문서 역할: `plan.md` = 큰 계획·결정 로그(왜)·검증 결과·남은 한계 · `.team/TASKS.md` = 배정판(ID·담당·영역·상태) · `.team/PROGRESS.md` = 진행 로그(언제 무슨 일, 추가만). 같은 내용을 두 곳에 쓰지 않는다. 제출 문서 이름·틀은 과제 안내가 1순위.
 - 팀원: 번뜩(solver, 깊이) · 몽글(builder, 넓이) · 슥슥(sketcher, 시안) · 조잘(narrator, 해설·읽기 전용) — `.codex/agents/*.toml`
 - 신호 파일: `.team/briefs/<인스턴스>.md` → `.team/confirm/<인스턴스>.request.md` → `reply.md`(APPROVE/FIX). 대기는 사람이 탭을 돌며 깨운다.
 - 허브 문서 `.team/TASKS.md`·`.team/PROGRESS.md`는 팀장만 고친다.
