@@ -1,7 +1,7 @@
 # 마당 Codex판 — 처음부터 끝까지
 
 설치 직후 이 파일 하나만 보고 따라간다. 명령은 전부 **작업 공간 루트**에서 친다.
-설치 후 작업 공간의 `.codex/START.md`에 복사된다 — 에디터로 열거나 `cat .codex/START.md` · 앞부분만: `head -60 .codex/START.md`
+설치 후 작업 공간 루트의 `MADANG-START.md`(파일 트리에서 바로 열기)와 `.codex/START.md`에 복사된다 — `cat MADANG-START.md` · 앞부분만: `head -60 MADANG-START.md`
 
 ---
 
@@ -26,7 +26,7 @@ Codex 안에서:
 /status        모델·권한 확인
 /model         플래그십 모델 + 추론 강도 medium (계획·어려운 버그 때만 high)
 /hooks         madang 훅 검토 → 신뢰
-$              스킬 목록: teamleader · solver · builder · sketcher · narrator · 습관 4개
+$              스킬 목록: teamleader · solver · builder · sketcher · narrator · defense-drill · 습관 4개
 ```
 
 (선택) 낯선 라이브러리를 쓰는 과제면 IDE의 MCP 설정에 문서 검색 MCP 하나 — 기존 예시 형식에 맞춰 넣고 Codex 재시작:
@@ -46,15 +46,21 @@ git log --oneline -5       # 시작 커밋 확인
 - 애매한 요구사항은 모아 둔다 → 업무 담당자(실무자) 에이전트에게 **한 번에** 묻는다.
 - 과제에 원래 있던 `AGENTS.md`는 설치 때 그대로 두고 맨 아래에 madang 블록만 붙었다. 충돌하면 과제 규칙이 우선.
 
-## 3. 계획 (10~15분)
+## 3. 질문 → 기획서 → 코드 (20분)
 
-Codex에:
+① 문제 정의·반드시 될 것 3개·안 할 것을 **내가 먼저** plan.md에 몇 줄 쓴다. 의도가 기록에 남는다.
+
+② 질문 (최대 2라운드·10분) — Codex에:
 ```
 $teamleader 로 진행. README·과제 파일 읽고 AGENTS.md의 '과제별' 칸(실행·테스트 명령, 포트)을 채워줘.
-그리고 plan.md 에서 빠진 요구사항·위험·애매한 점을 지적해줘. 코드는 아직 짜지 마.
+그리고 내가 쓴 plan.md 기준으로 질문 라운드를 돌려줘. 코드는 아직 짜지 마.
 ```
-- 제출 문서(plan.md 등)에는 **판단 · 근거 · 검증 결과 · 남은 한계**가 들어가야 한다. Codex와 같이 써도 된다.
-- 문제 정의·반드시 될 것 3개·안 할 것은 내가 먼저 몇 줄 쓰고 Codex가 보강하게 하면 의도가 기록에 남는다.
+- 내 판단이 필요한 질문은 권장안과 함께 나온다. 동의하면 "응", 아니면 내 말로 답한다.
+- 업무 담당자용 질문 목록이 나오면 메신저에 **한 번에** 붙여넣고, 답을 Codex에 전달한다.
+
+③ 기획서 (5~10분) — Codex가 답을 plan.md로 합성한다. 제출 문서(plan.md 등)에는 **판단 · 근거 · 검증 결과 · 남은 한계**가 들어가야 한다.
+
+④ 태스크의 크기와 순서를 내가 확인하고 **승인한 뒤에** 코드로 넘어간다.
 
 ## 4. 나눌지 정하기
 
@@ -102,32 +108,45 @@ git add -A && git commit -m "feat: <무엇을> — <왜>"   # 작은 단위 커�
 git log --oneline -10                  # 커밋 기록
 ```
 - 같은 에러에 두 번 실패 → `$debugging-and-error-recovery` → 그래도 안 되면 solver(번뜩).
+- 태스크를 승인할 때 Codex가 묻는 "왜 이렇게 했어요?"에 **내 말로 한 줄** 답한다. 결정 로그에 남고 8번 서술형의 재료가 된다.
 - 매 시 정각쯤 `/status`로 토큰 확인 + plan.md 결정 로그 한 줄.
 - 서버가 안 뜰 때 순서: 터미널 에러 → 실제 포트 → `0.0.0.0` 바인딩 → 경로.
 
-## 6. 기능 동결 → 검증 (마감 55분 전)
+## 6. 기능 동결 → 검증 · 제출 문서 (작업 타이머 잔여 45분~30분)
+
+시간은 전부 **180분 작업 타이머의 잔여 시간** 기준이다. Codex는 타이머를 못 보니 내가 챙긴다.
 
 ```
 $verification-before-completion 로 지금까지 만든 것 검증해줘. 테스트·엣지 케이스·입력 검증·키 노출 확인하고 실제 출력 보여줘.
 ```
 - 새 기능은 그만. README에 실행 방법(설치·실행·테스트 명령, 포트) 정리.
-
-## 7. 제출 문서 (마감 30분 전)
-
+- plan.md `가정`을 한 번 훑는다. 틀린 가정은 작으면 팀장 탭에서 지금 고치고, 크면 `남은 한계`에 적는다.
 ```
 plan.md 에 판단·근거·검증 결과·남은 한계를 정리해줘. 결정 로그는 시간순으로.
-narrator(조잘)로 지금까지 만든 구조와 내가 내린 결정을 설명해줘.
 ```
-- 조잘의 설명은 후속 질문 대비로 읽는다 (그 단계는 AI 없이 직접 답한다).
+- 문서를 먼저 끝낸다. 서술형 문항은 제출물과 작업 기록으로 만들어지고, 다음 단계의 재료도 이 문서다.
 
-## 8. 제출 (마감 15분 전 시작)
+## 7. 이해 세션 (잔여 30분~5분, 25분)
+
+`+` 새 터미널 → `codex` → 첫 입력:
+```
+$defense-drill
+```
+- 한 문항씩 받아 **코드를 보지 않고 내 말로 친다.** Codex가 고쳐 주면 다시 말한다.
+- 이 세션에서는 코드를 고치지 않는다. 드러난 문제는 plan.md `남은 한계`에 적힌다.
+- 치명적인 문제(실행이 안 됨, 필수 요구사항 누락)만 팀장 탭에서 고치고 다시 확인한다. 나머지는 `남은 한계`에 둔다.
+- 시간이 밀렸으면 잔여 5분에 끊고 제출로 넘어간다. 세션을 위해 제출을 미루지 않는다.
+
+## 8. 제출 → 서술형 (잔여 5분에 점검, 1분 전까지 확정)
 
 ```bash
 git status --short          # 커밋 안 된 변경 확인
 git log --oneline -10
 ls -la                      # 필수 파일 경로·이름 확인
 ```
-- 에디터 저장 상태가 "저장됨"인지 확인 → 제출.
+- 에디터 저장 상태가 "저장됨"인지 확인 → "제출하고 문제풀기" → 미리보기 → "제출물 확정하고 문제풀기". 🔴 확정하면 파일을 고칠 수 없고 **이후 AI 사용 금지**.
+- 문제 준비 대기 후 **문항당 5분씩**, 직접 입력(복사·붙여넣기 불가). 확정한 답은 고칠 수 없다.
+- 답안 틀: **결론 1줄 → 근거 → 한계나 대안**. 시간이 끝나면 입력한 만큼 자동 확정되니 결론부터 친다.
 - 질문의 전제가 실제 구현과 다르면 그 차이부터 밝히고 내 작업을 설명한다.
 
 ---
@@ -136,10 +155,10 @@ ls -la                      # 필수 파일 경로·이름 확인
 
 | 경로 | 이미 있으면 |
 |---|---|
-| `.agents/skills/` 스킬 9개 (teamleader · solver · builder · sketcher · narrator · planning · incremental · debugging · verification) | 파일 단위로 건너뜀 |
+| `.agents/skills/` 스킬 10개 (teamleader · solver · builder · sketcher · narrator · defense-drill · planning · incremental · debugging · verification) | 파일 단위로 건너뜀 |
 | `.codex/agents/` solver · builder · sketcher · narrator `.toml` | 건너뜀 |
 | `.codex/hooks.json` · `.codex/hooks/madang_hook.py` | 건너뜀 |
-| `.codex/START.md` (이 문서) | 건너뜀 |
+| `MADANG-START.md` · `.codex/START.md` (이 문서) | 건너뜀 |
 | `.codex/madang-restricted` (`--restricted` 때만, push 차단 표식) | 건너뜀 |
 | `.team/TASKS.md` · `.team/PROGRESS.md` | 건너뜀 |
 | `.team/briefs/` `confirm/` `reports/` `plans/` 빈 폴더 | 그대로 둠 (`mkdir -p`) |
