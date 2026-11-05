@@ -51,6 +51,7 @@ put "$SRC/hooks/madang_hook.py" ".codex/hooks/madang_hook.py"
 
 # 3-1) 사람이 볼 순서·명령 모음 (IDE 파일 트리에서 바로 열 수 있게)
 put "$SRC/START.md" ".codex/START.md"
+put "$SRC/START.md" "MADANG-START.md"
 
 # 4) AGENTS.md — 없으면 새로 만들고, 있으면 원본은 그대로 두고 맨 아래에 마당 블록만 덧붙인다
 madang_block() {
@@ -103,5 +104,5 @@ cat <<EOF
   4. AGENTS.md 의 과제별 칸(실행·테스트 명령, 포트)을 채운다.
   5. 혼자 진행하면 그대로, 팀으로 나눌 땐 \$teamleader. 팀원 탭은: codex → \$solver / \$builder / \$sketcher / \$narrator
 
-▶ 처음부터 끝까지 순서·명령 모음:  .codex/START.md (에디터로 열기 · cat .codex/START.md)
+▶ 처음부터 끝까지 순서·명령 모음:  MADANG-START.md (파일 트리에서 열기 · cat MADANG-START.md)
 EOF

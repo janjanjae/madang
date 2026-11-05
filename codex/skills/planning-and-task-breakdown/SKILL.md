@@ -1,6 +1,6 @@
 ---
 name: planning-and-task-breakdown
-description: Breaks work into ordered, verifiable tasks and writes plan.md. Use when you have a spec or clear requirements and need to break work into implementable tasks, when a task feels too large or vague to start, when you need to estimate scope, or when parallel work is possible.
+description: Runs question rounds, then writes plan.md and breaks work into ordered, verifiable tasks — questions, then spec, then code. Use when you have a spec or clear requirements and need to break work into implementable tasks, when a task feels too large or vague to start, when you need to estimate scope, or when parallel work is possible.
 ---
 
 # Planning and Task Breakdown
@@ -24,7 +24,7 @@ description: Breaks work into ordered, verifiable tasks and writes plan.md. Use 
 
 - 요구사항·README·안내 문서를 **끝까지** 읽는다.
 - 필수 제출물·필수 기능 vs 선택 기능을 목록으로 가른다.
-- 애매한 점은 추측으로 메우지 말고 **모아서 한 번에** 질문한다. 답을 못 받으면 가정으로 적고 진행한다.
+- 사람이 먼저 쓴 몇 줄(문제·반드시 될 것·안 할 것)이 있으면 그것에서 출발한다.
 
 ### Step 1: 읽기 전용 단계
 
@@ -34,6 +34,29 @@ description: Breaks work into ordered, verifiable tasks and writes plan.md. Use 
 - 위험 요소와 미확인 사항 기록
 
 **계획 단계에서 코드를 쓰지 않는다.** 출력물은 plan.md.
+
+### Step 1.5: 질문 라운드 (코드·계획 확정 전)
+
+질문을 셋으로 가른다:
+
+| 종류 | 누가 답하나 | 어떻게 |
+|---|---|---|
+| 사실 (파일·환경·기존 코드) | 에이전트 | 직접 읽는다. 사람에게 묻지 않는다. 서브에이전트를 쓰지 않는다 |
+| 업무 맥락 (요구사항의 뜻, 우선순위) | 업무 담당자 | 사람이 **한 번에 붙여넣을 목록**으로 출력한다. 답을 못 받으면 가정으로 적는다 |
+| 판단 (범위·트레이드오프·방식) | 사람 | 아래 라운드로 묻는다 |
+
+**지금 답할 수 있는 결정만** 묻는다. 다른 질문의 답에 따라 달라지는 질문은 다음 라운드로 미룬다.
+
+```
+❓ Q1 - <제목>: <질문. 선택지가 있으면 함께>
+➡️ 권장: <답> — 이유 한 줄 / 버린 대안: <대안>
+
+❓ Q2 - ...
+```
+
+- "응"이면 권장안을 채택하도록 묻는다.
+- 🔴 **최대 2라운드·10분, 라운드당 5문까지.** 남은 것은 권장안을 가정으로 적고 넘어간다.
+- 사람의 답과 버린 대안은 plan.md 구현 결정으로 옮긴다. 나중에 왜 그렇게 했는지 설명할 재료다.
 
 ### Step 2: 의존성 그래프
 
@@ -63,7 +86,7 @@ description: Breaks work into ordered, verifiable tasks and writes plan.md. Use 
 **Verification:**
 - [ ] 테스트 통과: <AGENTS.md의 테스트 명령>
 - [ ] 직접 확인: <브라우저·curl로 볼 것>
-**Dependencies:** Task 번호 또는 None
+**Blocked by:** 먼저 끝나야 하는 Task 번호 또는 None
 **Estimated scope:** XS(1파일) / S(1-2) / M(3-5) / L(5-8) / XL(8+ → 더 쪼갤 것)
 ```
 
@@ -74,6 +97,12 @@ description: Breaks work into ordered, verifiable tasks and writes plan.md. Use 
 - 2-3개 태스크마다 체크포인트: 테스트 통과·빌드 클린·핵심 흐름 동작
 - **시간 상자가 있으면** 태스크마다 대략의 시간을 붙이고, 필수 범위가 먼저 끝나도록 선택 기능은 뒤로
 
+### Step 6: plan.md 합성 → 사람 승인
+
+- 새로 인터뷰하지 않는다. 지금까지 읽은 것과 답을 아래 템플릿으로 합성한다.
+- 태스크 목록을 보여 주고 확인받는다: 크기가 맞나 · 막는 관계가 맞나 · 합치거나 쪼갤 것이 있나.
+- 🔴 **사람이 승인하기 전에는 코드도 브리프도 쓰지 않는다.**
+
 ## plan.md 템플릿
 
 ```markdown
@@ -83,25 +112,29 @@ description: Breaks work into ordered, verifiable tasks and writes plan.md. Use 
 - 누구의 어떤 문제를 푸나 (한두 줄)
 - 필수 범위 / 선택 범위 / 이번에 안 하는 것
 
+## 사용자 스토리 (3~7개)
+1. <누가>는 <무엇을> 하고 싶다, <왜>
+
 ## 가정
 - [확인 못 한 것을 어떻게 가정했나]
 
-## 아키텍처 결정
-- [결정 + 근거 한 줄]
+## 구현 결정
+- [결정] — 근거 / 버린 대안
 
 ## 태스크
 - [ ] Task 1: ... (검증: ...)
 - [ ] Task 2: ...
 ### 체크포인트: 핵심 흐름 동작
 
-## 검증 방법
+## 검증 방법 (테스트 결정)
 - 테스트 명령 / 직접 확인할 시나리오 / 엣지 케이스
+- 내부 구현이 아니라 밖에서 보이는 동작을 확인한다
 
 ## 위험
 | 위험 | 영향 | 완화 |
 
 ## 결정 로그 (작업하며 추가)
-- HH:MM 무엇을 왜 바꿨나
+- HH:MM 결정 — 왜(사람의 말 그대로) / 버린 대안
 
 ## 남은 한계
 - 시간 안에 못 한 것·알려진 문제
@@ -110,6 +143,7 @@ description: Breaks work into ordered, verifiable tasks and writes plan.md. Use 
 ## Red Flags
 
 - 태스크 목록 없이 구현 시작
+- 사람의 plan.md 승인 없이 구현 시작
 - 인수 기준·검증 단계 없는 태스크
 - 모든 태스크가 XL
 - 체크포인트 없음, 의존성 순서 무시
@@ -118,6 +152,8 @@ description: Breaks work into ordered, verifiable tasks and writes plan.md. Use 
 ## Verification
 
 구현 시작 전:
+- [ ] 질문 라운드를 돌았고 답·가정이 plan.md에 있다
+- [ ] 사람이 plan.md를 승인했다
 - [ ] 문제 정의·필수/선택 범위가 plan.md에 있다
 - [ ] 모든 태스크에 인수 기준과 검증 단계가 있다
 - [ ] 의존성 순서가 맞다, 태스크당 파일 5개 이하
