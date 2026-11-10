@@ -20,7 +20,7 @@ Claude Code판 마당과 **같은 팀(도담·번뜩·몽글·슥슥·조잘), �
 | `.agents/skills/incremental-implementation/` | `skills/…` | 슬라이스 단위 구현 + 최소코드 사다리 |
 | `.agents/skills/debugging-and-error-recovery/` | `skills/…` | 재현 → 원인 → 수정 → 회귀 테스트 |
 | `.agents/skills/verification-before-completion/` | `skills/…` | 증거 없는 완료 주장 금지 (superpowers 원본) |
-| `.agents/skills/defense-drill/` | `skills/…` | 제출 직전 내 작업을 내 말로 설명하는 연습 (`$defense-drill`, 코드 수정 없음) |
+| `.agents/skills/defense-drill/` | `skills/…` | 제출 직전 이해 질문 + 모범 답안을 우선순위 순으로 하나씩 (`$defense-drill`, 코드 수정 없음) |
 | `.codex/agents/solver.toml` | `agents/` | 번뜩 — 깊이 (어려운 문제 하나, 2회 실패 버그) |
 | `.codex/agents/builder.toml` | `agents/` | 몽글 — 넓이 (같은 모양의 독립 태스크 여러 개) |
 | `.codex/agents/sketcher.toml` | `agents/` | 슥슥 — 시안 (UI를 코드로 만들고 미리보기로 확인) |
