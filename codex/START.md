@@ -26,7 +26,7 @@ Codex 안에서:
 /status        모델·권한 확인
 /model         플래그십 모델 + 추론 강도 medium (계획·어려운 버그 때만 high)
 /hooks         madang 훅 검토 → 신뢰
-$              스킬 목록: teamleader · solver · builder · sketcher · narrator · defense-drill · 습관 4개
+$              스킬 목록: teamleader · solver · builder · sketcher · narrator · defense-drill · checkpoint · 습관 4개
 ```
 
 (선택) 낯선 라이브러리를 쓰는 과제면 IDE의 MCP 설정에 문서 검색 MCP 하나 — 기존 예시 형식에 맞춰 넣고 Codex 재시작:
@@ -112,7 +112,7 @@ git log --oneline -10                  # 커밋 기록
 - 같은 에러에 두 번 실패 → `$debugging-and-error-recovery` → 그래도 안 되면 solver(번뜩).
 - 태스크를 승인할 때 Codex가 묻는 "왜 이렇게 했어요?"에 **내 말로 한 줄** 답한다. 결정 로그에 남고 8번 서술형의 재료가 된다.
 - 매 시 정각쯤 `/status`로 토큰 확인 + plan.md 결정 로그 한 줄 + 팀장 탭에 "지금 HH:MM"이라고 말해 다음 체크포인트까지 남은 시간 받기.
-- 팀장 탭 컨텍스트가 절반을 넘었거나 단계가 바뀌면 → 팀장 탭에 "체크포인트" → 안내대로 `/new` → `$teamleader 이어서. plan.md·.team/TASKS.md·.team/PROGRESS.md 읽고 이어가`.
+- 팀장 탭 컨텍스트가 절반을 넘었거나 단계가 바뀌면 → 팀장 탭에 `$checkpoint` → 안내대로 `/new` → `$teamleader 이어서. plan.md·.team/TASKS.md·.team/PROGRESS.md 읽고 이어가`.
 - 서버가 안 뜰 때 순서: 터미널 에러 → 실제 포트 → `0.0.0.0` 바인딩 → 경로.
 
 ## 6. 기능 동결 → 검증 · 제출 문서 (작업 타이머 잔여 45분~30분)
@@ -158,7 +158,7 @@ ls -la                      # 필수 파일 경로·이름 확인
 
 | 경로 | 이미 있으면 |
 |---|---|
-| `.agents/skills/` 스킬 10개 (teamleader · solver · builder · sketcher · narrator · defense-drill · planning · incremental · debugging · verification) | 파일 단위로 건너뜀 |
+| `.agents/skills/` 스킬 11개 (teamleader · solver · builder · sketcher · narrator · defense-drill · checkpoint · planning · incremental · debugging · verification) | 파일 단위로 건너뜀 |
 | `.codex/agents/` solver · builder · sketcher · narrator `.toml` | 건너뜀 |
 | `.codex/hooks.json` · `.codex/hooks/madang_hook.py` | 건너뜀 |
 | `MADANG-START.md` · `.codex/START.md` (이 문서) | 건너뜀 |

@@ -128,12 +128,8 @@ ls -lat .team/confirm/ .team/reports/ 2>/dev/null | head -20
 
 ## 체크포인트 (긴 세션 이어가기)
 
-긴 작업에서 팀장 탭의 컨텍스트가 차기 전에 상태를 파일로 옮겨 두면, 새 세션이 그 파일만 읽고 이어갈 수 있다.
-- 언제: 사람이 "체크포인트"라고 할 때 · 단계가 바뀔 때(기획서 승인 → 구현, 동결 직전) · 사람이 `/status`를 보고 컨텍스트가 절반을 넘었다고 할 때.
-- 무엇: plan.md 태스크 체크(`[x] … (<SHA>)`)와 `.team/TASKS.md` 상태를 현행화하고, `.team/PROGRESS.md` 맨 아래에 추가한다:
-  `- HH:MM CHECKPOINT 진행 중: <T번호·담당> / 다음: <할 일> / 미결: <사람 판단 필요한 것> / 종료·동결: <시각>`
-- 그다음 사람에게 안내: "`/new` 후 `$teamleader 이어서. plan.md·.team/TASKS.md·.team/PROGRESS.md 읽고 이어가`". 팀원 탭은 건드리지 않는다.
-- 자동 compact가 있으니 매번 할 필요는 없다. 체크포인트는 compact가 요약을 잘못해도 잃지 않을 상태를 파일에 남기는 것이다.
+컨텍스트가 절반을 넘었거나 단계가 바뀌면(기획서 승인 → 구현, 동결 직전, 점심 전) 사람에게 `$checkpoint`를 권한다. 절차는 그 스킬에 있다.
+- 새 세션에서 "이어서"로 시작하면: 시작 절차 1~2 대신 `plan.md`·`.team/TASKS.md`·`.team/PROGRESS.md`의 마지막 `CHECKPOINT`를 읽고, 미처리 request부터 본다.
 
 ## 허브 문서 틀
 
